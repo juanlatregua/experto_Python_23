@@ -1,0 +1,236 @@
+<meta charset="utf-8">
+**02EPPY - 001 - Introducción**
+    <small>©2022 VIU - 02EPPY Introducción a la Programación de Videojuegos - Iván Fuertes</small>
+
+# Introducción
+
+Desde el inicio de los tiempos, el hombre siempre ha jugado a juegos. Probablemente uno de los juegos más antiguos del que se tiene noticia es el juego de las Tabas, donde unos huesos de las patas traseras del cordero (cuyas caras tienen formas distintas) se lanzan a modo de dados y se realizan apuestas sobre el resultado del lanzamiento. Otro de los considerados primeros juegos documentados (previo al 2600 a.C.) es el juego real de Ur, que ya era un juego de mesa, con un tablero, fichas, dados y para dos jugadores, no se conocen los detalles de las reglas del juego, pero se estima que sería algo similar a los actuales parchís y backgammon.
+
+![Figure [res/100_000]: Juego Real de Ur](res/100_000.png)
+
+¿Porque la gente está tan interesada en los juegos? Hay muchas razones, la necesidad de mantener la mente ocupada durante periodos de inactividad, un interés en establecer contactos sociales, o un deseo de logro o hazaña,... Sea cual sea, los juegos siempre han sido una parte de las sociedades humanas.
+
+La palabra juego debería ser definida de una manera que nos conduzca a un diseño práctico y no sobre asuntos filosóficos. Se puede empezar definiendo un juego como una actividad donde la gente participa voluntariamente. Un juego es una actividad estructurada, tiene reglas y al menos un objetivo, y debería involucrar alguna variación o azar. Algunos juegos simples, como el juego de la oca, son puramente juegos de azar, sin ningún tipo de estrategia o decisión consciente del jugador. Estos juegos suelen ser jugados por niños, muchas veces como una introducción a los juegos. La mayoría de los juegos tienen algún componente de azar y algún otro de habilidad del jugador, con lo cual, estos jugadores desarrollan con el tiempo una estrategia para jugar y mejorar sus resultados. Juegos como el ajedrez tienen muy poca noción de azar, simplemente quien es el jugador que mueve primero, a partir de ese momento, todo se rige por la estrategia y las habilidades de cada jugador.
+
+Un juego es entretenimiento, y pese a eso muchas veces las sensaciones que un juego produce sobre los jugadores no siempre son sensaciones positivas, puesto que el juego debe empujar al jugador a continuar jugando de alguna manera interesante.
+
+Los juegos usan la aceptación mutua del hecho de que lo que está ocurriendo durante su transcurso no tiene ramificaciones en el mundo real. Mientras el juego se está jugando, los jugadores participan según las reglas establecidas para ese juego, y no según las reglas del mundo o la sociedad. También se usan para enseñar, esto sucede muy a menudo en el reino animal, donde, por ejemplo, los gatos aprenden a capturar presas jugando entre ellos. Esto parece contradecirse con la regla de que no haya consecuencias, pero siempre se cumple que jugar a un juego frecuentemente hace que el jugador mejore sus habilidades, y más tarde, esas habilidades se transfieran al mundo real.
+
+Hay varios tipos generales de juegos. Los juegos de movimiento suelen ser jugados al aire libre, como el juego de pillar o el escondite, incluso algunos deportes podrían incluirse en esta categoría. Los juegos de mesa usan un conjunto de objetos o piezas que se colocan sobre una superficie de juego, un tablero, y normalmente el juego se realiza por turnos entre los diferentes jugadores. Los juegos de cartas usan una colección de tarjetas de papel que están marcadas de alguna manera, suelen ser repartidas de manera aleatoria, y a través de una serie de reglas se agrupan por valor, igualmente los juegos de dados entran en esta categoría. También existen juegos de palabras o matemáticos, que se pueden jugar usando papel y lápiz o ni siquiera eso.
+
+En general hay muchos tipos de juegos, pero uno que ha aparecido y se ha desarrollado en las últimas décadas son los videojuegos. No son simplemente implementaciones de juegos comunes para ordenador, sino que usan las características específicas de los ordenadores para atraer al jugador. Entre ellas, la habilidad de realizar millones de operaciones por segundo, sistemas multimedia con imágenes y sonido, y muchas maneras distintas de aceptar la participación del jugador. Esto significa que un ordenador puede mostrar imágenes y reproducir sonidos bajo el control de un usuario o jugador. Los objetos no existen realmente salvo como imágenes en una pantalla, pueden moverse e interactuar con otros objetos virtuales y el propio jugador. Esto abre un abanico de nuevas posibilidades.
+
+Se estima que más del 70% de la población mundial ha jugado a un videojuego. Lo que esos jugadores saben sobre los videojuegos varía mucho, pero hay cierto conocimiento común acerca de las reglas habituales que es global, qué botones pulsar, formas de jugar (cuando saltar, cuando ocultarse),... Pero pocos de ellos conocen como funcionan los videojuegos a nivel de implementación, las acciones internas del juego son un misterio para la mayoría.
+
+# Mundo Virtual
+El término virtual viene a significar *casi*. El mundo virtual nos muestra una forma de realidad que no es real, pero lo parece. Los videojuegos modernos suelen presentar una vista del juego en tres dimensiones y permiten al jugador navegar por ese espacio, encontrando otros personajes u objetos. Idealmente, los juegos contienen personajes complejos y situaciones realistas que permiten interactuar con ellos de manera natural, y cada vez más se aproximan más a lo que podemos considerar como comportamientos reales.
+
+Los juegos se pueden considerar como simulaciones, son programas de ordenador que presentan una vista realista de un mundo virtual no existente, pero un mundo que tiene las mismas o similares leyes que el mundo real. Incluyen gravedad, tiempo, velocidad, contacto físico, sonidos, e incluso reacciones humanas. Todos esos aspectos del mundo virtual deben ser simulados por el programa que implementa el juego. Cuando un personaje suelta un objeto, el objeto cae al suelo porque el software describe ese proceso. Cuando un objeto golpea el suelo, el programa reproduce un efecto de sonido, porque se debería producir un sonido con el impacto en el mundo real. No hay nada que pase en un videojuego sin que haya sido programado.
+
+Cuando dos personas juegan a las cartas en el mundo real, está muy claro como se implementa el juego, se monta el tablero, se reparten las cartas, y se juega de manera natural. Un videojuego, por otro lado, tiene una implementación subyacente realmente compleja. La naturaleza de un mundo virtual da una idea de lo que se necesita, un videojuego necesita lo mismo que una realidad virtual:
+- un dispositivo para mostrar gráficos (pantalla)
+- un dispositivo para reproducir sonidos (altavoces)
+- una manera de comunicar los movimientos del jugador al ordenador (joystick, teclado,...)
+- una manera en la cual el ordenador pueda recordar cosas y hacer movimientos
+
+Viendo lo que la gente sabe sobre los juegos, se puede inferir una estructura interna. Existen un conjunto de reglas que de alguna manera todos los videojuegos suelen implementar. El conocimiento de los jugadores acerca del interfaz de usuario implica también un nivel de consistencia. Por ejemplo, los cursores en un teclado, o las teclas *WASD*, se suelen usar para mover al personaje dentro del videojuego, pero no otro conjunto de teclas, resultaría extraño manejar al jugador con la combinación de teclas *TVAL*, con lo cual se verifica que existen unas convenciones para los interfaces de usuario. Las pantallas muestran imágenes que se mueven, y las acciones del juego producen sonidos que el jugador puede oir y usar como señales. Así, un videojuego debe ser capaz de mostrar imágenes y reproducir sonidos, y hacerlo en respuesta a los comandos del usuario o eventos internos del juego.
+
+Por otro lado, lo que se necesita saber para diseñar y construir un videojuego original es mucho más que eso. Se puede aprender mucho observando un juego desde el exterior. Los juegos son sistemas complejos que involucran dispositivos físicos y software, arte (texturas, modelos 3D), música, efectos de sonido, video, animaciones, narrativa y una estructura diseñada para jugar. Actualmente hay muchos videojuegos exitosos, técnicas y herramientas que suelen ayudar a un desarrollador de videojuegos en su tarea que han evolucionado en las últimas décadas. Si se pretende desarrollar un videojuego es interesante conocer tantas como sea posible.
+
+# Géneros
+
+Los videojuegos se pueden clasificar según como se juegan mejor que la temática del juego en sí, como se hace en los juegos en general. Un género se define por el tipo de reto que el juego ofrece al jugador, y no tanto por la historia que presenta. Los juegos dentro de un género no tienen porque compartir los mismos sitios, los mismos periodos de tiempo, o incluso el mismo estilo gráfico. No todos los juegos tienen una alta calidad gráfica, son inmersivos (realidad virtual) o son en tiempo real, de hecho cada género tiene un estilo de presentación favorito.
+
+## Estrategia
+Estos juegos le dan al jugador casi toda la información del estado actual de la partida. Planificando, posicionando o moviendo sus objetos, el jugador se enfrenta a otros objetos controlados por la máquina o por otro jugador. Estos objetos tienen unas determinadas habilidades dentro del juego, y usándolos inteligentemente contra el resto de objetos el jugador consigue un objetivo, que suele ser la dominación del resto de jugadores. Suele existir un sistema de economía mediante el cual el jugador puede comprar o mejorar objetos. Suelen representarse con un punto de vista cenital sobre el área de juego.
+
+Algunos subgéneros pueden ser los juegos de *tower defense*, en los cuales el jugador dispone unas defensas estáticas a lo largo de un camino por donde circulan los enemigos, o los de estrategia de tiempo real, en los cuales los jugadores toman decisiones en tiempo real contra un estado de juego dinámico. Ejemplos, *StarCraft*, *Age of Empires*, *Warcraft*, *Civilization*,...
+
+![Figure [res/100_001]: Age of Empires](res/100_001.png)
+
+## Deportes
+Los juegos de deportes son fáciles de entender, puesto que reflejan una actividad ampliamente conocida, como son los deportes en el mundo real. Cualquier deporte puede ser convertido en un videojuego. Los juegos de golf usan el teclado y ratón para permitir al jugador manejar un golfista en un campo, los juegos de equipo, como el fútbol o baloncesto ofrecen más variedad al jugador, y suelen permitir cambiar el punto de vista entre varios miembros de un equipo. Estos juegos tratan de simular el estilo de atletas reales de manera que un jugador pueda competir contra sus jugadores reales favoritos.
+
+Los juegos de carreras pueden entrar en esta categoría, se usan circuitos, coches o pilotos reales en la simulación. E incluso existen dispositivos especiales con volantes, pedales,... para simular como se pilota un coche de verdad.
+
+Estos juegos suelen ser difíciles de crear, usan gráficos realistas de alta resolución para simular lo que se ve en las retransmisiones de los deportes reales en TV. Los juegos tienen que ser muy precisos, puesto que los jugadores suelen tener un conocimiento exacto y profundo de la especialidad, saben como se comportan los jugadores reales y exigen ese mismo grado de realismo al juego. Igualmente, al tratarse de simulaciones, las físicas que se trabajan suelen ser muy sofisticadas para tratar de acercarse lo más posible al comportamiento real. Solo basta pensar en la complejidad de dos jugadores de hockey que colisionan entre ellos (*rag dolls*) o como se comporta un coche cuando sube una pendiente, llega arriba, se levanta del suelo, y luego aterriza sobre una zona mojada en la pista. Ejemplos, *Fifa*, *NBA*, *Gran Turismo*,...
+
+![Figure [res/100_002]: Gran Turismo Sport](res/100_002.png)
+
+## Simulación
+Mientras que todos los juegos contienen algo de simulación en su interior, un juego de simulación la expone claramente y permite al jugador manipularla directamente. Los más obvios son los simuladores de vuelo, en los cuales el jugador vuela en un avión. Como en los juegos de deportes, los simuladores de vuelo usan características reales, como aeropuertos, modelos de aviones, localizaciones,... El combate aéreo suele ser habitual, así como la naturaleza de cada avión. También hay simuladores de trenes, barcos,... Ejemplos, *Flight Simulator*, *Digital Combat Simulator*,...
+
+Sin embargo, hay juegos de simulación más complejos donde se llega a simular un ecosistema completo, construir y gestionar ciudades o se simulan sistemas de negocios o economía. Juegos como *SimCity* permiten al jugador crear y gestionar una ciudad entera, *ZooTycoon* o *RollerCoasterTycoon* hacen lo propio con zoos o parques de atracciones.
+
+![Figure [res/100_003]: Digital Combat Simulator](res/100_003.png)
+
+## Rol
+Estos juegos se suelen llamar RPG, por la abreviación de *Role Playing Game*. Son derivados de alguna manera del original *Dragones y Mazmorras*, y lanzan al jugador a interpretar un rol en el cual juega a ser un personaje con habilidades especiales. Hay una linea argumental y un conjunto de objetivos, pero la forma en que el jugador logra los objetivos depende de ellos.
+
+Los juegos de rol de acción se enfocan en el combate y pueden ser jugados en solitario, con varios jugadores, o de manera masiva usando Internet para juntar cientos o miles de jugadores en la misma partida a la vez (MMORPG, MOBA). Ejemplos, *Dark Souls*, *Diablo*, *Final Fantasy*, *The Witcher*, *World of Warcraft*, *League of Legends*.
+
+![Figure [res/100_004]: The Witcher 3](res/100_004.png)
+
+## Acción
+Este es el primer genero que apareció en los videojuegos. Suelen requerir que el jugador responda rápidamente a los estímulos visuales y auditivos que produce el juego. El punto de vista del jugador es central, y suelen suponer algún tipo de lucha.
+
+Los juegos de plataformas tienen una presentación en dos dimensiones con una vista lateral. El jugador controla a un personaje que corre y salta recogiendo objetos, luchando y esquivando trampas y enemigos (*Donkey Kong*, *Mario*). Los *shooters* son un género muy popular puesto que la mecánica de juego es muy obvia, los enemigos se acercan y el jugador les tiene que disparar, antes de que ellos le disparen al jugador. Suelen tener conceptos simples y básicos, y los modernos suelen tener gráficos avanzados y narrativas complejas. Los *shooters* en primera persona *FPS*, muestran el punto de vista en primera persona del jugador, mientras que los de tercera persona muestran la escena desde una determinada distancia. Ejemplos, *Doom*, *Call of Duty*, *Half Life*, *Overwatch*.
+
+Los juegos de lucha se centran en un combate individual, la combinación de pulsaciones de varios botones corresponden a acciones que el jugador realiza en la simulación bajo una situación de combate, puñetazos, patadas, saltos,... Memorizar dichas secuencias de teclas y pulsaciones rápidas en acciones en tiempo real hacen de estos juegos difíciles de jugar. Ejemplos, *Tekken*, *Street Fighter*.
+
+![Figure [res/100_005]: Call of Duty, BlackOps](res/100_005.png)
+
+## Aventura
+Los juegos de aventura siguen un ritmo más pausado, el jugador tiene unos objetivos generales y los consigue resolviendo puzzles e interactuando con algunos elementos del juego, como otros personajes u objetos. Estos juegos usan la no confrontación más que la violencia. Algunos de los primeros videojuegos fueron aventuras conversacionales en modo texto, que se podian jugar en terminales sin modo gráfico. Ejemplos, *Zelda*, *Myst*, *Uncharted*, *Assassin´s Creed*.
+
+![Figure [res/100_006]: Uncharted 4](res/100_006.png)
+
+## Otros Géneros
+Hay muchos otros géneros hoy en día, juegos de baile (*Just Dance*), juegos de horror y supervivencia (*Silent Hill*, *Resident Evil*), casuales, de puzzles,... Cada uno de ellos tiene un estilo típico de implementación en términos de interfaz de juego, y una presentación gráfica habitual.
+
+![Figure [res/100_007]: Resident Evil 7](res/100_007.png)
+
+# Plataformas
+
+Los videojuegos se juegan sobre una computadora, pero hay muchos tipos de computadoras, y cada una de ellas presenta unas ventajas y desventajas especiales para albergar un juego. Las características de mayor importancia incluyen la velocidad del procesador, la naturaleza del área dedicada a los gráficos, su tamaño, color, velocidad de acceso, el tipo de interfaz de usuario, velocidad y coste del acceso a redes, y la cantidad de memoria disponible. Los videojuegos se suelen desarrollar para una plataforma en particular, pero suelen expandirse a otras plataformas con el tiempo.
+
+## Ordenadores de Sobremesa
+PCs y Macs son buenos dispositivos sobre los que jugar a videojuegos. Los PCs en particular tienen una gran variedad de dispositivos que pueden ser usados como interfaces de juego. Los equipos de sobremesa suelen tener gran cantidad de memoria, alta velocidad de procesamiento, múltiples procesadores y más importante, tienen una tarjeta gráfica muy potente. Las tarjetas gráficas modernas son mucho más rápidas que los procesadores del ordenador y están programadas para responder a las necesidades específicas de los videojuegos. Programar un PC puede ser realizado en docenas de diferentes lenguajes.
+
+Tienen una amplia variedad de dispositivos de salida de video y audio. La calidad del color de los monitores es excelente, a pesar que cada monitor tienen una calibración ligeramente distinta del resto. Altavoces de alta calidad pueden reproducir audio 5.1 o 7.1, con tarjetas de sonido capaces de crear pantallas de sonido 3D. La calidad de estos dispositivos ponen la responsabilidad de proporcionar buen sonido e imágenes, los defectos serian obvios.
+
+Por supuesto, estos ordenadores se venden con tarjetas Ethernet de alta velocidad, con lo cual, el acceso a Internet no es un problema. Hoy en día, incluso muchos juegos se descargan directamente de servicios online como *Steam* o *Epic Games Store*. Esto significa que las actualizaciones de videojuegos, algo que antiguamente era imposible, se pueden realizar de manera automática.
+
+![Figure [res/100_008]: Steam](res/100_008.png)
+
+Existen algunos inconvenientes a la hora de usar un ordenador de sobremesa como estación de videojuegos. Todos los usuarios de un ordenador tienden a personalizarlo desde el primer momento, se instalan nuevas aplicaciones, se conectan dispositivos especiales, se toman medidas de seguridad y se realizan un montón de pequeñas modificaciones. De hecho, esto se ve magnificado por la gran variedad de distintos dispositivos que pueden formar un ordenador de sobremesa, con drivers distintos,... El hecho de que dos PCs no sean iguales supone un reto extra para los desarrolladores para garantizar que los videojuegos funcionen correctamente en todos ellos. Además de eso, están las actualizaciones de software de los fabricantes de dispositivos, y la simple variación en versiones o niveles de los sistemas operativos. Hay pocas cosas de las que un desarrollador pueda depender, se lo deben proporcionar ellos mismos.
+
+![Figure [res/100_009]: Ordenador de Sobremesa](res/100_009.png)
+
+## Tablets
+Las tablets tienen un procesador más pequeño que los ordenadores de sobremesa, más lento, menos memoria y no son ampliables fácilmente, las pantallas son más pequeñas y tienen tarjetas gráficas más pequeñas y lentas, su acceso a internet está restringido a conexiones sin cable, no hay teclado o ratón, habitualmente solo una pantalla táctil.
+
+Esto significa que la pantalla táctil tiene que ser usada para la mayor parte de la interacción con el usuario. Una pantalla de este tipo equivale de manera bastante precisa con un ratón en el tipo de operaciones que puede realizar, pero los personajes de los videojuegos suelen ser manejados usando las teclas *WASD*, que no están disponibles. Esto obliga a que ciertas mecánicas de juego deban adaptarse a esta circunstancia.
+
+Tienen capacidad para reproducir sonido, pero están limitadas al stereo y los auriculares son comunes. Algunos juegos de tablet vienen de un port reducido de juegos de ordenador de sobremesa, pero la mayoría no lo soportarían por las particularidades de las tablets y requieren juegos específicos, o adaptaciones propias.
+
+![Figure [res/100_010]: Tablet](res/100_010.png)
+
+## Consolas
+Una consola de videojuegos es un ordenador especializado diseñado para ejecutar juegos. El sistema está optimizado para el rendimiento del videojuego en cada pequeño aspecto. Puesto que una consola no tiene otra tarea, tiene una capacidad de personalización limitada y un rango mucho más pequeño de cosas que puede hacer, pero esas cosas, las hace muy rápido y muy eficientemente. Generalmente tiene varios procesadores, una tarjeta gráfica avanzada, y algo de espacio de disco para almacenar datos de los juegos y puntuaciones. Los juegos hoy en dia se distribuyen de manera física a través de discos o digital a través de internet.
+
+Programar un videojuego para una consola es una tarea bastante compleja que involucra un conocimiento específico de la arquitectura de la maquina y mucha programación paralela, pero el resultado puede ser espectacular. Las consolas más populares hoy en día son PlayStation, Xbox y Nintendo Switch.
+
+![Figure [res/100_011]: PlayStation 5](res/100_011.png)
+
+## Consolas Portátiles
+Las consolas portátiles son ordenadores de mano que solo ejecutan videojuegos. Tienen las mismas características de las consolas convencionales, con la particularidad de que están dimensionadas para reducir su tamaño e incorporar su propia pantalla. Con lo cual, se reducen las prestaciones del procesador, memoria y tarjeta gráfica, asimismo la pantalla también produce peores resultados que un monitor o televisión convencional.
+
+La revolución de las consolas portátiles empezó con la Game Boy de Nintendo, se vendieron cerca de 120 millones de unidades, aunque ya esté descatalogada. Tiene un procesador de 8 bits, y los gráficos y sonidos eran muy primitivos, sin embargo, se podía jugar casi en cualquier sitio. Fue reemplazada por la DS y la 3DS con procesadores de 32 bits, que han vendido más de 150 millones de unidades. El juego de Super Mario Bros para esta consola ha vendido más de 30 millones de copias. Esto haría a este sistema el preferido sobre el cual desarrollar videojuegos, si no fuera porque Nintendo mantiene un control muy estricto sobre quien puede desarrollar videojuegos para sus consolas. Mantienen el control porque tienen la patente del dispositivo de distribución de los juegos, un pequeño chip que encaja dentro de la consola, nadie puede fabricarlos.
+
+Otras consolas portátiles son la Sony PSP, Vita o Switch Lite.
+
+![Figure [res/100_012]: Game Boy](res/100_012.png)
+
+## Teléfonos Móviles
+Los teléfonos móviles están en todas partes y tienen muchos usos, así que tiene sentido que existan videojuegos diseñados para ellos. El problema es que son como tablets muy pequeñas. Esto significa que el tamaño de las pantallas es un factor limitante. Jugar a un juego como World of Warcraft sería complicado y muy restringido. Aunque tiene ciertas ventajas, tiene acceso a internet, tiene muchos dispositivos incorporados, como GPS, acelerómetros,... que pueden usarse dentro del juego.
+
+Hoy en día están basados en el sistema operativo Android o en iOS. Crear un juego para un teléfono tiene que tener en cuenta sus restricciones, aunque hay algunos videojuegos que se pueden jugar en casi cualquier dispositivo.
+
+![Figure [res/100_013]: Smartphone](res/100_013.png)
+
+## Crossplatform
+Un concepto que surge de esta disparidad de plataformas es la capacidad de desarrollar videojuegos que puedan ser jugados en múltiples plataformas. En muchas ocasiones el diseño de las mecánicas del propio juego va a limitar esta capacidad, un juego que haga uso del GPS para la geolocalización del jugador estará limitado a dispositivos que tengan acceso a una antena GPS, o incluso la manera en que el jugador interactúa con el mismo puede limitarlo. Si un juego no presenta estas limitaciones, se puede plantear, si es deseable, la posibilidad de desarrollarlo para abarcar el mayor número de plataformas posibles, y de esta manera, acceder al mayor número de jugadores posible. Pero esto no siempre es sencillo, cada plataforma tiene una serie de características especiales que hay que tener en cuenta, y si bien, gran parte de los sistemas de un videojuego se pueden diseñar de una manera lo más agnóstica posible, otros tienen que ser diseñados específicamente para una plataforma en particular.
+
+De aquí también surge el concepto de *porting*, que es el proceso mediante el cual un videojuego desarrollado para una plataforma se adapta para que funcione en otra plataforma distinta.
+
+# Aspectos comunes de los Videojuegos
+Se ha visto que los videojuegos tienen unos requisitos comunes que tienen implicaciones en su diseño. La necesidad de participación del usuario y que existan reglas implican la existencia de objetos. Un jugador manipula algún tipo de objeto de acuerdo a las reglas, lo que define *jugar*. El objeto puede simplemente ser la mano del jugador, una pelota o una piedra. Pueden haber muchos objetos e incluso multiples tipos de objetos. Un objeto es manipulado por el jugador y puede afectar al jugador, lo que produce interacción.
+
+La forma en la que un jugador manipula los objetos dentro del juego es lo que se llama *mecánicas de juego*. Por ejemplo, la mecánica básica de un juego de baloncesto es hacer que la pelota pase a través de un aro en altura. El trabajo principal de un diseñador de videojuegos es diseñar dichas mecánicas.
+
+La existencia de objetos implica también la existencia de algún tipo de área de juego, volumen o espacio donde la acción del juego sucede. Un objeto de juego necesita de un espacio dentro del cual actual. Ese espacio puede ser un tablero (ajedrez), una mesa (juego de cartas), o un mundo 3D simulado para los videojuegos.
+
+El juego tiene un proposito, un objetivo o un punto final. El juegador debe manipular los objetos de acuerdo al conjunto de reglas para conseguir el objetivo o llegar al punto final. El objetivo puede ser temporal, y ser reemplazado por otro nuevo objetivo una vez se consigue el primero. Pueden existir varios objetivos simultaneos que se pueden conseguir, colectivamente o de manera opcional. O, incluso pueden ser seleccionados por el jugador, como en *Los Sims*, donde no hay un objetivo prefijado por el diseñador del juego, pero los jugadores pueden manipular el mundo virtual para conjseguir objetivos que se han propuesto ellos mismos. Este es uno de los juegos más populares nunca creados, pero el concepto de *sandbox* (un lugar donde los jugadores pueden manipular el mundo libremente) es bastante popular ultimamente. En cambio, la mayoria de los videojuegos tienen un objetivo determinado por el diseñador del juego y una manera de mantener un sistema de puntuación.
+
+Un juego deberia tener estas características mínimas, pero, ¿qué dicen acerca de como se deberia construir un videojuego?. ¿Qué cosas debería implementar un juego a un nivel genérico? Primero, tiene que existir una manera de interactuar con el juego. ¿Cómo interactua un jugador? Normalmente, manipulando uno o varios objetos dentro del espacio del juego. La interacción al usar un dispositivo electrónico suele involucrar usar un teclado, un ratón o una pantalla táctil, aunque existen dispositivos específicos de videojuegos como joysticks o gamepads. Así pues, un videojuego, necesita una manera directa de aceptar las entradas de dichos dispositivos y usar esos datos para actualizar el juego.
+
+Lo siguiente que se necesita es un objeto en un sentido abstracto. Un objeto es manipulado por el usuario, con lo cual, su posición y estado debe ser modificable. El objeto puede ser capaz de interactuar con otros objetos. Por ejemplo, puede colisionar con una pared. Se deberian poder crear nuevos objetos (balas, misiles, dinero, comida) y destruir o abandonar otros (herramientas, trampas).
+
+En el espacio virtual definido por el juego, un objeto tiene una posición y una orientación. Normalmente tendrá al menos una representación gráfica en ese espacio de manera que el jugador pueda ver su posición y orientación y posiblemente modificarlas.
+
+Mientras que muchos juegos pueden tener esas características, los videojuegos las tienen siempre. Definen la estructura de un videojuego como una unidad de software, y esta estructura se suele conocer como *arquitectura*.
+
+# Otros aspectos
+Por otra parte los videojuegos de alta calidad suelen tener otra serie de características en común (localización, conflicto,..), algunos de ellos las tienen todas y otros sólo alguna, pero son cosas a tener en cuenta a la hora de diseñar y construir un nuevo juego. El genero es un aspecto clave a la hora de incorporar cosas a un videojuego, pero también lo es el estilo y calidad gráfica, la naturaleza del sonido y muchas más cosas.
+
+## Localización
+Algunos juegos sitúan su acción en algunos sitios interesantes, a menudo lugares reales que se pueden visitar. A la gente le gusta ver lugares nuevos e interesantes, y la gente que ha visitado esos sitios puede reconocer alguno de ellos en los videojuegos. Además de eso, muchos de esos sitios han aparecido en películas o series de televisión, lo que les proporciona un grado extra de familiaridad. Esto es importante, porque estos lugares son inaccesibles o exóticos para la mayor parte de los jugadores. De todas maneras, si se pudiera crear un juego que ocurriera alrededor de la zona donde vive el jugador, sería de gran atractivo, es lo que han hecho los creadores del *Monopoly* personalizando sus ediciones con gran éxito.
+
+Naturalmente, emplazar la acción en un lugar interesante no es suficiente, hay que recrear esa localización usando gráficos y sonidos lo suficientemente bien para que el jugador pueda identificarla. Esto es más un problema de implementación que de diseño.
+
+Si el juego es de conducción, localizarlo en un circuito de carreras es algo obvio, y en realidad, puede quitarle parte de la diversión, a menos que ese circuito sea conocido por el jugador. El circuito de Indianapolis es muy conocido, y cualquier aficionado a las carreras lo identificaría inmediatamente. En un partido de baloncesto o de fútbol, los desarrolladores hacen grandes esfuerzos para intentar que los personajes dentro del juego se parezcan y actúen como los jugadores reales que representan y los estadios sean representaciones precisas de los reales. Los aficionados suelen conocer muchos detalles al respecto y pueden ser muy críticos si el juego no es preciso.
+
+No es usual que se permita al jugador salirse del camino que los diseñadores del juego han establecido. En los juegos *sandbox* se puede ir a cualquier parte del mundo virtual y manipular objetos, donde el jugador, más que el diseñador, define la manera en la que el juego es jugado. Pero en la mayoría de los videojuegos, aunque parezca que el jugador tiene una gran libertad, no la tiene. Parece que se tengan muchas elecciones, pero casi todas ellas acaban en las mismas pocas consecuencias. Esta apariencia de libertad es importante porque no se puede simular el universo entero.
+
+![Figure [res/100_014]: NYC Times Square en GTA](res/100_014.png)
+
+## Conflicto
+Un juego casi siempre tiene vencedores y vencidos, y mantienen una puntuación. Claramente, el objetivo es ganar, y cualquier juego que no permita al jugador ganar no será popular. Es el requisito mínimo de conflicto de cualquier juego, incluso de los que proponen sistemas colaborativos. Quizás el termino *reto* debería ser usado en lugar de conflicto. El juego presenta al jugador obstáculos que debe superar, y el éxito es cuestión de aprender a afrontarlos.
+
+Hay muchas fuentes de conflicto en los juegos, y esa variedad es esencial para el juego. De hecho, cualquier narrativa depende de algún grado de conflicto para ser interesante. Mientras que la narrativa en algunos juegos solo está ahí para proveer un trasfondo, o una excusa para la acción, en muchos otros el conflicto es fundamental para la historia, puesto que define tanto los objetivos como los medios para llegar a ellos.
+
+Los juegos de disparos en primera persona *FPS* tienen la formas más obvias de conflicto, donde los objetivos se consiguen disparando y derribando a los enemigos. Los juegos de deportes también tienen conflictos obvios, tal como los juegos de carreras, derrotar al oponente usando las reglas del deporte. En el juego *Crazy Taxi* existen clientes negándose a pagar el viaje si se llega tarde al destino, y quejándose si el jugador va muy rápido o muy lento. En la serie de juegos de simulación de *Tycoon*, el conflicto se crea forzando al jugador a equilibrar los costes y beneficios al construir determinados sistemas reales. No todos los juegos usan la competición como un conflicto, pero la mayoría lo hace. *Little Big Planet* es un juego cooperativo en el cual los jugadores pueden crear nuevo contenido dentro del juego, pero siguen existiendo objetivos que conseguir que presentan nuevos retos, pero carece del incentivo de derrotar a un oponente, y por tanto, no es competitivo.
+
+![Figure [res/100_015]: Roller Coaster Tycoon](res/100_015.png)
+
+## Gráficos y Sonido
+Todos los juegos de calidad destacan en algunos aspectos de los gráficos o sonido, o en ambos. Los gráficos no tienen porque ser de alta resolución o en tres dimensiones, pero tienen que ser apropiados para ese juego específico. Juagos como *Halo* tienen gráficos de alta calidad y buenas animacioens, pero no hay que confundir 'alta calidad' con 'interesantes'. El juego *The Simpsons, Hit & Run& ofrece a los jugadores explorar una ciudad que los jugadores conocen muy bien, Springfield. No hay que subestimar el valor del modo *sandbox*, si el mundo virtual es interesante, entonces simplemente darse una vuelta por él es suficiente para ofrecer entretenimiento.
+
+El sonido puede ser más importante que los gráficos, espeicalmente para transmitir el estado de ánimo. Puede transmitir ciertas emociones, un fondo de audio de rock and roll de ritmo rápido agrega energía al juego, de la misma manera que los temas etéreos de *Half Life* hacen que su mundo parezca peligroso y amenazante. Nunca deberia sacrificarse el audio en aras de los gráficos, o viceversa, se pueden tener ambas cosas si tienen los medios para crearlos.
+
+Algunos juegos requieren mejores gráficos que otros, puesto que necesitan representar simulaciones más fieles a la realidad, mientras que otros pueden valerse de estilos más cercanos a los dibujos animados, pero aún así ofrecer un valor de entretenimiento alto. Como resultado de estas consideraciones, los mejores juegos tienen en común un nivel apropiado de los detalles gráficos, con buenos sonidos y objetos de juego apropiados y entretenidos.
+
+## Atrezzo
+El atrezzo o *props*, son objetos que pueden ser manipulados dentro del juego. Todos los juegos tienen objetos de algún tipo. Los juegos de deportes suelen tener menos que la mayoria, y los juegos de simulación tienen cientos o miles. Una pelota es un objeto, como lo es una bala, o un misil, y se pueden mover por sí mismos. Los potenciadores o *power-ups* y los penalizadores también son objetos de juego. Estos *props* tienen gran potencial para hacer más interesante un videojuego. Sin la posibilidad de recoger armas y aceleradores, *Mario Kart* es simplemente un juego de carreras de estilo cartoon. Ser capaz de ralentizar a un oponente o dispararle añade un elemento de diversión.
+
+Estos objetos también permiten una narrativa mucho más interesante, puesto que misiones enteras o niveles de juego pueden depender de mover determinados objetos de un sitio a otro. Pueden tener propiedades importantes que se mantengan entre los niveles, como iconos mágicos, puntos de nivel,... Esto lleva a la conclusión que la complejidad hace a un juego más interesante. Esto suele ser cierto, siempre que la simulación siga siendo jugable, pero también es cierto que un adecuado nivel de impredicibilidad hace al juego aún más atractivo. El juego debe ser consistente, pero es mejor que no se repita exactamente igual cada vez que se juega. Los objetos del juego se pueden usar para añadir complejidad y para hacerlo menos predecible. La posición de los objetos puede cambiar, junto con un personaje manejado por el juego, para hacerlo menos repetible, y por tanto menos aburrido. Un patrón de juego puede ser útil a veces, pero rara vez es entretenido.
+
+![Figure [res/100_016]: Mario Kart](res/100_016.png)
+
+## Interfaz
+Los videojuegos son fundamentalmente un medio interactivo, y los interfaces son el punto central de la interacción. Se ha hecho un esfuerzo siginificativo a la hora de estandarizar algunos interfaces de juego. Por ejemplo, hoy en día encontramos en las consolas similares controladores, haciendo practicamente lo mismo, especialmente en juegos que funcionan en varias consolas distintas. Además de eso, los juegos de un género específico tienden a usar secuencias de control consistentes, como las teclas de las flechas para el movimiento. Los juegos varían un poco en el uso de teclas o gestos de ratón, y para mecánicas parecidas esa variación deberia ser menor.
+
+Algunos juegos de conducción usan el ratón para controlar la velocidad y dirección, el ratón ofrece más grados de libertad en el control direccional, y cuanto más rápido va el coche, más dificil es manejarlo con el ratón. Se tienen a sobrevirar y la posición del ratón es relativa, no absoluta. Aun así, dada la popularidad de los juegos para tablets y teléfonos móviles, el uso del ratón se está incrementando. Los gestos táctiles se traducen directamente en movimientos del ratón y en clicks. De todas maneras, la mayoria de tables y teléfonos no tienen teclado, así que usar teclas es una mala idea en esos dispositivos.
+
+Ahora hay muchos interfaces especiales para videojuegos disponibles a un bajo precio, la mayoria de los cuales usan conectores USB. Esto es mucho mejor que los viejos puertos paralelos, o el puerto para joysticks.
+
+Un interface de propósito especial es el conjunto de volante y pedales para juegos de carreras, que convierte los movimientos de los mismos en secuencias de control. El hecho de que puedan ser configurados para enviar cualquier secuencia de comandos, siginifica que los interfaces de juego no tienen porque seguir siendo standard. Más y más gente seguirá comprando interfaces especiales hasta que el teclado se convierta en obsoleto. Otro dispositivo especial es el mando de vuelo, la idea es hacer que el dispositivo se parezca lo más posible al real, dándole una apariencia similar al controladore de un avión real.
+
+Un problema es que la acción de estos dispositivos de interfaz suele ir en dirección del jugador hacia el juego, mientras que en los dispositivos reales que tratan de simular, el control en un coche o en un avión también provee una fuerza y unas sensaciones que contrarrestan las acciones del usuario, y que pueden ser relativas a la velocidad, dirección, superficie de desplazamiento o incluso al viento. Algunos controladores ofrecen esto a través del *force feedback*, suelen tener motores vibradores o altavoces incluidos para simular esas sensaciones al jugador.
+
+Hay muchas otras posibilidades, y se están haciendo progresos constantes en este area, sobre todo ahora con el auge de la realidad virtual. Interpretando gestos de las manos o del cuerpo se puede interactuar con el juego. Incluso se está investigando el uso de ondas cerebrales a través de unos electrodos adheridos a la cabeza del jugador, y usa esas señales para controlar las acciones del juego. En el futuro los juegos se convertirán en una tecnologia invisible, estarán en cualquier parte y no requerirán ningún conocimiento especial para disfrutarlos.
+
+![Figure [res/100_017]: Asiento de carreras con volante y pedales](res/100_017.png)
+
+## Ritmo y Escala
+En los juegos de carreras más divertidos suelen permitir al jugador ir rápido. Los submarinos se mueven lentamente pero no pueden pararse o girar en un tiempo razonable. El ritmo del juego debe ser apropiado para el tipo de situación que se quiere simular. Además, tal como el jugador gana experiencia el juego debe presentar cada vez más dificultades. En algunos juegos esto significa que la velocidad del juego se incrementa, otras veces los oponentes son más fuertes.
+
+La sensación de velocidad puede darse colocando objetos lejos del jugador que se desplazan a gran velocidad. Los edificios suelen ser buenos para esto, porque tienen un montón de detalles que pasan rapidamente de manera similar a como se vería en una película o en la vida real. De hecho, un montón de objetos en distintas distancias es eficaz para transmitir la ilusión.
+
+El sonido también es importante, jugar a un juego de ritmo rápido con el sonido apagado muestra la diferencia. Una pista de audio de ritmo rápido ayuda, asi como un buen conjunto de efectos de sonido que impliquen velocidad, sonido posicional, efectos Doppler,...
+
+Una idea simple de implementar es usar un fondo con un paisaje pintado. Este fondo puede ser incluso a varios niveles o planos que se mueven a distinta velocidad de acuerdo al movimiento de la cámara para crear una sensación de profundidad, esta técnica se llama *parallax*. Un juego en tres dimensiones consiste en un terreno modelado sobre el cual se tienen objetos móviles y estáticos. Suele haber una distancia a partir de la cual los objetos no se pintan, y tal como los objetos se acercan a la cámara aparecen de repente cuando pasan esa distancia, esto se puede mitigar con ciertas técnicas de pintado. A lo lejos se tiene una imagen pintada sobre una superficie simple, que puede tener colinas pintadas, o un cielo, un fondo urbano, pero sin profundidad real.
+
+![Figure [res/100_018]: Need For Speed Heat](res/100_018.png)
+
+## Fidelidad y Precisión
+Cuando se crea un videojuego se crea un universo entero. Hay que decidir donde están las cosas, cual es su tamaño, que comen,... En particular, las reglas de la física tal como se conocen en el mundo real son flexibles, y se puede decidir como van a funcionar en el universo virtual del juego. En muchos juegos, la precisión de la física da un paso atrás en aras de la jugabilidad y el entretenimiento. En *Doom* el jugador corre muy rápido a través del nivel, probablemente a una velocidad superior a 100 km/h si se pudiera medir. Esto no le resta diversión, al contrario, restringir la velocidad de los objetos a una escala real ralentizaría el juego demasiado y lo haría aburrido.
+
+La física incluye varios temas, como se manejan colisiones, como se consume el combustible, la velocidad a la que aceleran los vehículos, su velocidad máxima, como esos vehículos pueden tomar una curva antes de derrapar o como puede despegar al alcanzar el pico de una colina. Muchos juegos se toman ciertas libertades con la física para mejorar la experiencia de juego, especialmente los menos realistas. Cualquier regla puede ser rota si hace que el juego sea más divertido.
+
+![Figure [res/100_019]: Doom Eternal](res/100_019.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

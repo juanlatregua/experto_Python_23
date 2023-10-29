@@ -1,0 +1,14 @@
+{
+    "eagle" : [0,0,48,64],
+    "eagle_left" : [48,0,48,64],
+    "eagle_right" : [96,0,48,64],
+    "raptor" : [144,0,84,64],
+    "avenger" : [228,0,60,59],
+    "allied_bullet" : [175,64,3,14],
+    "enemy_bullet" : [178,64,3,14],
+    "missile" : [160,64,15,32],
+    "powerup_health" : [0, 64, 40, 40],
+    "powerup_missile" : [40,64,40,40],
+    "powerup_firespread" : [80,64,40,40],
+    "powerup_firerate" : [120,64,40,40]
+}

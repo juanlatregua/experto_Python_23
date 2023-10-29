@@ -1,0 +1,1046 @@
+<meta charset="utf-8">
+**02EPPY - 200 - Internet**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Requests
+
+La librería `requests` es el standard para realizar peticiones HTTP desde Python. Abstrae al programador de las complejidades de hacer dichas peticiones a través de una API sencilla para que sea sencillo centrarse en interactuar con servicios y consumir los datos desde la aplicación.
+
+El primer paso es instalar dicha librería desde [PyPI](https://pypi.org/project/requests/) usando `pip` o `pipenv`, y a continuación se puede importar de la manera habitual para empezar a usarla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_requests]: Importar la librería `requests`]
+
+## Petición `GET`
+
+Los métodos [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods), como `GET` o `POST`, determinan que acción se trata de realizar cuando se hace una petición HTTP. Uno de los más habituales es `GET`, este indica que se están intentando obtener datos de un recurso específico. Para hacer una petición `GET` se llama al método `get` del módulo `requests`. Donde se le pasa como parámetro la URL de la web que se quiere obtener.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get('https://api.github.com')
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [requests_get]: Llamar a `get` para pedir una web]
+
+En este caso se hace una petición a la [API REST de Github](https://docs.github.com/en/rest#root-endpoint).
+
+## Response
+
+Una respuesta o `Response` es un objeto que se obtiene como contestación a una petición, y vale para inspeccionar el resultado de dicha petición. Suele ser un objeto que devuelve el método `get`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get('https://api.github.com')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [response]: Obtener `response` al llamar a `get`]
+
+Se captura el valor de retorno de la llamada a `get`, que es una instancia de un objeto de clase `Response`. Y se puede usar dicha variable para revisar toda la información acerca de los resultados de la petición `GET`.
+
+### Códigos de estado
+
+Lo primero que se puede obtener del objeto `Response` es el código de estado, que informa acerca del estado de la petición. Por ejemplo, un código `200 OK` significa que la petición ha tenido éxito, mientras que un código `404 NOT FOUND` significa que el recurso que se ha solicitado no existe. Hay muchos [códigos de estado](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) distintos para verificar lo que ha pasado con la petición.
+
+Accediendo al atributo `status_code` del objeto `Response` se puede ver el código de estado que ha devuelto el servidor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.status_code
+200
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [status_code]: Obtener `status_code` de `response`]
+
+En este caso, se encuentra un código 200, lo que significa que la petición ha sido exitosa y el servidor contestó con los datos solicitados. A veces se puede usar dicha información para tomar decisiones en el código.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+if response.status_code == 200:
+    print('Success!')
+elif response.status_code == 404:
+    print('Not Found.')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [status_code_if]: Tomar decisiones en base al `status_code`]
+
+La librería va un paso más allá a la hora de simplificar este proceso, si se usa directamente una instancia de un objeto `Response` en una expresión condicional, será evaluada a `True` si el código de estado está entre 200 y 400, y a `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+if response:
+    print('Success!')
+else:
+    print('An error has occurred.')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [response_if]: Tomar decisiones en base al `response`]
+
+Hay que tener cuidado porque este método no está comprobando que el código de estado sea 200. Esto es así porque otros códigos en el rango entre 200 y 400, como `204 NO CONTENT` o `304 NOT MODIFIED`, también son considerados exitosos en el sentido que proveen una respuesta sobre la que se puede trabajar. Por ejemplo, dicho 204 comunica que la respuesta fue exitosa, pero no hay contenido que devolver en el cuerpo del mensaje.
+
+Hay que asegurarse de usar este método solo si se quiere saber si la petición ha sido en general exitosa y entonces, si es necesario, manejar la respuesta apropiadamente basándose en el código de estado.
+
+Si no se quiere verificar el código de estado de respuesta en un condicional, se puede levantar una excepción si dicha petición no ha funcionado. Se puede realizar esto usando el método `raise_for_status`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from requests.exceptions import HTTPError
+
+for url in ['https://api.github.com', 'https://api.github.com/invalid']:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except HTTPError as http_err:
+        print(f'HTTP error occurred: {http_err}')
+    except Exception as err:
+        print(f'Other error occurred: {err}')
+    else:
+        print('Success!')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [raise_for_status]: Levantar una excepción con `raise_for_status`]
+
+Si se invoca el método `raise_for_status` de `response`, se levantará un `HTTPError` para ciertos códigos de estado. Pero si la petición ha devuelto un código de éxito, el programa funcionará sin levantar ninguna excepción.
+
+### Content
+
+La respuesta de una petición `GET` suele tener información valiosa en el cuerpo del mensaje. Usando métodos y atributos de `Response` se puede ver dicha carga en varios formatos distintos.
+
+Para ver el contenido de la respuesta en `bytes`, se puede usar el atributo `content`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get('https://api.github.com')
+>>> response.content
+b'{\n  "current_user_url": "https://api.github.com/user",\n ...}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content]: Contenido en binario]
+
+Esto da acceso a los bytes crudos de la respuesta, pero suele ser habitual convertir estos datos a un string usando una codificación de carácteres como `UTF-8`. Si se accede al atributo `text` de `Response` se obtiene eso.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.text
+'{\n  "current_user_url": "https://api.github.com/user",\n ...}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_text]: Contenido en texto]
+
+Puesto que decodificar los bytes en un string requiere un mapa de codificación, el módulo `requests` intentará deducir dicha codificación basándose en los `headers` de la respuesta si no se especifica ninguno. Pero se puede proveer una codificación explicita dando un valor al atributo `encoding` antes de acceder a `text`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.encoding = 'utf-8'
+>>> response.text
+'{\n  "current_user_url": "https://api.github.com/user",\n  ...}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_encoding]: Contenido en texto determinando la codificación]
+
+Mirando el contenido de la respuesta, se puede ver que es un JSON serializado. Para obtener un diccionario a partir de dicho contenido, se puede coger el string que se ha obtenido del atributo `text` y deserializarlo usando el módulo `json`, y el método `loads`. Pero hay una manera más simple, que es usando el método `json` del objeto `Response`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.json()
+{'current_user_url': 'https://api.github.com/user', ...}'}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_json]: Contenido en un diccionario]
+
+El tipo del valor devuelto por el método `json` es un diccionario, así que se pueden acceder a los valores de dicho objeto por clave.
+
+### Headers
+
+Las cabeceras de la respuesta suele dar información valiosa, como el tipo del contenido de la respuesta, o el tiempo límite para guardar en cache dicha respuesta. Para ver las cabeceras se accede al atributo `headers`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.headers
+{'Server': 'GitHub.com', 'Date': 'Thu, 10 Jun 2021 09:34:50 GMT', ...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [headers]: Cabeceras de la respuesta]
+
+Esto devuelve un diccionario, permitiendo acceder a los valores de la cabecera por clave. Por ejemplo, para el tipo de contenido de la respuesta se puede acceder a la cabecera con clave `Content-Type`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.headers['Content-Type']
+'application/json; charset=utf-8'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [headers_content_type]: Cabeceras con el tipo del contenido]
+
+## Parámetros de la petición
+
+Las peticiones a través de `GET` se suelen personalizar pasando valores a través de strings en la URL, lo que se conoce como [`query string`](https://en.wikipedia.org/wiki/Query_string). Para hacer esto usando el método `get`, se pasan los datos al parámetro `params`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+
+response = requests.get(
+    'https://api.github.com/search/repositories',
+    params={'q': 'requests+language:python'},
+)
+
+json_response = response.json()
+repository = json_response['items'][0]
+print(f'Repository name: {repository["name"]}')
+print(f'Repository description: {repository["description"]}')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [query_string]: Pasar parámetros al método `get`]
+
+En este ejemplo se está usando la [API de búsqueda de Github](https://docs.github.com/en/rest/reference/search), que pide que se le envíe en el parámetro `q` la búsqueda que se quiere realizar.  Se le pasa como diccionario, donde la clave es el nombre del parámetro, y el valor es el contenido de dicho parámetro que se quiere enviar a dicho parámetro durante la petición. Se pueden pasar dichos parámetros como diccionario, o bien como tupla `params=[('q', 'requests+language:python')]`, o incluso como `bytes` directamente `params=b'q=requests+language:python'`.
+
+## Request Headers
+
+Para personalizar los `headers`, se le puede pasar un diccionario de cabeceras de HTTP al método `get` usando el parámetro `headers`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+
+response = requests.get(
+    'https://api.github.com/search/repositories',
+    params={'q': 'requests+language:python'},
+    headers={'Accept': 'application/vnd.github.v3.text-match+json'},
+)
+
+json_response = response.json()
+repository = json_response['items'][0]
+print(f'Text matches: {repository["text_matches"]}')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_headers]: Pasar `headers` al método `get`]
+
+En el ejemplo se cambia la petición anterior de búsqueda para remarcar los términos de búsqueda que encajen en los resultados especificando el `text'match` en la cabecera `Accept`.
+
+Esta cabecera `Accept` indica al servidor que tipos de contenidos puede manejar la aplicación. En este caso, puesto que se espera que los términos de búsqueda que correspondan se vayan a resaltar, se está usando el valor para la cabecera de `application/vnd.github.v3.text-match+json`, que es un `header` de tipo `Accept` propietario de `Github` donde los contenidos están en un formato JSON especial.
+
+## Otros métodos HTTP
+
+Aparte de `GET`, hay otros métodos HTTP, como `POST`, `PUT`, `DELETE`, `HEAD`, `PATCH` y `OPTIONS`. La librería `requests` provee un método, con una firma similar a la de `get` para cada uno de esos métodos de HTTP.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.post('https://httpbin.org/post', data={'key':'value'})
+>>> requests.put('https://httpbin.org/put', data={'key':'value'})
+>>> requests.delete('https://httpbin.org/delete')
+>>> requests.head('https://httpbin.org/get')
+>>> requests.patch('https://httpbin.org/patch', data={'key':'value'})
+>>> requests.options('https://httpbin.org/get')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [http_methods]: Todos los métodos HTTP`]
+
+Cada función hace una petición al servicio `httpbin` usando el correspondiente método HTTP. Para cada uno de ellos se pueden mirar las respuestas.
+
+`httpbin.org` es un recurso creado por el mismo autor de la librería `requests`, que acepta peticiones de prueba y responde con datos sobre las peticiones.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.head('https://httpbin.org/get')
+>>> response.headers['Content-Type']
+'application/json'
+
+>>> response = requests.delete('https://httpbin.org/delete')
+>>> json_response = response.json()
+>>> json_response['args']
+{}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [http_methods_reponse]: Respuestas para otros métodos HTTP]
+
+## Message Body
+
+De acuerdo a la especificación HTTP, las peticiones `POST`, `PUT` y `PATCH` pasan sus datos a través del cuerpo del mensaje en lugar de hacerlo a través de parámetros en una `query string`. Usando `requests`, se pasan dichos datos a la función correspondiente a través del parámetro `data`.
+
+`data` recibe un diccionario , una lista de tuplas, bytes o un objeto de tipo fichero. Hay que adaptar los datos que ese envían en el cuerpo de la petición a las necesidades específicas del servicio con el que se está interactuando.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.post('https://httpbin.org/post', data={'key':'value'})
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [post]: Método `POST`]
+
+Si el tipo de contenido de la petición es `application/x-www-form-urlencoded` se pueden enviar los datos como diccionario, o como tupla `data=[('key', 'value')]`.
+
+Si, en cambio, se necesita mandar los datos como JSON, se puede usar el parámetro `json`. Cuando se pasan datos de esta manera, la librería `requests` serializa los datos y le añade la cabecera `Content-Type` correcta.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.post('https://httpbin.org/post', json={'key':'value'})
+>>> json_response = response.json()
+>>> json_response['data']
+'{"key": "value"}'
+>>> json_response['headers']['Content-Type']
+'application/json'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [post_response]: Respuesta a enviar un JSON por `POST`]
+
+Se puede inspeccionar la respuesta de una petición `POST` con un JSON. Viendo esta respuesta se puede ver que el servidor ha recibido los datos de la petición con sus cabeceras correctas.
+
+## Inspeccionando la petición
+
+Cuando se hace una petición, la librería `requests` prepara la petición antes de mandarla al servidor de destino. Esta preparación incluye cosas como validar las cabeceras y serializar el contenido en JSON. Se puede ver todo esto accediendo al método `request` de un `response`, que devuelve un objeto de tipo `PreparedRequest`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.post('https://httpbin.org/post', json={'key':'value'})
+>>> response.request.headers['Content-Type']
+'application/json'
+>>> response.request.url
+'https://httpbin.org/post'
+>>> response.request.body
+b'{"key": "value"}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [prepared_request]: Acceder a los datos preparados de la petición]
+
+Mirando dentro de `PreparedRequest` da acceso a todo tipo de información acerca de la petición que se está realizando, como sus datos, URL, cabeceras, autenticación,...
+
+## Autenticación
+
+La autenticación ayuda a un servicio a entender quien es la entidad que está realizando la petición. Normalmente se proveen las credenciales a un servidor pasando datos a través de una cabecera `Authorization` o una cabecera personalizada y definida por el servicio. Todas las funciones para realizar peticiones vistas hasta ahora tienen un parámetro llamado `auth` que permite este paso de las credenciales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from getpass import getpass
+>>> requests.get('https://httpbin.org/headers', auth=('my_user', getpass()))
+Password:
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [auth]: Usar parámetro `auth` para la autenticación]
+
+En este caso se usa el servicio `httpbin` para visualizar las cabeceras que llegan al mismo, donde se puede observar la cabecera de autenticación. Para hacer una petición, se pasa el usuario y su contraseña en una tupla al método `get`. Se usa el módulo `getpass` para preguntarle al usuario por la contraseña.
+
+
+La petición tiene éxito, si las credenciales que se pasan en la tupla a `auth` son válidas. Si se trata de realizar esta petición sin credenciales, se recibe el código de estado `401 Unauthorized`.
+
+Cuando se pasa un usuario y contraseña en una tupla al parámetro `auth`, el módulo `requests` está aplicando estas credenciales usando el [sistema de autenticación básico de HTTP](https://en.wikipedia.org/wiki/Basic_access_authentication) por debajo. Por lo tanto, se puede hacer la misma petición pasando estas credenciales de manera explicita usando `HTTPBasicAuth`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from requests.auth import HTTPBasicAuth
+>>> from getpass import getpass
+>>> requests.get(
+...     'https://httpbin.org/headers',
+...     auth=HTTPBasicAuth('my_user', getpass())
+... )
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [basic_auth]: Usar `HTTPBasicAuth` para la autenticación]
+
+No hace falta ser explicito para una autenticación básica, pero quizás se necesite autenticarse usando otro método. En ese caso, `requests` ofrece otros métodos como `HTTPDigestAuth` o `HTTPProxyAuth`. Incluso se puede suministrar un método de autenticación personalizado, para hacerlo hay que crear una subclase de `AuthBase` e implementar el método `__call__`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from requests.auth import AuthBase
+
+class CustomAuth(AuthBase):
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, r):
+        r.headers['X-CustomAuth'] = f'{self.token}'
+        return r
+
+requests.get('https://httpbin.org/get', auth=CustomAuth('12345abcde-custom'))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [custom_auth]: Usar autenticación personalizada]
+
+El mecanismo `CustomAuth` recibe un `token`, y lo incluye en la cabecera `X-CustomAuth` de la petición.
+
+Otra manera de hacerlo es usando un token de acceso personal en lugar de la tupla usuario/contraseña. En el caso de la API de GitHub, se recomienda este uso para la forma básica de autenticación. Por ejemplo, para acceder a la [API de Github de datos de un usuario](https://docs.github.com/en/rest/reference/users#get-the-authenticated-user), este punto de acceso provee información acerca del perfil del usuario que se autentica.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from requests.auth import HTTPBasicAuth
+>>> from getpass import getpass
+>>> token = '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'
+>>> r = requests.get('https://api.github.com/user',
+...      auth=HTTPBasicAuth('vany-viu', token))
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [basic_auth_token]: Usar `HTTPBasicAuth` para la autenticación con un token]
+
+Se puede obtener dicho token de la API de GitHub siguiendo su [manual](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token), y usarlo como password en el mecanismo de `HTTPBasicAuth`.
+
+Mecanismos de autenticación malos pueden llevar a vulnerabilidades de seguridad, así que, a menos que el servicio requiera un mecanismo personalizado por alguna razón, siempre se suele usar un método verificado como el `Basic` o `OAuth`.
+
+## Verificación de certificados SSL
+
+Cuando los datos que se mandan al servidor o se reciben desde el mismo pueden ser confidenciales la seguridad es importante. La manera de comunicarse con sitios seguros a través de HTTP se hace estableciendo una conexión encriptada usando SSL, lo cual quiere decir que verificar el certificado SSL del servidor de destino es crítico. La librería `requests` hace esto por defecto, sin embargo, hay casos donde es necesario cambiar este comportamiento.
+
+Si se quiere deshabilitar la verificación del certificado SSL, se pasa `False` al parámetro `verify` de la función de la petición.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get('https://api.github.com', verify=False)
+InsecureRequestWarning: Unverified HTTPS request is being made...
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [disable_ssl]: Deshabilitar SSL]
+
+## Rendimiento
+
+Cuando se usa `requests`, especialmente en un entorno de producción, es importante considerar las implicaciones de rendimiento.  Como el control de timeouts, de sesiones, límites de reintentos,, para hacer que la aplicación funcione lo mejor posible.
+
+### Timeouts
+
+Cuando se realizan peticiones a un servicio externo, el sistema tiene que esperar a la respuesta antes de seguir con el trabajo. Si la aplicación espera demasiado tiempo a esa respuesta, se puede ralentizar todo, la experiencia de usuario empeorar,...
+
+Por defecto, `requests` espera la respuesta de manera indefinida, así que casi siempre se debería especificar una duración para este timeout para prevenir esos problemas. Para determinar un timeout para una petición, se usa el parámetro `timeout`, que puede ser un número entero o decimal representando el número de segundos que hay que esperar antes de abandonar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get('https://api.github.com', timeout=1)
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [timeout]: Poner un timeout de 1 segundo]
+
+También se puede pasar una tupla a este parámetro, donde el primer elemento es el timeout para establecer la conexión con el servidor, y el segundo un timeout de lectura, el tiempo que espera una respuesta una vez establecida la conexión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get('https://api.github.com', timeout=(1,2))
+<Response [200]>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [timeout_tuple]: Poner un timeout de 1 segundo para conexión y 2 segundos para lectura]
+
+Si la petición da un timeout entonces la función levantará una excepción de tipo `Timeout`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from requests.exceptions import Timeout
+
+try:
+    response = requests.get('https://api.github.com', timeout=1)
+except Timeout:
+    print('The request timed out')
+else:
+    print('The request did not time out')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [timeout_exception]: Manejar una excepción de tipo timeout]
+
+### Objeto Session
+
+Hasta ahora se estaba trabajando con la API de alto nivel de `requests`, como `get` o `post`. Estas funciones son abstracciones de lo que está pasando por debajo cuando se realizan peticiones, ocultan detalles de implementación como el manejo de las conexiones para que no haya que preocuparse de ellas.
+
+Por debajo de estas abstracciones está una clase llamada `Session`. Si se necesita ajustar el control sobre como las peticiones se están haciendo o mejorar el rendimiento de las mismas, hay que usar una instancia `Session` directamente.
+
+Las sesiones se usan para que los parámetros persistan a través de varias peticiones.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from getpass import getpass
+
+with requests.Session() as session:
+    session.auth = ('username', getpass())
+    response = session.get('https://api.github.com/user')
+
+print(response.headers)
+print(response.json())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [session]: Usar una sesión para reusar la autenticación]
+
+Cada vez que se hace una petición con una `session`, una vez estas credenciales de autenticación se han inicializado, estas persisten.
+
+La mejora en el rendimiento de las sesiones viene en la forma de conexiones persistentes. Cuando la aplicación establece una conexión con un servidor usando una `Session`, mantiene dicha conexión viva en un `pool` de conexiones. Cuando la aplicación quiere volver a conectarse al mismo servidor otra vez, reusará dicha conexión del `pool` antes que establecer una nueva.
+
+### Max Retries
+
+Cuando una petición falla, se puede querer reintentar la misma petición. Sin embargo, `requests` no lo hará por defecto. Para aplicar esta funcionalidad hay que implementar un [`Transport Adapter`](https://docs.python-requests.org/en/master/user/advanced/#transport-adapters).
+
+Estos permiten definir un conjunto de operaciones para el servicio con el que se está interactuando.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from requests.adapters import HTTPAdapter
+from requests.exceptions import ConnectionError
+
+github_adapter = HTTPAdapter(max_retries=3)
+
+session = requests.Session()
+session.mount('https://api.github.com', github_adapter)
+
+try:
+    session.get('https://api.github.com')
+except ConnectionError as ce:
+    print(ce)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [adapter]: Usar un adaptador para hacer la petición]
+
+Se quiere que todas las peticiones a un servidor se reintenten 3 veces antes de lanzar una excepción `ConnectionError`. Se construye un adaptador, se pone su parámetro `max_retries` a 3, y se monta sobre una `Session` existente con el método `mount`.
+
+Cuando se monta el `HTTPAdapter` a la sesión, está cumplirá su configuración para cada petición a dicho servidor.
+
+# REST API
+
+Saber como consumir una API es una habilidad importante que abre un mundo de posibilidades. Muchas aplicaciones y sistemas que se usan a diario están conectadas a una API. Desde cosas mundanas como verificar el tiempo, a otras más específicas, como Instagram, Twitter,... en todas ellas el consumo de una API es crítico.
+
+## API
+
+Las siglas API vienen de `Application Programming Interface`, es decir un interfaz de programación de aplicaciones. En esencia, una API actúa como una capa de comunicaciones, como un interfaz, que permite a varios sistemas hablar entre sí sin tener que entender exáctamente lo que hace la otra.
+
+Las APIs pueden venir en muchas formas, pueden ser APIs de un sistema operativo, usadas para acciones como encender la cámara y el audio al conectarse a una llamada. O pueden ser APIs web, usadas para acciones enfocadas en la web como dar likes a una imagen en Instagram u obtener los últimos tweets publicados.
+
+No importa de donde vengan, todas funcionan de la misma manera. Se suele hacer una petición de información o datos, y la API devuelve una respuesta con lo solicitado. Por ejemplo, cada vez que se abre Twitter se está haciendo una petición a la API detrás de la aplicación y obteniendo una respuesta. Se está llamando a una API.
+
+### SOAP vs REST vs GraphQL
+
+Las APIs web llevan mucho tiempo entre nosotros, en los años 90 surgieron dos modelos para exponer datos públicamente.
+
+- SOAP `Simple Objet Access Protocol`, se asocia con el mundo empresarial, con un uso más estricto y está diseñado principalmente alrededor de acciones
+
+- REST `Representational State Transfer`, se usa para APIs públicas y es ideal para obtener datos de una web, es mucho más ligera y cercana a la especificación HTTP
+
+Últimamente ha aparecido un nuevo modelo, [`GraphQL`](https://graphql.org/), creado por FaceBook, es un lenguaje de peticiones para APIs muy flexible. Donde los clientes deciden exáctamente lo que quieren obtener del servidor, en lugar de que sea el servidor el que decida lo que enviar. Aunque este modelo esté al alza, y se vaya adoptando en cada vez más sitios, lo cierto es que la mayoría de APIs son REST.
+
+### `requests` y APIs
+
+Solo se necesita la librería `requests` para consumir APIs, con ella se pueden hacer la mayoría, si no todas, de las acciones para consumir una API pública.
+
+## Llamar a una API desde Python
+
+Mientras se está desarrollando una aplicación, es habitual empezar por una fase de pruebas, donde se necesita testear algunos sistemas, para ello, se suelen usar algunas APIs públicas, que se pueden encontrar en algunos directorios [aquí](https://public-apis.io/), o [aquí](https://github.com/public-apis/public-apis).
+
+Para hacer pruebas se suele usar una API pública para generar datos de usuarios aleatorios, [Random User Generator API](https://randomuser.me/). Se puede usar para generar cualquier número de usuarios aleatorios y sus datos asociados, se puede especificar el genero, nacionalidad, y muchos otros filtros que pueden ser útiles cuando se prueban aplicaciones o APIs.
+
+Lo único que se necesita para empezar a usar esta API es saber a que URL hay que llamar, en este caso, `https://randomuser.me/api/`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import requests
+>>> response = requests.get("https://randomuser.me/api/")
+>>> response.text
+'{"results":[{"gender":"female","name":{"title":"Mrs","first":"Onata","last":"Campos"}...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [randomuser]: Llamar a la API de `Random User`]
+
+Se obtienen los datos aleatorios de un usuario accediendo al atributo `text` de la respuesta.
+
+### Endpoints y recursos
+
+El primer paso es obtener la URL de la API, normalmente llamada la URL base. La estructura de esta no es diferente de las URLs que se usan normalmente para navegar, pero suelen contener la palabra `api`.
+
+Por ejemplo, algunas APIs conocidas son, `https://api.twitter.com` o `https://api.github.com`. No hay standard específico acerca de como deberían ser estas URL base, pero es común que tengan la estructura de que empiecen por `api.` y luego el resto del dominio sea el habitual.
+
+Si se abren dichas URLs con el navegador, muchas de ellas devolverán un error, o pedirán credenciales, esto es porque estas APIs suelen requerir al usuario autenticarse antes de poder usarlas.
+
+Otra API habitual que se suele usar para probar es [The Dog API](https://thedogapi.com/), está muy bien construida y tiene buena documentación. Con ella se pueden obtener datos de razas de perros y sus fotos, pero tras un registro se puede incluso votar por las razas favoritas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import requests
+>>> response = requests.get("https://api.thedogapi.com/")
+>>> response.text
+'{"message":"The Dog API"}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thedogapi]: Llamar a la API de `The Dog API`]
+
+En este caso, llamando a la URL base, se obtiene un mensaje genérico. Esto es porque se está llamando al punto de entrada base, que se suele usar para dar información muy básica sobre la API, no los datos reales.
+
+Un `endpoint` es una parte de la URL que especifica que recurso se quiere obtener. Las APIs bien documentadas suelen tener una referencia de la misma, lo cual es muy útil para conocer exáctamente estos `endpoints` y los recursos que una API provee, y como usarlos.
+
+En el caso de esta API se puede acceder a la [documentación](https://docs.thedogapi.com/api-reference) para aprender como usarla y que `endpoints` están disponibles. Por ejemplo, el endpoint [`/breeds`](https://docs.thedogapi.com/api-reference/breeds/breeds-list) que se puede usar para obtener todas las razas. Esta API incluso tiene una sección para enviar una [petición de prueba](https://docs.thedogapi.com/api-reference/breeds/breeds-list#send-a-test-request). Esto suele ser habitual en la documentación de muchas APIs, una manera de probar rápidamente la API directamente desde la página de la documentación, y poder ver las cabeceras, respuestas,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import requests
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds")
+>>> response.text
+'[{"weight":{"imperial":"6 - 13","metric":"3 - 6"},"height":{"imperial":"9 - 11.5","metric":"23 - 29"},"id":1,"name":"Affenpinscher","bred_for":"Small rodent hunting, lapdog",...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thedogapi_breeds]: Llamar al endpoint `/breeds`]
+
+Llamar a dicho `endpoint` nos devuelve lo esperado, la lista de razas disponibles en dicha API.
+
+Hay una diferencia importante entre los `endpoint` con `http://` y `https://`. Estos últimos usan la versión encriptada de HTTP, haciendo que todo el tráfico entre el cliente y el servidor sea mucho más seguro. Cuando se consumen APIs públicas hay que abstenerse de mandar cualquier información privada o sensible a `endpoints` con `http://`, y usar solo aquellas APIs que ofrezcan una URL base segura con `https://`.
+
+### Petición y respuesta
+
+Todas las interacciones entre un cliente y una API se dividen en una petición y una respuesta.
+
+- Las peticiones contienen datos relevantes sobre la llamada a la API, como la URL base, el `endpoint`, el método usado, las cabeceras,...
+
+- Las respuestas contienen datos relevantes devueltos por el servidor, incluyendo los datos o el contenido, el código de estado y las cabeceras.
+
+Usando `The Dog API` se puede profundizar un poco más en el contenido de los objetos `Request` y `Response`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds")
+>>> response
+<Response [200]>
+>>> response.request
+<PreparedRequest [GET]>
+
+>>> request = response.request
+>>> request.url
+'https://api.thedogapi.com/v1/breeds'
+>>> request.path_url
+'/v1/breeds'
+>>> request.method
+'GET'
+>>> request.headers
+{'User-Agent': 'python-requests/2.24.0', 'Accept-Encoding': 'gzip, deflate',
+'Accept': '*/*', 'Connection': 'keep-alive'}
+
+>>> response
+<Response [200]>
+>>> response.text
+'[{"weight":{"imperial":"6 - 13","metric":"3 - 6"},
+"height":{"imperial":"9 - 11.5","metric":"23 - 29"},"id":1,
+"name":"Affenpinscher", ...}]'
+>>> response.status_code
+200
+>>> response.headers
+{'Cache-Control': 'post-check=0, pre-check=0', 'Content-Encoding': 'gzip',
+'Content-Type': 'application/json; charset=utf-8',
+'Date': 'Sat, 25 Jul 2020 17:23:53 GMT'...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thedogapi_request]: Atributos de `Request` y `Response`]
+
+### Códigos de estado
+
+Los códigos de estado son una de las piezas de información más importantes que buscar en cualquier respuesta de una API. Informan si la petición ha sido exitosa, si faltan datos, si faltan credenciales,...
+
+Código de Estado | Descripción
+-----------------|-------------
+200 OK | Petición exitosa
+201 Created | La petición ha sido aceptada y el recurso ha sido creado
+400 Bad Request | La petición está mal o le falta información
+401 Unathorized | La petición necesita permisos adicionales
+404 Not Found | El recurso que se ha pedido no existe
+405 Method Not Allowed | El `endpoint` no está permitido para ese método HTTP
+500 Internal Server Error | La petición no se esperaba y probablemente haya roto algo en el lado del servidor
+[Table [status_code]: Códigos de estado habituales]
+
+Se puede comprobar el estado de una respuesta usando los atributos `status_code` y `reason`, también se imprime dicho código de estado en la representación de un objeto `Response`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds")
+>>> response
+<Response [200]>
+>>> response.status_code
+200
+>>> response.reason
+'OK'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [status_code]: Código de estado de una respuesta]
+
+Si se intenta acceder a un `endpoint` que no existe se recibe un error `404 Not Found`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breedz")
+>>> response
+<Response [404]>
+>>> response.status_code
+404
+>>> response.reason
+'Not Found'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [status_code_404]: Código de estado de una respuesta con error]
+
+### Cabeceras HTTP
+
+Las cabeceras de HTTP se usan para definir algunos parámetros mara manejar las peticiones y las respuestas.
+
+Cabecera HTTP | Descripción
+-----------------|-------------
+Accept | Qué tipo de contenido puede aceptar el cliente
+Content-Type | Con qué tipo de contenido contestará el servidor
+User-Agent | Qué software está usando el cliente para comunicarse con el servidor
+Server | Qué software está usando el servidor para comunicarse con el cliente
+Authentication | Quien está llamando a la API y sus credenciales
+[Table [http_headers]: Cabeceras HTTP habituales]
+
+Hay muchas más cabeceras que se pueden consultar [aquí](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). Para inspeccionar las cabeceras de una respuesta, se usa el atributo `headers` del objeto `Response`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds/1")
+>>> response.headers
+{'Content-Encoding': 'gzip', 'Content-Type': 'application/json; charset=utf-8', 'Date': 'Fri, 11 Jun 2021 07:39:02 GMT', 'Server': 'Apache/2.4.46 (Amazon)',...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [response_header]: Cabecera de una respuesta]
+
+Se puede acceder al mismo atributo pero de la petición a través de `response.request.headers`, puesto que `request` es un atributo del objeto `Response`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds/1")
+>>> response.request.headers
+{'User-Agent': 'python-requests/2.25.1', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive'}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_header]: Cabecera de una petición]
+
+#### Cabeceras personalizadas
+
+Otro standard que se suele seguir al consumir APIs es el uso de cabeceras personalizadas. Habitualmente empiezan por `x-`, pero no es obligatorio. Los desarrolladores de APIs normalmente usan estas cabeceras personalizadas para enviar o pedir información adicional a los clientes.
+
+Se puede usar un diccionario para crear estas cabeceras y se pueden enviar junto a la petición usando el parámetro `headers` del método `get` al hacer la petición.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> custom_header = {"X-Request-Id": "<my-request-id>"}
+>>> response = requests.get("https://example.org", headers=custom_header)
+>>> response.request.headers
+{'User-Agent': 'python-requests/2.25.1', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'X-Request-Id': '<my-request-id>'}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [custom_header]: Enviar cabecera personalizada]
+
+En las cabeceras de la petición se puede encontrar dicha cabecera personalizada junto al resto de las cabeceras habituales.
+
+#### Content-Type
+
+Hoy en día, la mayoría de las APIs usan JSON para compartir contenido por defecto, pero se puede necesitar usar una API que devuelve un XML o cualquier otro formato, como imágenes, video,... En ese caso, el tipo del contenido de la petición cambia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds/1")
+>>> response.headers.get("Content-Type")
+'application/json; charset=utf-8'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_type_json]: Tipo de contenido JSON]
+
+Al llamar a la API, en las cabeceras de la respuesta, se puede ver específicamente la cabecera `Content-Type`, que en este caso declara que el contenido es `application/json`, e incluso puede también determinar la codificación del contenido de la respuesta.
+
+Otra API distinta, [Place Kitten](https://placekitten.com/), que devuelve imágenes de gatos en distintos tamaños que se suelen usar como placeholders en las páginas web en desarrollo. Si se intenta obtener una imagen de dicha API, se puede observar que el tipo del contenido no es `application/json` como en el caso anterior, si no `image/jpeg`, indicando que el contenido devuelto es una imagen en JPG.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://placekitten.com/200/200")
+>>> response.headers.get("Content-Type")
+'image/jpeg'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_type_jpeg]: Tipo de contenido Jpeg]
+
+Hay muchos tipos de contenido aceptables, una lista se puede encontrar [aquí](https://www.iana.org/assignments/media-types/media-types.xhtml).
+
+### Contenido de la respuesta
+
+El tipo del contenido de la respuesta de la API variará de acuerdo a la cabecera `Content-Type`. Para leer correctamente los contenidos de diferentes tipos, la librería `requests` proporciona varios atributos del objeto `Response` que se pueden usar para manipular dichos datos de la respuesta.
+
+Con el atributo `text` se accede al contenido en formato `Unicode` de texto, mientras que con `content` se accede al contenido binario en bytes.
+
+Para algunos tipos específicos de datos, como imágenes u otros datos no textuales, usar `content` suele ser buena idea, incluso si devuelve un resultado similar a `text`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds/1")
+>>> response.headers.get("Content-Type")
+'application/json; charset=utf-8'
+>>> response.text
+'{"weight":{"imperial":"6 - 13","metric":"3 - 6"},"height":{"imperial":"9 - 11.5","metric":"23 - 29"}...'
+>>> response.content
+b'{"weight":{"imperial":"6 - 13","metric":"3 - 6"},"height":{"imperial":"9 - 11.5","metric":"23 - 29"}...'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [response_content]: Contenido de la respuesta en texto y en `bytes`]
+
+En el caso de una respuesta como la anterior, donde el contenido recibido es un JSON, no hya mucha diferencia. Para estos casos, la librería `requests` incluye un método `json` que convierte la respuesta en formato JSON en un diccionario directamente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.thedogapi.com/v1/breeds/23")
+>>> diccionario = response.json()
+>>> diccionario["name"]
+'Australian Shepherd'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_json]: Contenido de la respuesta en JSON]
+
+Al intentar mirar el contenido de una API que devuelve una imagen, se puede ver que el atributo `content` solo muestra dígitos en binario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://placekitten.com/200/200")
+>>> response.headers.get('Content-Type')
+'image/jpeg'
+>>> response.content
+b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01...'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [content_image_jpeg]: Contenido de la respuesta en binario]
+
+Pero se sabe que el contenido es una imagen en formato JPG, así que se puede interpretar de esa manera e intentar guardarlo en un fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://placekitten.com/200/200")
+>>> response.headers.get('Content-Type')
+'image/jpeg'
+>>> file = open("kitten.jpg", "wb")
+>>> file.write(response.content)
+>>> file.close()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [save_content_image_jpeg]: Guardar el contenido de la respuesta en un fichero binario]
+
+### Métodos HTTP
+
+Ha varios métodos para llamar a una API, también llamados verbos, que se pueden usar para especificar que acción se quiere ejecutar. Para obtener datos se usa el método `GET`, para crear datos se usa el método `POST`. Cuando se usan APIs, normalmente se usan peticiones a través de `GET`.
+
+Método HTTP | Descripción | Requests
+------------|-------------|----------
+POST | Crea un nuevo recurso | requests.post()
+GET | Lee un recurso ya existente | requests.get()
+PUT | Actualiza un recurso ya existente | requests.put()
+DELETE | Borra un recurso ya existente | requests.delete()
+[Table [http_methods]: Métodos HTTP]
+
+A estos cuatro métodos se les suele llamar operaciones `CRUD`, que es un acrónimo de **C** reate **R** ead **U** pdate **D** elete. La lista completa de todos los métodos se puede encontrar [aquí](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+
+Se puede usar la librería `requests` para el resto de métodos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.post("https://api.thedogapi.com/v1/breeds/23")
+>>> requests.get("https://api.thedogapi.com/v1/breeds/23")
+>>> requests.put("https://api.thedogapi.com/v1/breeds/23")
+>>> requests.delete("https://api.thedogapi.com/v1/breeds/23")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [http_methods]: Métodos HTTP]
+
+La mayoría de ellos, en este caso, devolverán un código de estado `405 Method Not Allowed`, puesto no todos los `endpoint` permiten ese tipo de métodos, especialmente cuando se leen datos de APIs públicas la mayor parte de ellas solo permiten realizar peticiones `GET`, puesto que no se suele tener permiso para crear o modificar datos.
+
+### Query Parameters
+
+Algunas veces, cuando se llama a una API, se recupera un montón de información que no se quiere o no se necesita. Por ejemplo, antes al llamar al `endpoint` `/breeds` de `TheDogAPI`, se obtiene mucha información acerca de las razas, pero en algunos casos, solo se quiere extraer cierta información acerca de una raza concreta. Para esto se pueden usar los parámetros de la petición.
+
+Normalmente estos parámetros suelen venir tras la URL base y un `endpoint`. Por ejemplo, en los videos de YouTube, ´https://www.youtube.com/watch?v=dQw4w9WgXcQ´, en la parte final, existe un parámetro `v` que define el identificador del video a reproduciir.
+
+Para añadir un parámetro a una URL hay que añadir un interrogante `?` antes del primer parámetro. Y si se necesita más de uno, hay que separarlos con un `&`. En el mundo de las API, estos parámetros se suelen usar como filtros para acotar las respuestas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get("https://randomuser.me/api/").json()
+{'results': [{'gender': 'male', 'name': {'title': 'Mr', 'first': 'Hedde', 'last': 'Meerwijk'}, 'location': {'street': {'number': 7979, 'name': 'Armgardplaats'},...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_no_param]: Petición sin parámetros]
+
+En este caso, al hacer una petición sin ningún parámetro devuelve un usuario aletorio, pero si se quiere crear un usuario femenino, habría que usar un parámetro `gender`, que de acuerdo a la [documentación](https://randomuser.me/documentation#gender), tiene que tener valor `male` o `female`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get("https://randomuser.me/api/?gender=female").json()
+{'results': [{'gender': 'female', 'name': {'title': 'Mrs', 'first': 'Pihla', 'last': 'Tuominen'}, 'location': {'street': {'number': 4863, 'name': 'Mechelininkatu'}, ...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_param]: Petición con parámetro de género]
+
+Si se necesita crear un usuario que además de `female` sea de un pais en concreto, se consulta la [documentación](https://randomuser.me/documentation#nationalities) y se encuentra la sección sobre la nacionalidad y se usa el parámetro `nat` y se concatena el parámetro al anterior.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> requests.get("https://randomuser.me/api/?gender=female&nat=es").json()
+{'results': [{'gender': 'female', 'name': {'title': 'Miss', 'first': 'Angeles', 'last': 'Gonzalez'}, 'location': {'street': {'number': 230, 'name': 'Avenida de Burgos'}...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_param_concat]: Petición con parámetro de género y nacionalidad]
+
+Usando estos parámetros se pueden obtener datos más específicos de una API, haciendo que la experiencia esté más ajustada a las necesidades de la aplicación.
+
+Para evitar reconstuir la URL una y otra vez, se puede usar el atributo `params` para enviar un diccionario con todos los parámetros que se quieren añadir a la URL.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> query_params = {"gender": "female", "nat": "es"}
+>>> requests.get("https://randomuser.me/api/", params=query_params).json()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [request_param_p]: Petición con parámetro de género y nacionalidad usando `params`]
+
+Incluso es buena práctica definir el `endpoint` como variable si se va a reusar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> query_params = {"q": "labradoodle"}
+>>> endpoint = "https://api.thedogapi.com/v1/breeds/search"
+>>> requests.get(endpoint, params=query_params).json()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [endpoint_var]: `Endpoint` y parámetros como variables]
+
+## Métodos Avanzados
+
+### Autenticación
+
+Muchas de las APIs son públicas y libres de usar, pero muchas otras están disponibles tras alguna forma de autenticación, como las de [Github](https://docs.github.com/en/rest), [Twitter](https://developer.twitter.com/en/docs) o [Instagram](https://developers.facebook.com/docs/instagram-basic-display-api). Autenticarse contra una API va desde lo más simple y directo, como las APIS que usan `API keys` o autenticación básica, hasta modelos más complejos y seguros, como `OAuth`. Normalmente llamar a una API sin credenciales o usando unas incorrectas acaba en un código `401 Unauthorized` o `403 Forbidden`.
+
+#### API Keys
+
+El nivel más básico de autenticación es usando `API Keys`. Estas claves se usan para identificar al usuario como cliente de la API y rastrear el uso que se hace de dicha API. Normalmente suelen ser enviadas en la cabecera de la petición o como parámetro de la misma.
+
+Exsite una API de la [NASA](https://api.nasa.gov/), a partir de la cual se puede obtener una imagen [diaria](https://apod.nasa.gov/apod/astropix.html), u otras imágenes de la [tierra](https://epic.gsfc.nasa.gov/).
+
+Se puede añadir la `API Key` al hacer la petición, añadiendo el parámetro `api_key` al hacer la petición.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> endpoint = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos"
+>>> api_key = "DEMO_KEY"
+>>> query_params = {"api_key": api_key, "earth_date": "2021-06-11"}
+>>> response = requests.get(endpoint, params=query_params)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [api_key]: Uso de una `API Key`]
+
+En ese ejemplo, se usa la API [Mars Rover Photo](https://github.com/chrisccerami/mars-photo-api) para acceder a las fotos del Mars Rover en un día en concreto. Para pruebas, se puede usar la clave `DEMO_KEY` que la NASA ofrece por defecto. En caso contrario, se puede generar una yendo a la [página principal de la API](https://api.nasa.gov/) y pinchar en `Get Started`.
+
+Se mira al objeto `Response` y se intenta extraer alguna imagen de ella.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response.json()
+{'photos': [{'id': 845517, 'sol': 3145, 'camera': {'id': 20, 'name': 'FHAZ', 'rover_id': 5, 'full_name': 'Front Hazard Avoidance Camera'}, 'img_src': 'https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/03145/opgs/edr/fcam/FLB_676696218EDR_F0882422FHAZ00302M_.JPG',...}
+>>> photos = response.json()["photos"]
+>>> print(f"Found {len(photos)} photos")
+Found 427 photos
+>>> photos[0]["img_src"]
+'https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/03145/opgs/edr/fcam/FLB_676696218EDR_F0882422FHAZ00302M_.JPG'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mars_rover]: Encontrar una imagen en JSON de respuesta]
+
+Se usa el método `json` para convertir la respuesta en un diccionario de Python, y accediendo al campo `photos` se puede iterar sobre todos los objetos, e incluso obtener la URL de la imagen de una foto en particular. Si se abre dicha URL en un navegador se puede ver la imagen de Marte tomada por uno de los Rovers.
+
+![Figure [res/200_000]: Foto de Marte](res/200_000.png  width="200px")
+
+#### OAuth
+
+Otro método habitual para autenticarse en APIs es [`OAuth`](https://oauth.net/). Aunque sea de manera inadvertida, la mayor parte de la gente ha usado `OAuth` cientos de veces. Cada vez que una aplicación o plataforma tiene una ventana de inicio de sesión que tiene la opción de logearse con una cuenta de Google, Facebook,... es el punto de inicio de un flujo de `OAuth`.
+
+![Figure [res/200_001]: Login de Spotify con `OAuth`](res/200_001.png  width="300px")
+
+Si se selecciona la opción de `Continue with Facebook` esto es lo que sucede.
+
+1. La aplicación de Spotify le pedirá a la API de Facebook iniciar el flujo de autenticación. Para hacer esto, la aplicación de Spotify enviará su identificador de aplicación `client_id` y una URL `redirect_uri` para redirigir al usuario tras un proceso con éxito o error.
+
+2. El usuario es redirigido a la web de Facebook, y se le pide iniciar sesión allí con sus credenciales. La aplicación de Spotify no ve o tiene acceso a dichas credenciales. Este es el mayor beneficio de `OAuth`.
+
+3. Facebook mostrará todos los datos que la aplicación de Spotify esta pidiendo del perfil del usuario y pedira al mismo si acepta o no compartir estos datos.
+
+4. Si se acepta el darle acceso a esos datos a Spotify, entonces se redirige al usuario a la aplicación de Spotify con la sesión ya iniciada.
+
+En el último paso, Facebook le da a Spotify una credencial especial `access_token` que puede usar repetidamente para obtener la información del usuario. Este `token` de inicio de sesión de Facebook es valido por 60 días, pero otras aplicaciones pueden tener periodos de caducidad distintos.
+
+Desde un punto de vista técnico, hay que tener en cuenta uan serie de cosas al consumir APIs usando `OAuth`.
+
+- Hay que crear una aplicación que tenga un ID, `app_id` o `client_id` y un secret `app_secret` o `client_secret`
+
+- Hay que tener una URL de redirección `redirect_uri`, que la API usará para enviar la información
+
+- Se obtiene un código como resultado de la autenticación, que hay que intercambiar por un token de acceso.
+
+Cuando se están probando cosas y se necesita algún tipo de URL de redirección para obtener un ´code´, se puede usar un servicio como [`httpbin`](https://httpbin.org/). Concretamente, se suele usar `https://httpbin.org/anything` como URL de redirección, puesto que simplemente mostrará cualquier cosa que reciba como entrada.
+
+Se va a usar la API de GitHub para mostrar un caso práctico de como trabajar con `OAuth`. El primer paso es crear una aplicación. En la [documentación](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) de GitHub se puede mirar como se debe hacer. Lo único a tener en mente es usar la URL de redirección `https://httpbin.org/anything` para el campo `Authorization callback URL`.
+
+Una vez creada la aplicación según las instrucciones de GitHub, se copia y pega el `Client_ID` y el `Client_Secret`, junto con la URL de redirección en un fichero de Python.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+
+CLIENT_ID = '2708b0f786bb903a00c4'
+CLIENT_SECRET = '358aea01c88e58a1958caa0bc4ee7c9fdf7bf30f'
+REDIRECT_URI = 'https://httpbin.org/anything'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [app_data]: Datos de la aplicación para `OAuth`]
+
+A continuación hay que crear un enlace para redirigir al usuario a su cuenta de GitHub, tal como se explica en la [documentación](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def create_oauth_link():
+    params = {
+        "client_id": CLIENT_ID,
+        "redirect_uri": REDIRECT_URI,
+        "scope": "user",
+        "response_type": "code",
+    }
+
+    endpoint = "https://github.com/login/oauth/authorize"
+    response = requests.get(endpoint, params=params)
+    url = response.url
+    return url
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [oauth_link]: Crear enlace para redirección a inicio de sesión de GitHub]
+
+Aquí se definen los parámetros que espera la API, y se llama a la misma con `get`. Cuando se hace esta petición al `endpoint` `/login/oauth/authorize`, la API automáticamente redirige al usuario a la web de GitHub. En este caso, hay que capturar el parámetro `url` de la respuesta. Este parámetro contiene la URL exacta donde GitHub se está redirigiendo.
+
+El siguiente paso en el flujo de la autenticación es intercambiar el código que se obtiene por un token de acceso. Una vez más, buceando en la [documentación](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github) se puede encontar el método para ello.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def exchange_code_for_access_token(code=None):
+    params = {
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URI,
+        "code": code,
+    }
+
+    headers = {"Accept": "application/json"}
+    endpoint = "https://github.com/login/oauth/access_token"
+    response = requests.post(endpoint, params=params, headers=headers).json()
+    return response["access_token"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [acces_token]: Obtener el token de acceso]
+
+Se hace una petición con el método `post` para intercambiar el código por un token de acceso. En esta petición, hay que enviar el `CLIENT_SECRET` para que GitHub peuda validar este código específico que se generó inicialmente con la aplicación. Solo entonces la API de GitHub genera un token de acceso valido y se lo devuelve a la aplicación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def print_user_info(access_token=None):
+    headers = {"Authorization": f"token {access_token}"}
+    endpoint = "https://api.github.com/user"
+    response = requests.get(endpoint, headers=headers).json()
+    name = response["name"]
+    username = response["login"]
+    private_repos_count = response["total_private_repos"]
+    print(
+        f"{name} ({username}) | private repositories: {private_repos_count}"
+    )
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [print_info]: Imprimir información acerca del usuario usando el token de acceso]
+
+Ahora que se tiene el token de acceso, hay que enviarlo en todas las peticiones a la API usando la cabecera `Authorization`. Se puede usar el `endpoint` de GitHub para obtener información del [usuario](https://docs.github.com/en/rest/reference/users#get-the-authenticated-user). La respuesta a la petición será un diccionario de Python que contiene toda la información del usuario, y se pueden imprimir algunos de esos datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+link = create_oauth_link()
+print(f"Follow the link to start the authentication with GitHub: {link}")
+code = input("GitHub code: ")
+access_token = exchange_code_for_access_token(code)
+print(f"Exchanged code {code} with access token: {access_token}")
+print_user_info(access_token=access_token)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [execute_oauth]: Ejecutar el flujo de `OAuth`]
+
+Si todo ha ido bien, entonces se tendrá un token de acceso válido que se puede usar para realizar llamadas a la API de GitHub, haciéndose pasar por el usuario.
+
+Al ejecutar el código, primero se genera un enlace, y se pide al usuario que vaya a la página de GitHub para autenticarse, se pega dicho enlace en el navegador y se inicia sesión en GitHub con las credenciales habituales del usuario de GitHub. Una vez hecho esto, se redirige al usuario a la URL que se ha definido como callback, donde hay un campo `code` en los parámetros.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+{
+    "args": {
+      "code": "7e3c891d78ffbd59d9f6"
+    },
+    "data": "",
+    "files": {},
+    "form": {},
+....
+  }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [httpbin]: Campo código en la redirección de GitHub]
+
+El script de Python espera que se pegue dicho código en la consola, entonces, intercambia dicho código por un token de acceso reusable. Y entonces se obtiene la información del usuario de GitHub usando dicho token, y se imprimen algunos datos del usuario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+GitHub code: 7e3c891d28fabd59d9d6
+Exchanged code 7e3c891d28fabd59d9d6 with access token: gho_pldmoQ0vvXMEVX11auiAKuTdlnrT4901UaPS
+Ivan Fuertes (vany-viu) | private repositories: 16
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [oauth_result]: Resultado de la ejecución]
+
+La mayoría de las APIs que usan `OAuth` siguen el mismo comportamiento, así que saber como funciona este proceso habilita un gran potencial cuando se necesita acceder a datos de las APIs.
+
+### Paginación
+
+Enviar muchos datos de ida y vuelta entre clientes y servidores tiene su precio en ancho de banda. Para asegurarse que los servidores pueden manejar muchas peticiones, las APIs normalmente usan la paginación. En terminos simples, esto es el acto de dividir grandes cantidades de datos en varias piezas más pequeñas.
+
+![Figure [res/200_002]: Paginación de StackOverflow](res/200_002.png)
+
+Aunque es un comportamiento generalizado para toda las webs, para las APIs en concreto, esto se maneja a través de los parámetros de las peticiones. Básicamente por dos de ellos.
+
+- Atributo `page` que define que página se está solicitando
+
+- Atributo `size` que define el tamaño de cada página
+
+Los nombres concretos de estos parámetros pueden variar en función de la API, pero el concepto es el mismo. Algunas API pueden incluso usar las cabeceras HTTP o el JSON de la respuesta para devolver filtros sobre la paginación actual en su lugar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> response = requests.get("https://api.github.com/events?per_page=1&page=0")
+>>> response.json()[0]["id"]
+'14345572615'
+>>> response = requests.get("https://api.github.com/events?per_page=1&page=1")
+>>> response.json()[0]["id"]
+'14345572808'
+>>> response = requests.get("https://api.github.com/events?per_page=1&page=2")
+>>> response.json()[0]["id"]
+'14345572100'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pagination]: Paginación en la API de GitHub]
+
+En la API de GitHub se encuentra otro `endpoint`, [`events`](https://docs.github.com/en/rest/reference/activity#list-public-events), que contiene parámetros de paginación. El parámetro `per_page` define el número de elementos que se devuelven, y `page` permite paginar entre varios resultados. En la primera petición, se obtiene solo un evento, pero usando el parámetro `page` se puede ir paginando a través de los resultados, así se pueden acceder a todos ellos sin sobrecargar la API.
+
+### Rate Limiting
+
+Puesto que las APIs son públicas y pueden ser usadas por todo el mundo, puede darse el caso que se pueda abusar de ellas por usuarios con malas intenciones. Para prevenir dichos ataques, se suele usar una técnica llamada `rate limiting`, que restringe el número de peticiones que los usuarios pueden realizar en un tiempo determinado.
+
+Algunas APIs incluso pueden llegar a bloquear la IP o la `API Key` si se sobrepasa dicho límite muy a menudo. Hay que tener cuidado de no sobrepasar dichos límites, en caso contrario habrá que esperar para volver a llamar a la API otra vez.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import requests
+>>> endpoint = "https://api.github.com/events"
+>>> for i in range(100):
+...     response = requests.get(endpoint)
+...     print(f"{i} - {response.status_code}")
+...     if response.status_code != 200:
+...             break
+...
+0 - 200
+1 - 200
+2 - 200
+3 - 200
+4 - 200
+....
+56 - 200
+57 - 200
+58 - 200
+59 - 403
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rate_limiting]: Límite de peticiones para la API de GitHub]
+
+Según la [documentación](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting), GitHub permite hasta 60 peticiones por hora no autenticadas. Si se sobrepasa ese límite, se obtiene un código de estado `403` y no se pueden hacer más peticiones en un tiempo.
+
+En el código de ejemplo excede dicho límite a proposito, y ve que las peticiones obtienen un `200` hasta la número 60 que obtiene un `403 Forbidden`.
+
+Algunas APIs incluso añaden información adicional en las cabeceras acerca del límite actual y cuantas peticiones quedan antes de bloquear.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,507 @@
+<meta charset="utf-8">
+**02EPPY - 010 - Concurrencia**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Concurrencia
+
+Concurrencia es la acción de dos o más actividades sucediendo al mismo tiempo. Cuando se habla de concurrencia en relación a la informática, se habla de un solo sistema realizando múltiples actividades independientes en paralelo, no de manera secuencial (una tras otra).
+
+Históricamente, la mayoría de ordenadores tenían un solo procesador, con una sola unidad de procesamiento o núcleo. Una máquina de ese tipo solo podía realizar una tarea a la vez, pero podía cambiar de tarea muchas veces por segundo. Haciendo un poco de cada tarea y cambiando a otra, se simulaba que las tareas se ejecutaban concurrentemente. Eso se llama `task switching`, y se considera concurrencia, puesto que los cambios de tarea son muy rápidos. Este sistema da la ilusión de concurrencia tanto al usuario como a la aplicación, pero puesto que es solo una ilusión, el comportamiento de las aplicaciones puede ser distinto cuando se ejecutan en un solo procesador a cuando lo hacen en un entorno de concurrencia real.
+
+Los ordenadores con procesadores con múltiples núcleos son ahora comunes, en máquinas de escritorio como en dispositivos móviles. Tanto si tienen múltiples procesadores, como múltiples núcleos dentro de un procesador, o ambos, estos ordenadores son capaces de ejecutar realmente más de una tarea en paralelo. Esto se llama concurrencia por hardware.
+
+![Figure [res/010_000]: Escenario Ideal](res/010_000.png)
+
+En un escenario ideal con dos tareas a procesar, como el de Figure [res/010_000], en una maquina con dos núcleos cada tarea se puede ejecutar en su propio núcleo. En una maquina con un solo núcleo haciendo `task switching`, los trozos de ejecución de cada tarea están intercalados, pero también están un poco espaciados entre sí. Para realizar la intercalación, el sistema tiene que realizar un cambio de contexto cada vez que cambia de una tarea a otra, y esto lleva tiempo. Este cambio de contexto supone que el sistema operativo debe guardar el estado de la CPU y el puntero de instrucción para la tarea que se está ejecutando, averiguar a qué tarea se debe cambiar, y recargar el estado de la CPU para la nueva tarea, la CPU entonces debe cargar la memoria para las instrucciones y los datos para la nueva tarea en la cache, lo que causa un retraso aún mayor.
+
+El factor más importante a considerar es el número real de hilos de hardware, la medida de cuantas tareas independientes el hardware puede realmente ejecutar de manera concurrente. Incluso en un sistema con concurrencia real, es muy habitual tener más tareas en ejecución de las que el hardware puede ejecutar en paralelo, así que el `task switching` es usado incluso en estos casos.
+
+![Figure [res/010_001]: `Task Switching` en Dos Nucleos](res/010_001.png)
+
+En Figure [res/010_001] se puede ver el uso de `task switching` para cuatro tareas en dos núcleos, donde se ejecutan cada uno de los trozos de ejecución en cualquiera de los dos núcleos en cualquier orden. Incluso en la realidad es todo más caótico puesto que los trozos de ejecución suelen ser de tamaños distintos haciendo la planificación mucho más irregular.
+
+## Tipos de concurrencia
+
+Existen dos aproximaciones para trabajar concurrentemente, tener varios procesos de un solo hilo, o tener un solo proceso con múltiples hilos. Se pueden combinar de cualquier manera y tener varios procesos, algunos de los cuales pueden tener múltiples hilos, los principios son los mismos.
+
+### Concurrencia con múltiples procesos
+
+La primera forma de usar concurrencia en una aplicación es dividir la aplicación en múltiples, separados, procesos mono-hilados que se ejecutan a la vez. Estos procesos separados se pueden pasar mensajes entre ellos a través de los canales habituales (señales, sockets, ficheros, …). El problema es que esta comunicación suele ser complicada o lenta, otro problema es que existe un sobrecoste inherente, lleva tiempo arrancar un proceso, el sistema operativo debe dedicar recursos internos para gestionar el proceso, …
+
+Un punto a favor es la protección que los sistemas operativos suelen aplicar a los procesos y la comunicación a través de mecanismos de alto nivel hacer que sea más sencillo escribir código seguro concurrente. Otra ventaja añadida es que se pueden ejecutar procesos separados en distintos equipos conectados a través de una red.
+
+![Figure [res/010_002]: Comunicación entre dos procesos concurrentes](res/010_002.png)
+
+### Concurrencia con múltiples hilos
+
+La otra forma de concurrencia es ejecutar múltiples hilos dentro de un solo proceso. Los hilos son como procesos muy ligeros, cada hilo se ejecuta de manera independiente de los otros, y cada hilo puede ejecutar una secuencia diferencia de instrucciones. Pero todos los hilos dentro de un proceso comparten el mismo espacio de direcciones, y la mayoría de los datos se pueden acceder directamente desde todos los hilos.
+
+El espacio de direcciones compartido y la falta de protección de los datos entre hilos hace que el sobrecoste asociado al uso de múltiples hilos sea mucho menor que usando múltiples procesos, puesto que el sistema operativo tiene mucho menos trabajo. Pero la flexibilidad de la memoria compartida viene con un precio, si se accede a los datos desde múltiples hilos, el programador de la aplicación debe asegurar que los datos que ve cada hilo son consistentes cada vez que se acceden. Los problemas alrededor de los datos compartidos entre hilos no son insalvables, pero hay que tener un cuidado especial al escribir código.
+
+El bajo sobrecoste de lanzar y comunicar múltiples hilos en un solo proceso comparado con lanzar y comunicar varios procesos mono-hilados significa que es la opción preferida a la concurrencia en la mayoría de los lenguajes, incluido Python.
+
+![Figure [res/010_003]: Comunicación entre dos hilos en un proceso](res/010_003.png)
+
+## ¿Por qué usar concurrencia?
+
+Hay dos razones principales para usar concurrencia en una aplicación, separación de intereses y rendimiento. De hecho, deberían ser las únicas razones para usar concurrencia.
+
+### Separación de intereses
+
+Esta es siempre una buena idea al desarrollar software, agrupar trozos de código relacionados y mantener alejados los trozos que no tienen relación. Se hacen los programas más fáciles de entender y probar, y menos propensos a bugs. Se puede usar la concurrencia para separar distintas áreas de funcionalidad, incluso cuando operaciones en distintas áreas necesita suceder a la vez.
+
+Una aplicación de procesamiento intensivo con una interface de usuario tiene fundamentalmente dos grupos de responsabilidades, por un lado, procesar y por otro coger el input del usuario. Si se hiciera en un solo hilo, entonces la aplicación tendría que estar verificando el estado de la interface de usuario continuamente a intervalos dejando de procesar sus datos, incluso el usuario podría hacer uso de algún botón y la aplicación tardaría un tiempo en llegar al código de interface para responder a él. En cambio, usando multihilo para separar las dos partes el código de procesamiento y el de la interface no tiene por qué estar mezclado, un hilo se puede dedicar al procesamiento de los datos, y el otro a atender a la interfaz de usuario, mejorando la respuesta a los comandos del usuario que se atienden inmediatamente.
+
+De manera similar, hilos separados se suelen usar para ejecutar tareas que deben correr de manera continua en background, de esta manera la lógica de cada hilo se hace mucho más simple, puesto que las interacciones entre ellos se limitan a puntos fácilmente identificables, en lugar de tener la lógica dispersa.
+
+En este caso, el número de hilos es independiente del número de núcleos disponibles, puesto que la división en hilos está basada en un diseño conceptual.
+
+### Rendimiento
+
+En los equipos modernos es cada vez más frecuente la adopción de arquitecturas multi-núcleo para mejorar el rendimiento. El aumento de potencia de estos equipos no viene de ejecutar una sola tarea más rápido, sino de ser capaces de ejecutar varias tareas en paralelo.
+
+Hay dos maneras de usar la concurrencia para el rendimiento, la primera y más obvia es dividir una tarea en varias partes y ejecutarlas en paralelo, reduciendo así el tiempo de ejecución, a esto se le llama **paralelismo de tareas**. Aunque parezca sencillo, puede ser un proceso complejo, puesto que suelen haber muchas dependencias entre las distintas partes. Las divisiones pueden ser en términos de procesamiento (un hilo ejecuta una parte del algoritmo mientras otro hilo ejecuta otra parte), o en términos de datos (cada hilo ejecuta la misma operación en distintas partes de los datos), esto último se llama paralelismo de datos.
+
+La segunda manera es usar el paralelismo disponible para solucionar problemas más grandes, en lugar de procesar un fichero a la vez, procesar 2 o 10 o x… Esta es en realidad una aplicación del paralelismo de datos, ejecutando la misma operación en distintos conjuntos de datos concurrentemente hay un foco diferente. Cuesta el mismo tiempo procesar un bloque de datos, pero ahora más datos pueden ser procesados en el mismo periodo de tiempo. Hay ciertos límites, y esto no será beneficioso en todos los casos, pero el incremento en potencia que resulta de esto puede hacer nuevas cosas posibles.
+
+## Cuando no usar concurrencia
+
+Tan importante como saber cuándo usar concurrencia, es saber cuándo no usarla. Fundamentalmente, la única razón para no usarla es cuando el beneficio no compensa el coste. El código que usa concurrencia es difícil de entender, hay un coste intelectual en escribir y mantener código multihilo, y la complejidad adicional puede llevar a más bugs. A menos que la ganancia potencial de rendimiento sea la suficientemente grande o la separación de intereses lo suficientemente clara para justificar el tiempo de desarrollo adicional para hacerlo bien y los costes adiciones para mantener código multihilo, no se debe usar concurrencia.
+
+Además, la ganancia de rendimiento puede no ser tan grande como se esperaba, hay un sobrecoste inherente asociado a lanzar un hilo, el sistema operativo, tiene que reservar recursos del núcleo y de la pila y entonces añadir un nuevo hilo al `scheduler`, todo eso lleva tiempo. Si la tarea que se va a ejecutar en el hilo es rápida, el tiempo gastado por la tarea va a ser minimizado por el sobrecoste de lanzar el hilo, haciendo que el rendimiento global de la aplicación sea incluso peor que si la tarea se hubiera ejecutado directamente desde el hilo principal.
+
+Los hilos son un recurso limitado, si se tienen demasiados hilos ejecutándose a la vez, estos consumen recursos del sistema operativo y pueden hacer que el sistema funcione más lento. Incluso pueden comerse la memoria disponible o el espacio de direcciones para un proceso, puesto que cada hilo requiere un espacio de pila separado. En un sistema cliente/servidor, si el servidor lanza un hilo separado para cada conexión, puede funcionar para pocas conexiones, pero puede consumir todos los recursos si se usa en un servidor de alta demanda.
+
+Por último, cuantos más hilos haya en ejecución, más cambios de contexto tiene que realizar el sistema operativo. Y cada uno de esos cambios de contexto consume un tiempo que podría estar usándose para realizar trabajo significativo, así pues, en un punto añadir un hilo extra podría reducir el rendimiento global de la aplicación en lugar de incrementarlo. Por eso, para alcanzar el mejor rendimiento del sistema, es necesario ajustar el número de hilos ejecutándose y tener en cuenta el nivel de concurrencia hardware.
+
+El uso de la concurrencia para mejorar el rendimiento es como cualquier otra estrategia de optimización, tiene el potencial de mejora, pero puede complicar el código y hacerlo propenso a bugs. Por ello, suele valer la pena hacerlo solo para las partes de rendimiento crítico donde hay un potencial real de ganancia de rendimiento. Por supuesto, si esa ganancia de rendimiento es solo secundaria contra la claridad del diseño o la separación de intereses, entonces aún valdría la pena aplicarla.
+
+## Concurrencia en Python
+
+En Python se consideran tres tipos de concurrencia, `threads`, `task` y `process`, y aunque representan la misma idea a alto nivel, ejecución simultanea de instrucciones de código. Pero hay que tener cuidado, puesto que al bajar a los detalles, solo `multiprocessing` realmente ejecuta esas secuencia de código literalmente a la vez. La librería `threading` y `asyncio` trabajaban ambas en un solo procesador y por lo tanto, ejecutan solo una secuencia a la vez. Encuentran maneras inteligentes para ejecutar dicho código en turnos para acelerar el proceso en global, y aunque no se ejecutan de manera simultanea estrictamente hablando, se siguen considerando concurrencia.
+
+La forma en la que los hilos o tareas gestionan los turnos es la gran diferencia entre `threading` y `asyncio`. En `threading`, el sistema operativo sabe acerca de cada hilo y puede interrumpirlo en cualquier momento para ejecutar otro hilo, esto se llama [preemptive multitasking](https://en.wikipedia.org/wiki/Preemption_%28computing%29#Preemptive_multitasking), puesto que el sistema operativo interrumpe la ejecución del hilo para hacer el cambio.
+
+Este sistema es cómodo puesto que el código en el hilo no necesita hacer nada para el cambio, pero puede complicarse, puesto que el cambio se puede producir en cualquier momento, incluso a mitad de una sentencia en Python, hasta una trivial, como `x = x + 1`.
+
+`Asyncio`, por otro lado, usa [cooperative multitasking](https://en.wikipedia.org/wiki/Cooperative_multitasking), en el cual, las tareas deben cooperar anunciando cuando están listas para hacer el cambio, esto significa que el código en estas tareas tiene que cambiar ligeramente para que esto suceda.
+
+El beneficio de hacer este trabajo extra es que siempre se sabe cuando una tarea va a ser intercambiada. No lo hará a mitad de una sentencia de código, a menos que se marque así. Y esto puede simplificar mucho el diseño.
+
+## Paralalelismo en Python
+
+Estos dos métodos ser consideran concurrencia, que suceden en un solo procesador. Pero con `multiprocessing` se puede hacer uso de todos los núcleos del procesador. Con esta librería, Python crea nuevos procesos. Un proceso es casi como un programa completamente diferente, aunque técnicamente se suelen definir como una colección de recursos, como memoria, manejadores de ficheros y esas cosas. Una manera de verlo es que cada proceso se ejecuta en su propio intérprete de Python, con su propio contexto.
+
+Puesto que son procesos diferentes, cada una de las secuencias de código en ejecución se puede ejecutar en un núcleo distinto del procesador, y eso significa que se pueden ejecutar efectivamente a la vez. Hay algunas complicaciones que surgen de esto, pero se pueden solventar fácilmente en Python.
+
+Librería | Tipo de concurrencia | Decisión de cambio | Número de procesadores
+---------|----------------------|--------------------|------------------------
+`threading` | Pre-emptive multitasking| El sistema operativo decide cuando cambiar de tarea | 1
+`asyncio` | Cooperative multitasking | La tarea decide cuando ceder el control | 1
+`multiprocessing` | Multiproceso | Los procesos se ejecutan a la vez en distintos procesadores | Muchos
+[Table [concurrency_python]: Concurrencia en Python]
+
+# Escenarios
+
+La concurrencia puede ser una gran diferencia para dos tipos de escenarios, los limitados por I/O, o los limitados por CPU.
+
+Los escenarios limitados por I/O hacen que el programa vaya lento porque frecuentemente tienen que esperar a operaciones de entrada o salida (Input/Output) de alguna fuente externa. Suelen surgir cuando el programa trabaja con cosas que son mucho más lentas que la CPU. Frecuentemente esto son conexiones de red, o trabajo con ficheros.
+
+![Figure [res/010_004]: Aplicación limitada por I/O](res/010_004.png)
+
+En Figure [res/010_004] las cajas azules muestran el tiempo que el programa está trabajando, y las cajas rojas, el tiempo que está esperando que se complete una operación de I/O. Este diagrama no está a la escala correcta, por ejemplo, para peticiones a través de internet, estas pueden tomar tiempos que sean ordenes de magnitud más lentas que las instrucciones de CPU, así que la mayor parte del tiempo el programa está esperando. Esto es lo que el navegador de internet hace la mayor parte de su tiempo, por ejemplo.
+
+En el otro extremo, hay tipos de programas que hacen una cantidad significativa de operaciones sin relacionarse con la red o acceder a un fichero. Estos son programas limitados por la CPU, puesto que el recurso que limita su velocidad es la CPU, no la red o el sistema de ficheros.
+
+![Figure [res/010_005]: Aplicación limitada por CPU](res/010_005.png)
+
+Proceso limitado por I/O | Proceso limitado por CPU
+-------------------------|--------------------------
+El programa usa la mayor parte de su tiempo hablando con un dispositivo lento (red, disco, impresora...) | El programa usa la mayor parte de su tiempo haciendo operaciones de CPU
+Acelerarlo involucra solapar esos tiempos de espera | Acelerarlo supone encontrar nuevas maneras de hacer más cálculos en el mismo tiempo
+[Table [concurrency_scenes]: Escenarios de concurrencia]
+
+# Programas limitados por I/O
+
+Un problema habitual en este tipo de escenarios limitados por I/O es la descarga de contenido desde internet. Para probar el problema y sus soluciones, se descargarán varias páginas web de varios sitios, pero en realidad podría ser cualquier tráfico a través de la red.
+
+## Versión Síncrona
+
+Primero se implementa la versión no concurrente de esta tarea. Se necesita la librería `requests` para descargar contenido de internet. Se puede instalar fácilmente a través de `pip` o `pipenv` desde [PyPI](https://pypi.org/project/requests/).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+import time
+
+def download_site(url, session):
+    with session.get(url) as response:
+        print(f"Read {len(response.content)} from {url}")
+
+def download_all_sites(sites):
+    with requests.Session() as session:
+        for url in sites:
+            download_site(url, session)
+
+if __name__ == "__main__":
+    sites = [
+        "https://www.universidadviu.com/es/",
+        "https://www.python.org/",
+    ] * 10
+    start_time = time.time()
+    download_all_sites(sites)
+    duration = time.time() - start_time
+    print(f"Downloaded {len(sites)} in {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iobound_sync]: Descarga de webs de manera síncrona]
+
+Este programa descarga los contenidos de una URL e imprime el tamaño. La función `download_all_sites` crea una sesión de la librería `requests` y recorre la lista de sitios, descargando cada uno de ellos uno a uno, llamando a la función `download_site`, que usa el método `get` de la sesión para obtener el contenido e imprimir el tamaño de lo que ha descargado.
+
+Se repite la lista varias veces para forzar al programa a trabajar extra y poder tomar medidas con más volumen, lo cual se hace midiendo el tiempo que ha pasado antes y después de la llamada a `download_all_sites`, usando la librería `time`.
+
+El diagrama de este proceso sería muy parecido a Figure [res/010_004]. El tráfico de red depende de muchos factores que pueden variar de un momento a otro, así que los resultados de esta ejecución serán distintos cada vez.
+
+Lo interesante de esta versión es que es sencilla de implementar y depurar, e incluso es mucho más directa de entender o desarrollar. Solo hay una secuencia de código en ejecución, así que se puede predecir cual será el siguiente paso en esa ejecución y como se comportará.
+
+El problema es que es lenta comparada con otras versiones concurrentes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python io_sync.py
+Downloaded 20 in 5.231647968292236 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [io_sync_result]: Ejecución de la versión síncrona]
+
+Ser lento no es siempre un problema, si este programa tardara solo 2 segundos con una versión síncrona y se ejecutara muy esporádicamente, quizás no valdría la pena añadirle las complicaciones de la concurrencia. Pero si se ejecuta frecuentemente, o el tiempo es muy alto, sí se puede considerar.
+
+## Versión `threading`
+
+Escribir un programa con hilos requiere un esfuerzo mayor, aunque en ese sentido Python hace un buen trabajo simplificando las cosas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import concurrent.futures
+import requests
+import threading
+import time
+
+thread_local = threading.local()
+
+def get_session():
+    if not hasattr(thread_local, "session"):
+        thread_local.session = requests.Session()
+    return thread_local.session
+
+def download_site(url):
+    session = get_session()
+    with session.get(url) as response:
+        print(f"Read {len(response.content)} from {url}")
+
+def download_all_sites(sites):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        executor.map(download_site, sites)
+
+if __name__ == "__main__":
+    sites = [
+        "https://www.universidadviu.com/es/",
+        "https://www.python.org/",
+    ] * 10
+    start_time = time.time()
+    download_all_sites(sites)
+    duration = time.time() - start_time
+    print(f"Downloaded {len(sites)} in {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iobound_threading]: Descarga de webs con `threading`]
+
+Al añadir la librería `threading` la estructura principal se mantiene igual, solo hay que hacer algunos pequeños cambios a la función `download_all_sites`, que ha pasado de llamar a la función `download_site` para cada web a algo más complejo.
+
+Se crea un objeto `ThreadPoolExecutor`, que es un objeto compuesto. Este objeto va a crear un grupo de hilos, cada uno de ellos ejecutándose de manera concurrente, y luego va a controlar como y cuando cada uno de esos hilos se van a ejecutar. En resumen, ejecutará la petición dentro de un grupo de hilos. Este objeto está implementado como un gestor de contexto y con `with` se gestiona automáticamente su destrucción.
+
+Una vez creado dicho objeto, se puede usar su método `map`, para ejecutar la función que se le provee como argumento para cada elemento de la lista. La parte buena es que automáticamente los ejecuta de manera concurrente usando el grupo de hilos que gestiona.
+
+En este punto, cada hilo necesita crear su propia sesión, el objeto `requests.Session`. Al trabajar con `requests`, cada hilo necesita una `Session` independiente. Esta es una de las cosas difíciles con los hilos, puesto que el sistema operativo está controlando de cuando la tarea se interrumpe y otra empieza, cualquier información que esté compartida entre hilos necesita ser protegida, o `thread-safe`. Por desgracia, la clase `requests.Session` no es `thread-safe`, y por tanto, necesita ser protegida, teniendo cada hilo su propia instancia sin compartirla.
+
+Hay muchas estrategias para hacer que los accesos a los datos sean a prueba de hilos, dependiendo de lo que signifiquen esos datos y como se usan. Uno de ellos es usar estructuras de datos `thread-safe` como `Queue` del módulo `queue`. Estos objetos usan primitivas de bajo nivel como los `threading.Lock` para asegurar que solo un hilo puede acceder a un bloque de datos a la vez. A través del objeto `ThreadPoolExecutor` se está usando esta estrategia.
+
+Otra estrategia es usar almacenamiento local al hilo, con `threading.local` se crea un objeto que es específico para cada hilo individual. El método `local` del módulo `threading` soluciona concrétamente este problema. Solo se quiere crear uno de estos objetos, no uno para cada hilo, el objeto en si mismo se encargará de separar los accesos desde distintos hilos a distintos datos.
+
+Cuando se llama a la función ´get_session´, la `session` que está buscando es especifica para el hilo en particular que se está ejecutando. Así, cada hilo creará una sola sesión para si mismo la primera vez que se llama a `get_session`, y después usará esa sesión en cada llamada posterior durante su vida.
+
+Al crear el objeto `ThreadPoolExecutor` se ha hecho pasando un 4 como parámetro a `max_workers`. Eso indica el número de hilos que se van a crear en el grupo de ejecución, es decir, cuantos hilos se van a ejecutar concurrentemente llamando a la función `download_all_sites`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python io_threading.py
+Downloaded 20 in 2.3319830894470215 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [io_threading_result]: Ejecución de la versión con hilos]
+
+Esta versión en ejecución es más rápida que la anterior.
+
+![Figure [res/010_006]: Diagrama de ejecución de la versión `threading`](res/010_006.png)
+
+Usa varios hilos para tener varias peticiones a la web abiertas a la vez, permitiendo al programa solapar los tiempos de espera y hacer que el tiempo final sea menor.
+
+Pero no todo es perfecto, cuesta más esfuerzo desarrollar esta solución en código, y sobre todo, hay que pensar muy bien como los datos van a ser compartidos entre los hilos. Estos hilos pueden llegar a interactuar entre ellos de maneras imperceptibles y difíciles de detectar. Y estas interacciones pueden causar condiciones de carrera que suelen acabar en bugs aleatorios e intermitentes difíciles de encontrar.
+
+## Versión `asyncio`
+
+El concepto general tras esta librería, es que un objeto único de Python, llamado bucle de eventos, controla como y cuando cada tarea se ejecuta. Este bucle de eventos conoce cada tarea y sabe en que estado se encuentra. En realidad, hay varios estados en los que una tarea se puede encontrar en un momento determinado, pero por simplificar, se pueden considerar solo dos estados. Un estado listo, indica que una tarea tiene trabajo que hacer y está lista para ejecutarse, y el estado de espera indica que la tarea está esperando a que alguna cosa externa acabe, como una operación de red.
+
+El bucle de eventos (simplificando) mantiene dos listas de tareas, una para cada uno de esos estados. Selecciona una de las tareas que están listas y la pone en ejecución. Está tarea está en pleno control hasta que de manera cooperativa devuelva el control al bucle de eventos.
+
+Cuando la tarea en ejecución devuelve el control al bucle de eventos, este pone a esta tarea en estado listo o de espera, y revisa todas las tareas en la lista de espera, y mira si alguna ha cambiado su estado a listo en respuesta a alguna operación de I/O que se haya completado. Y además, sabe que las tareas listas siguen estando listas puesto que sabe que aún no se han ejecutado.
+
+Una vez todas las tareas se han reordenado cada una en su lista correcta, el bucle de evento elige la siguiente tarea a ejecutarse, y el proceso se repite. El bucle de eventos elige la tarea que lleva más tiempo esperando y la lanza. Este proceso se repite hasta que el bucle de eventos finaliza.
+
+Un punto importante es que las tareas nunca dejan el control sin hacerlo intencionadamente, nunca son interrumpidas en medio de una operación. Esto permite compartir recursos de manera más simple que con `threading`, no hay que preocuparse de hacer el código a prueba de hilos.
+
+`async` y `await` son dos palabras reservadas de Python, `await` es la que permite a la tarea devolver el control al bucle de eventos. Cuando el código espera a una llamada, es una señal de que la llamada es algo que va a tardar un tiempo y la tarea debería devolver el control.
+
+`async` es como un flag que informa a Python que la función que se va a definir usará `await` en algún momento. Una excepción a esto es el bloque `async with`, que crea un gestor de contexto de un objeto al cual normalmente se esperaría. La semántica es un poco distinta, pero la idea es la misma, marcar el gestor de contexto `with` como algo que puede ser intercambiado.
+
+Se va a usar `aiohttp` en lugar de `requests` para acceder a las peticiones web desde `asyncio`. Así que habrá que instalar dicha librería desde [PyPI](https://pypi.org/project/aiohttp/) con `pip` o `pipenv`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import asyncio
+import time
+import aiohttp
+
+async def download_site(session, url):
+    async with session.get(url) as response:
+        print("Read {0} from {1}".format(response.content_length, url))
+
+async def download_all_sites(sites):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for url in sites:
+            task = asyncio.ensure_future(download_site(session, url))
+            tasks.append(task)
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+if __name__ == "__main__":
+    sites = [
+        "https://www.universidadviu.com/es/",
+        "https://www.python.org/",
+    ] * 10
+    start_time = time.time()
+    asyncio.get_event_loop().run_until_complete(download_all_sites(sites))
+    duration = time.time() - start_time
+    print(f"Downloaded {len(sites)} sites in {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iobound_asyncio]: Descarga de webs con `asyncio`]
+
+Esta versión es un poco más compleja, tiene una estructura similar, pero hay algo más de trabajo preparando las tareas.
+
+La función `download_site` es casi identica a la versión `threading`, con la excepción de la palabra reservada `async` en la línea de definición de la función, y antes de la expresión `async with` cuando se llama a `session.get`.
+
+La función `download_all_sites` recibe más cambios. Se puede compartir la sesión entre tareas, asi que se crea con un gestor de contexto `with`. Las tareas pueden compartir esta sesión porque están ejecutándose en el mismo hilo. No hay ninguna manera en la cual una tarea pueda interrumpir a otra mientras la sesión pueda estar en un estado incompleto.
+
+Dentro de este `with`, se crea una lista de tareas usando `async.ensure_future`, que tembién se encarga de lanzarlas. Una vez todas las tareas están creadas, esta función usa `asyncio.gather` para mantener el contexto de la sesión vivo hasta que todas las tareas se hayan completado. La versión `threading` hace algo muy similar, pero los detalles se esconden dentro del objeto `ThreadPoolExecutor`.
+
+Hay un pequeño pero importante detalle, en cuanto al número de hilos a usar. Una de las ventajas de `asyncio` sobre `threading` es que escala mejor, cada tarea usa menos recursos y menos tiempo para ser creada que un hilo, así que, crear y ejecutar más tareas funciona bien. En este ejemplo se crea una tarea por separado para cada sitio que haya que descargar.
+
+Finalmente, la naturaleza de `asyncio` significa que hay que arrancar el bucle de eventos y decirle que tareas ejecutar. En la sección `main` está la llamada al método `get_event_loop` para decirle al mismo, que `run_until_complete`, es decir arrancar el bucle de eventos hasta que se completen la tarea que se le pasa como parámetro, en este caso, la función `download_all_sites`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python io_asyncio.py
+Downloaded 20 sites in 1.3641588687896729 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [io_asyncio_result]: Ejecución de la versión con `asyncio`]
+
+Es la versión más rápida, y el diagrama de ejecución es similar al ejemplo de `threading`, simplemente las peticiones de I/O se hacen todas desde el mismo hilo.
+
+![Figure [res/010_007]: Diagrama de ejecución de la versión `asyncio`](res/010_007.png)
+
+La falta de una función del tipo `ThreadPoolExecutor` hace que este código sea un poco más complejo que los otros, este es uno de esos casos en los que hay que hacer un poco de trabajo extra para conseguir una mejora en el rendimiento.
+
+También se suele pensar que tener que pensar en donde poner `async` y `await` es una complicación extra, pero el pensar el punto exacto donde una tarea puede ser intercambiada puede ayudar a crear un diseño mejor y más rápido.
+
+Otro punto a favor, es el de la escalabilidad. El programa con `threading` con un hilo para cada descarga es mucho más lento que ejecutarlo con varios hilos, pero lanzar el de `asyncio` con varios centenares de tareas no lo ralentiza en absoluto
+
+El problema principal de este método es que se necesitan versiones especiales de las librerías para obtener todas las ventajas de `asyncio`. Si se hubiera usado `requests` para descargarse las webs hubiera sido mucho más lento, puesto que esta librería no está diseñada para notificar al bucle de eventos que está siendo bloqueada. Pero cada vez más y más librerías soportan ´asyncio´.
+
+Otra desventaja más sutil, es que todas las ventajas de la multitarea cooperativa se van por la ventana si una tarea no coopera. Un pequeño error en el código puede hacer que una tarea se quede con el procesador y la ejecución durante mucho tiempo, dejando a otras tares sin tiempo de proceso que puedan necesitar. Y no hay manera de que el bucle de eventos pueda irrumpir en una tarea si esta no devuelve el control.
+
+## Versión `multiprocessing`
+
+Al contrario que las aproximaciones anteriores, la versión ``multiprocessing` aprovecha toda la potencia de todos los núcleos del procesador.
+
+Hasta ahora todos los ejemplos anteriores de concurrencia se ejecutaban en un solo núcleo del procesador, las razones para esto tienen que ver con el diseño del intérprete `CPython` y el `Global Interpreter Lock` o `GIL`. `multiprocessing` es la librería standard diseñada para romper esta barrera y permitir ejecutar código en múltiples núcleos. A alto nivel, hace esto creando una nueva instancia del intérprete de Python que se ejecuta en una CPU cada uno y lanzando partes del código en cada uno de ellos.
+
+Es obvio que lanzar un intérprete separado de Python no es tan rápido como crear un nuevo hilo, es una operación pesada y viene con algunas restricciones y dificultades, pero para el problema correcto, puede tener una diferencia abismal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+import multiprocessing
+import time
+
+session = None
+
+def set_global_session():
+    global session
+    if not session:
+        session = requests.Session()
+
+def download_site(url):
+    with session.get(url) as response:
+        name = multiprocessing.current_process().name
+        print(f"{name}:Read {len(response.content)} from {url}")
+
+def download_all_sites(sites):
+    with multiprocessing.Pool(initializer=set_global_session) as pool:
+        pool.map(download_site, sites)
+
+if __name__ == "__main__":
+    sites = [
+        "https://www.universidadviu.com/es/",
+        "https://www.python.org/",
+    ] * 10
+    start_time = time.time()
+    download_all_sites(sites)
+    duration = time.time() - start_time
+    print(f"Downloaded {len(sites)} in {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iobound_multiprocessing]: Descarga de webs con `multiprocessing`]
+
+El código tiene algunas cambios respecto a la versión síncrona, el primero está en la función `download_all_sites`, en lugar de llamar de manera repetida a la función `download_site`, crea un objeto `Pool` y lo lanza con `map` sobre esta función con la lista de sitios a descargar.
+
+Lo que sucede aquí es que este `Pool` crea varios procesos de intérpretes de Python separados y hace que cada uno ejecute la función especificada sobre algunos de los elementos de la lista de sitios. La comunicación entre el proceso principal y los otros procesos la maneja el módulo `multiprocessing` internamente.
+
+El `Pool` no determina cuantos procesos se van a crear, a pesar que es un parámetro opcional, por defecto, este objeto buscará el número de núcleos que el procesador tiene en la máquina y usará ese número, lo cual, casi siempre es la mejor manera. Para este problema, crear más procesos no lo hace más rápido, de hecho, lo hace más lento, puesto que el coste de arrancar y parar todos los procesos es mayor que el beneficio de hacer las peticiones de I/O en paralelo.
+
+El objeto `Pool` recibe como parámetro `initializer` una función, `set_global_session`. Cada proceso en el `Pool` tiene su propio espacio de memoria, eso quiere decir que no pueden compartir cosas como el objeto `Session`. Y no se quiere crear una nueva `Session` cada vez que se llame a la función, se quiere crear una por cada proceso. Esta función `initializer` se usa justo para eso, no hay ninguna manera de devolver un valor desde la función `initializer` a la función llamada por el proceso `download_site`, pero se puede inicializar una variable global `session` que guarde la sesión única para cada proceso. Puesto que cada proceso tiene su propio espacio de memoria, la instancia global de cada una será diferente.
+
+Esta versión es relativamente sencilla de poner en marcha, y requiere muy poco código extra y además aprovecha todo el potencial de procesamiento de la máquina.
+
+![Figure [res/010_008]: Diagrama de ejecución de la versión `multiprocessing`](res/010_008.png)
+
+En cambio, esta versión requiere una preparación extra, y la variable global ´session´ no acaba de verse bien. Hay que perder un tiempo en pensar acerca de que variables serán accesibles desde cada proceso. Y además es la más lenta de todas para este tipo de problemas. Parece obvio que los programas que vienen limitados por I/O no son la razón de la existencia de `multiprocessing`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python io_multiprocessing.py
+Downloaded 20 in 2.6222457885742188 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [io_multiprocessing_result]: Ejecución de la versión con `multiprocessing`]
+
+# Programas limitados por CPU
+
+Un programa limitado por I/O se pasa la mayor parte de su tiempo esperando operaciones externas, como llamadas a red, que se completen. Por otro lado, un programa limitado por CPU hace pocas operaciones I/O, y su tiempo de ejecución es un factor directo de como de rápido puede procesar los datos requeridos.
+
+Para este ejemplo se va a usar un simple función para crear algo que le cueste mucho tiempo a la CPU ejecutar. Una función que cálcule la suma de los cuadrados de cada número desde 0 al valor pasado por parámetro.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def squares_sum(number):
+    return sum(i * i for i in range(number))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [squares_sum]: Cálculo de la suma de cuadrados]
+
+A esta función se le pasarán números grandes, por lo que tardará bastante tiempo. Esto sería un placeholder para el código real que haga algo útil y requiera un tiempo significativo de procesamiento.
+
+## Versión síncrona
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import time
+
+def squares_sum(number):
+    return sum(i * i for i in range(number))
+
+def find_sums(numbers):
+    for number in numbers:
+        squares_sum(number)
+
+if __name__ == "__main__":
+    numbers = [5_000_000 + x for x in range(20)]
+
+    start_time = time.time()
+    find_sums(numbers)
+    duration = time.time() - start_time
+    print(f"Duration {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_sync]: Versión síncrona]
+
+Este código llama a la función `squares_sum` 20 veces con un número grande un poco distinto cada vez, hace todo esto en un solo hilo en un solo proceso en una sola CPU.
+
+![Figure [res/010_009]: Diagrama de ejecución de la versión síncrona](res/010_009.png)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python cpu_sync.py
+Duration 8.152467966079712 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_sync_result]: Ejecución de la versión síncrona]
+
+## Versiones `threading` y `asyncio`
+
+En este problema en concreto, las versiones `threading` y `asyncio`, no solo no mejorarán el tiempo de la versión síncrona, si no que lo empeorarán. En los ejemplos anteriores de I/O, la mayor parte del tiempo se gastaba en esperar a que acabarán operaciones lentas de I/O. Estas dos librerías aceleran este problema permitiendo solapar los tiempos que se está en espera en lugar de hacerlo de manera secuencial.
+
+En un programa limitado por CPU, sin embargo, no hay espera. La CPU está funcionando tan rapido como puede para finalizar el problema. En Python, tanto los hilos como las tareas se ejecutan en el mismo núcleo en el mismo proceso. Esto significa que un núcleo está haciendo todo el trabajo del código no concurrente, además del código extra de preparar y arrancar los hilos y las tareas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import concurrent.futures
+import time
+
+def squares_sum(number):
+    return sum(i * i for i in range(number))
+
+def find_sums(numbers):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        executor.map(squares_sum, numbers)
+
+if __name__ == "__main__":
+    numbers = [5_000_000 + x for x in range(20)]
+
+    start_time = time.time()
+    find_sums(numbers)
+    duration = time.time() - start_time
+    print(f"Duration {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_threading]: Versión usando `threading`]
+
+Y como era de esperar esta versión es más lenta que la versión síncrona.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python cpu_threading.py
+Duration 8.526801824569702 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_threading_result]: Ejecución de la versión `threading`]
+
+## Versión `multiprocessing`
+
+Es en este tipo de problemas donde la librería `multiprocessing` muestra su potencial. Al contrario de las otras librerías de concurrencia, esta está diseñada explícitamente para compartir cargas de trabajo pesadas entre varios núcleos.
+
+![Figure [res/010_010]: Diagrama de ejecución de la versión ´multiprocessing´](res/010_010.png)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import multiprocessing
+import time
+
+def squares_sum(number):
+    return sum(i * i for i in range(number))
+
+def find_sums(numbers):
+    with multiprocessing.Pool() as pool:
+        pool.map(squares_sum, numbers)
+
+if __name__ == "__main__":
+    numbers = [5_000_000 + x for x in range(20)]
+
+    start_time = time.time()
+    find_sums(numbers)
+    duration = time.time() - start_time
+    print(f"Duration {duration} seconds")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_multiprocessing]: Versión usando `multiprocessing`]
+
+Pocas cosas hay que cambiar de la versión síncrona, solo cambiar el bucle donde se iteraba sobre los números. Se ha pasado a crear un objeto `Pool` de `multiprocessing` y usar su método `map` para enviar esos números individuales a los procesos de trabajo cuando se vayan quedando libres.
+
+Es lo mismo que había que hacer para la versión I/O, pero esta vez no hay que preocuparse del objeto `Session`. El parámetro opcional `processes` del constructor del objeto `Pool` merece cierta atención. Se puede especificar cuando objetos `Process` se quieren crear y gestionar dentro del `Pool`. Por defecto, internamente determinará cuantos núcleos tiene la máquina y creará un proceso por cada uno de ellos.
+
+Esta versión es interesante por su simplicidad a la hora de ponerla en marcha y programarla, requiere muy poco código extra, y aprovecha al máximo todos los núcleos del procesador. Para este tipo de problemas es claramente la opción más rápida.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python cpu_multiprocessing.py
+Duration 2.641079902648926 seconds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [cpu_multiprocessing_result]: Ejecución de la versión `multiprocessing`]
+
+El problema de usar esta aproximación es que a menudo no es sencillo dividir el problema de manera que cada núcleo pueda trabajar de manera independiente. Y además, muchas soluciones necesitarán de más comunicación entre procesos, y esto puede añadir una capa de complejidad a la solución que un programa no concurrente no necesita.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

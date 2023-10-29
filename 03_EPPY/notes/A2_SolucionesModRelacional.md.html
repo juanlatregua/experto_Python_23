@@ -1,0 +1,46 @@
+<meta charset="utf-8">
+**03EPPY - A2 - Ejercicios Resueltos Modelo Relacional**
+    <small>©2022 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+
+# Ejercicio 1 - Fábrica
+
+Obtener el Modelo Relacional a partir del Modelo E/R mostrado a continuación: 
+
+Una fábrica necesita resolver el almacenamiento de datos de su sistema de gestión de la producción. 
+
+La fábrica se compone de una serie de plantas, cada una identificada por un color. De las plantas conocemos la superficie en metros cuadrados y la lista de procesos que se llevan a cabo dentro de ellas; de estos procesos sólo conocemos su nombre y un grado de complejidad asociado.
+
+Dentro de cada planta se encuentran las máquinas. Cada máquina es de una marca y un modelo, y se identifica por un número; este número es único en toda la fábrica.
+
+Cada máquina es operada por técnicos, debemos conocer en qué rango de fechas los técnicos estuvieron asignados a esa máquina, y además en qué turno (mañana, tarde o noche). De los técnicos conocemos su DNI, nombre, apellido y fecha de nacimiento, aparte de una serie de números telefónicos de contacto.
+
+Existen situaciones en las que una máquina sale de servicio y debe ser reparada, lo único que nos interesa conocer aquí es cuál otra máquina está asignada para tomar el trabajo que ella no puede realizar y en que fecha.
+
+![](res/a2/bdr_ej_fabrica.png)
+
+## Solución
+
+![](res/a2/bdr_ej_fabrica_resuelto.png)
+
+# Ejercicio 2 - Blog
+
+Obtener el Modelo Relacional a partir del Modelo E/R mostrado a continuación: 
+
+Una radio decide realizar un sistema de blogs para que cada uno de sus programas escriba notas que puedan resultar de interés a los oyentes. 
+
+En primer lugar contamos con los programas, de los mismos conocemos el nombre (único), descripción, la lista de conductores y un horario compuesto por las horas de inicio y fin. Estos programas son los que escriben las notas, de ellas conocemos su titulo (único), contenido, una imagen y un resumen de la misma para mostrar en los listados de notas. Un programa puede escribir muchas notas pero cada una esta escrita solo por un programa.
+
+Para diferenciar las notas en distintos grupos, el sistema cuenta con la posibilidad de asignar categorías a las mismas, pudiendo tener cada nota más de una categoría. De ellas conocemos el nombre (único), descripción y una imagen que la identifica. Una ventaja que tiene el sistema de categorías es que se pueden crear jerarquías muy fácilmente, esto quiere decir que una categoría puede pertenecer a otra, por ejemplo, podría existir la categoría “Arte” y esta a su vez contener dos categorías hijas “Música” y “Pintura”.
+
+Para lograr interacción con los oyentes, el sistema permite que los mismos se registren y comenten las notas. De los usuarios conocemos su username, password, fecha de registro, avatar y un email el cual solo puede registrarse una vez. Los comentarios poseen un numero de id y el texto que lo compone.
+
+![](res/a2/bdr_ej_blog.png)
+
+## Solución
+
+![](res/a2/bdr_ej_blog_resuelto.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,322 @@
+<meta charset="utf-8">
+**03EPPY - 02 - Bases de Datos**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# ¿Qué es una base de datos?
+
+Se llama base de datos a un conjunto de información relacionada con un tema específico que está almacenada y ordenada siguiendo un sistema determinado para su posterior recuperación, análisis y/o transmisión.
+
+![Pasado](res/02/archivo.png) ![Presente](res/02/red_db.png)
+
+Desde el punto de vista informático, una base de datos es un sistema formado por un conjunto de datos almacenados en discos que permiten el acceso directo a ellos y un conjunto de programas que manipulen ese conjunto de datos.
+
+# Historia de las bases de datos
+
+Origenes
+
+Los orígenes de las bases de datos se remontan a la Antigüedad donde ya existían bibliotecas y toda clase de registros. Además también se utilizaban para recoger información sobre las cosechas y censos. Sin embargo, su búsqueda era lenta y poco eficaz y no se contaba con la ayuda de máquinas que pudiesen reemplazar el trabajo manual.
+
+Posteriormente, el uso de las bases de datos se desarrolló a partir de las necesidades de almacenar grandes cantidades de información o datos. Sobre todo, desde la aparición de las primeras computadoras, el concepto de bases de datos ha estado siempre ligado a la informática.
+
+En 1884 Herman Hollerith creó la máquina automática de **tarjetas perforadas**, siendo nombrado así el primer ingeniero estadístico de la historia. En esta época, los censos se realizaban de forma manual. Hollerith desarrolló la tecnología de procesamiento de tarjetas perforadas de datos para el censo de los Estados Unidos de América de 1890 y fundó la compañía Tabulating Machine Company (1895) la cual fue una de las tres compañías que se unieron para formar la Computing Tabulating Recording Corporation (CTR), luego renombrada IBM.
+
+![Herman Hollerith](res/02/hollerith.png)
+
+![Tabuladora](res/02/tabulator.png)
+
+![Tarjeta perforada](res/02/tarj_perfo.png)
+
+Década de 1950
+
+Posteriormente, en la década de los 50 se da origen a un sistema de lectura secuencial y ordenada con las **cintas magnéticas**, para automatizar la información. Esto sirvió para suplir las necesidades de información de las nuevas industrias, con la desventaja de que solo se podía hacer de forma secuencial.
+
+![Cinta magnética](res/02/largetape.png)
+
+Por ejemplo, si se quería buscar datos de “José” había que llevar la cinta hasta ese punto y se debía volver al principio, si se quería buscar otra información con otra letra o parámetro.
+
+Década de 1960
+
+Es en esta época cuando el término bases de datos fue escuchado por primera vez en un simposio celebrado en California en 1963.
+
+Posteriormente, las computadoras bajaron los precios para que las compañías privadas las pudiesen adquirir; dando paso a que se popularizara el uso de los **discos**, cosa que fue un adelanto muy efectivo en la época, debido a que a partir de este soporte se podía consultar la información directamente, sin tener que saber la ubicación exacta de los datos.
+
+![Disco](res/02/disco2.jpg)
+
+Comenzaron a pensar en la forma de estructurar los datos de una forma más eficiente y flexible. Y surgió el **Modelo de Datos Jerárquico** como primer modelo de datos.
+
+El 28 de mayo de 1959, la Conferencia de Lenguajes de Sistemas de Datos (CODASYL Conference on Data System Lenguages*) se reunió por primera vez, con la idea de desarrollar un lenguaje universal para la construcción de aplicaciones de negocio. Ese lenguaje fue **COBOL**, abreviatura de "COmmon Business-Oriented Language" el cual se traduce como "Lenguaje Común Orientado a los Negocios".
+
+*CODASYL (Conference on Data Systems Languages) era un consorcio de industrias informáticas que tenían como objetivo la regularización de un lenguaje de programación estándar que pudiera ser utilizado en multitud de ordenadores.*
+
+![CODASYL](res/02/cobol.jpg)
+
+Los miembros de este consorcio pertenecían a industrias e instituciones gubernamentales relacionadas con el proceso de datos, cuya principal meta era promover un análisis, diseño e implementación de los sistemas de datos más efectivos; y aunque trabajaron en varios lenguajes de programación como COBOL, nunca llegaron a establecer un estándar fijo (lo que sí fue conseguido después por ANSI).
+
+Posteriormente, se creó el primer gestor de bases de datos (DBMS) comercial, el IDS (Integrated Data Store). Fue desarrollado por Charles Bachman (CODASYL) y supuso la creación de un nuevo tipo de sistema de bases de datos conocido como **Modelo en Red** que permitió la creación de un standard en los sistemas de bases de datos gracias a la creación de nuevos lenguajes de sistemas de información. 
+
+![Charles Bachman](res/02/bachman.jpg)
+
+También se desarrolló el IMS (Information Management System) sobre el concepto del **Modelo de Datos Jerárquico**. Estos gestores de bases de datos eran accedidos normalmente por lenguajes de programación como Cobol usando interfaces de bajo nivel haciendo que las tareas de creación de aplicaciones y mantenimiento de los datos fuesen controlables, pero aún complejas.
+
+Es esta la **primera generación** de los Sistemas Gestores de Bases de Datos.
+
+Década de 1970
+
+Por lo que respecta a la década de los setenta, Edgar Frank Codd, científico informático inglés conocido por sus aportaciones a la teoría de bases de datos relacionales, definió el **modelo relacional** a la par que publicó una serie de reglas para los sistemas de datos relacionales a través de su artículo “Un modelo relacional de datos para grandes bancos de datos compartidos”.
+
+![Edgar Codd](res/02/edgar_codds.png)
+
+Este hecho dio paso al nacimiento de la **segunda generación** de los Sistemas Gestores de Bases de Datos.
+
+Como consecuencia de esto, Larry Ellison, a partir del trabajo de Edgar F. Codd sobre los sistemas de bases de datos relacionales, desarrolló el Relational Software System, o lo que es lo mismo, lo que actualmente se conoce como **Oracle Corporation**, desarrollando así un sistema de gestión de bases de datos relacional con el mismo nombre que dicha compañía.
+
+![Larry Ellison](res/02/ellison.jpg)
+
+Década de 1980
+
+A principios de esta década comenzó el auge de la comercialización de los sistemas relacionales, y SQL (Structured Query Language) comenzó a ser el estándar de la industria, ya que las bases de datos relacionales con su sistema de tablas (compuesta por filas y columnas) pudieron competir con las bases de datos jerárquicas y de red, como consecuencia de que su nivel de programación era sencillo y su nivel de programación era relativamente bajo. 
+
+![SQL](res/02/sql.png)
+
+Por ejemplo, Oracle, Informix, Ingres y DB2, además de otros lenguajes orientados a objetos como el C++, Java (antes el Oak), Eiffel, y Smalltalk adoptando y mejorando el concepto de **clase** pero su desarrollo se hace independiente de los gestores de bases de datos. 
+
+![Oracle](res/02/oracle.png)
+
+Pero cabe destacar que ORACLE es considerado como uno de los sistemas de bases de datos más completos que existen en el mundo, y aunque su dominio en el mercado de servidores empresariales ha sido casi total hasta hace relativamente poco, actualmente sufre la competencia del SQL Server de la compañía Microsoft y de la oferta de otros Sistemas Administradores de Bases de Datos Relacionales con licencia libre como es el caso de PostgreSQL, MySQL o Firebird que aparecerían posteriormente en la década de 1990.
+
+![SQL Server](res/02/sqlserver.png) 
+
+![SGBD Libres](res/02/sgbd_libre.png)
+
+Década de 1990
+
+En la década de 1990 la investigación en bases de datos giró en torno a las bases de datos orientadas a objetos. Las cuales han tenido bastante éxito a la hora de gestionar datos complejos en los campos donde las bases de datos relacionales no han podido desarrollarse de forma eficiente. Así se desarrollaron herramientas como Excel y Access del paquete de Microsoft Office que marcan el inicio de las bases de datos orientadas a objetos.
+
+Así se creó la **tercera generación** de sistemas gestores de bases de datos.
+
+![Microsoft](res/02/microsoft.png)
+
+Aunque el boom de la década de los noventa será es el nacimiento del World Wide Web a finales de la década, ya que a través de este se facilitará la consulta a bases de datos.
+
+![www](res/02/www.png)
+
+Siglo XXI
+
+En la actualidad, las tres grandes compañías que dominan el mercado de las bases de datos son IBM, Microsoft y Oracle. Por su parte, en el campo de internet, la compañía que genera gran cantidad de información es Google. 
+
+# Sistema Gestor de Base de datos o SGBD
+
+Un Sistema de Gestión de Bases de Datos es un tipo de software muy especifico dedicado a servir de interfaz entre la base de datos, el usuario y las aplicaciones que la utilizan; o lo que es lo mismo, una agrupación de programas que sirven para definir, construir y manipular una base de datos, permitiendo así almacenar y posteriormente acceder a los datos de forma rápida y estructurada, garantizando además la seguridad de los mismos.
+
+![Sistema Gestor Base de Datos](res/02/sgbd.png)
+
+El éxito del SGBD reside en mantener la seguridad e integridad de los datos. Lógicamente tiene que proporcionar herramientas a los distintos usuarios. Entre las herramientas que proporciona están:
+
+- Herramientas para la **creación y especificación de los datos**. Así como la estructura de la base de datos.
+- Herramientas para **administrar y crear la estructura física** requerida en las unidades de almacenamiento. 
+- Herramientas para la **manipulación de los datos** de las bases de datos, para añadir, modificar, suprimir o consultar datos.
+- Herramientas para la **creación de copias de seguridad**.
+- Herramientas para la **gestión de la comunicación** de la base de datos.
+- Herramientas para la **creación de aplicaciones** que utilicen esquemas externos de los datos.
+- Herramientas de **instalación de la base de datos**. 
+- Herramientas para la **exportación e importación de datos**.
+
+## Características deseables en un SGBD
+
+-    **Control de redundancia**. El SGBD consta de herramienta para crear restricciones para evitar duplicaciones.
+-    **Restricción de accesos no autorizados**. Muchos usuarios comparten la base pero no todos deben tener acceso a toda la información que ella contiene. El SGBD debe contar con un subsistema de seguridad y autorización que permita administrar restricciones y autorizaciones.
+-    **Cumplimiento de las restricciones de integridad**. Restricciones de los datos que aplicaremos mediante el SGBD. 
+-    **Respaldo y recuperación**. Respaldo y recuperación se refiere a la recuperación ante un fallo de hardware o software del SGBD. Si por algún motivo el SGBD falla debe volver a la instancia anterior al fallo.
+
+# Modelado de bases de datos
+
+Las bases de datos aparecieron a finales de la década de 1960, cuando surgió la necesidad de contar con un sistema de administración de información flexible. Existen diferentes modelos de DBMS, que se distinguen según cómo representan los datos almacenados. 
+
+Un **modelo de datos** se define como la estructura lógica que tiene la base de datos, es decir, como se organizan los datos y las relaciones que existen entre ellos.
+
+**Tipos de modelos de bases de datos**
+
+- **Modelo Jerárquico**. Los datos se organizan jerárquicamente mediante un árbol invertido, donde cada registro tiene un nodo raiz del que surgen otros nodos. Este modelo utiliza punteros para navegar por los datos almacenados. Fue el primer modelo DBMS.
+
+    ![Modelo Jerárquico](res/02/mod_jerar.png)
+
+    En la estructura de árbol (visto al revés), un nodo padre de información puede tener varios hijos. 
+      
+    El nodo que no tiene padres es llamado **raíz**, y a los nodos que no tienen hijos se los conoce como **hojas**. 
+     
+    Las bases de datos jerárquicas son especialmente útiles en el caso de aplicaciones que manejan un gran volumen de información y datos muy compartidos permitiendo crear estructuras estables y de gran rendimiento.
+        
+    Una de las principales limitaciones de este modelo es su incapacidad de representar eficientemente la redundancia de datos.
+
+- **Modelo de Red**. Parte del modelo jerárquico, y al igual que él, este modelo utiliza punteros hacia los datos almacenados. Sin embargo, no necesariamente utiliza una estructura de árbol invertido.
+
+    ![Modelo de Red](res/02/mod_red.png)
+
+    Modifica el concepto de nodo: se permite que un mismo nodo tenga varios padres (posibilidad no permitida en el modelo jerárquico). 
+        
+    Fue una gran mejora con respecto al modelo jerárquico, ya que ofrecía una solución eficiente al problema de redundancia de datos; pero, aun así, sigue siendo dificil administrar la información.
+
+- **Modelo Relacional**. (RDBMS, Relational Database Management System [Sistema de administración de bases de datos relacionales]). Ordena los datos en tablas de dos dimensiones, compuestas de filas y columnas. 
+
+    Su idea fundamental es el uso de relaciones. Es el modelo más utilizado en la actualidad para modelar problemas reales y administrar datos dinámicamente. Los datos se manipulan según la teoría relacional de matemáticas.
+
+    ![Modelo Relacional](res/02/mod_rel.png)
+
+    Creado en 1970 por Edgar Codd, no tardó en consolidarse como un nuevo paradigma en los modelos de base de datos. Las **relaciones** en las que se fundamenta podrían considerarse en forma lógica como conjuntos de datos llamados **tuplas**.  
+
+    En este modelo, el lugar y la forma en que se almacenen los datos no tienen relevancia (a diferencia de otros modelos como el jerárquico y el de red). Esto tiene la considerable ventaja de que es más fácil de entender y de utilizar para un usuario esporádico de la base de datos. La información puede ser recuperada o almacenada mediante **consultas** que ofrecen una amplia flexibilidad y poder para administrar la información. 
+
+    El lenguaje más habitual para construir las consultas a bases de datos relacionales es **SQL**, Structured Query Language o Lenguaje Estructurado de Consultas, un estándar implementado por los principales motores o sistemas de gestión de bases de datos relacionales. 
+             
+    Durante su diseño, una base de datos relacional pasa por un proceso conocido como **normalización** de una base de datos.
+
+- **Modelo Orientado a Objetos**. (ODBMS, object-oriented database management system [sistema de administración de bases de datos orientadas a objetos]). Define la base de datos como una colección de objetos, que son estructuras denominadas **clases**, que muestran los datos que contienen. Este modelo de base de datos utiliza tablas también, pero no solo se limita a ellas y permite almacenar información muy detallada sobre cada objeto. 
+
+    ![Modelo OO](res/02/mod_oo.png)
+
+    Incorpora todos los conceptos importantes del paradigma de objetos: 
+        - Encapsulación - Propiedad que permite ocultar la información al resto de los objetos, impidiendo así accesos incorrectos o conflictos. 
+        - Herencia - Propiedad a través de la cual los objetos heredan comportamiento dentro de una jerarquía de clases. 
+        - Polimorfismo - Propiedad de una operación que puede ser aplicada a distintos tipos de objetos. 
+
+![Interfaz OO](res/02/interfaz_oo.png)
+
+- **Modelo Relacional de Objetos**. Combina el modelo relacional con el orientando a objetos. Funciona como el relacional pero incorpora funciones del orientado a objetos, como los propios objetos, herencia, ...
+
+- **Modelo entidad-relación**. Es un modelo conceptual basado en una percepción del mundo real basada en objetos básicos y sus relaciones. 
+
+    Los elementos básicos son las entidades, que tienen atributos y existen relaciones entre estas entidades.
+
+    ![Modelo entidad-relación](res/02/mod_ent_rel.png)
+
+- **Modelo No Relacional o NoSQL**. Las bases de datos NoSQL están orientadas a los documentos y permiten almacenar y recuperar datos en formatos que no sean tablas. 
+
+    No utilizan SQL como lenguaje de consultas ni estructuras fijas como tablas para el almacenamiento de los datos.
+
+    ![Modelo SQL vs NoSQL](res/02/sql_nosql.png)
+
+- **Otros tipos de modelos de datos**
+    - Modelo Plano
+    - Modelo Multidimensional
+    - Modelo Semiestructurado
+    - Modelo de Contexto
+    - Modelo Asociativo
+
+# Diseño de bases de datos
+
+Es un proceso fundamental para modelar el conjunto de datos y las relaciones entre ellos. Una base de datos bien diseñada influye de forma directa en la eficiencia obtenida a la hora de almacenar, recuperar y analizar nuestros datos.
+
+Para extraer estos datos, se debe realizar un análisis en profundidad del problema, para averiguar qué datos son esenciales para la base de datos y descartar los que no sean necesarios. Una vez extraídos los datos esenciales comenzamos a construir los modelos adecuados que expresen con total exactitud todos los datos que el problema requiere almacenar.
+
+**Ventajas**
+    
+    - Ahorro de espacio ya que se evitan datos duplicados.
+    - Precisión e integridad de los datos. No se pierde información.
+    - Agilidad en el acceso y procesamiento de los datos.
+
+**Fases**
+
+    1. **Análisis de requerimientos**. Se recopila información como los datos que se quieren almacenar, los usuarios de la base datos y sus necesidades a la hora de acceder a dichos datos. El posterior análisis de esta información determinará el diseño de la base de datos.
+
+        Para ello, típicamente los informáticos se reúnen con los futuros usuarios del sistema para recopilar la información que necesitan para saber que desean dichos usuarios. Normalmente se hace una reunión inicial a y partir de ella se elabora una batería de preguntas para entrevistar a los usuarios finales en una segunda reunión y obtener de ella una información detallada de lo que se espera de la base de datos. De estas entrevistas, se extrae el documento más importante del análisis, el documento de **Especificación de Requisitos Software** o **E.R.S.**
+    
+        Ejemplo: **Crear una base de datos que guarde el DNI, nombre y teléfonos de personas.**
+
+    2. **Diseño conceptual**. Se crea una descripción a alto nivel de la base de datos, siguiendo el modelo entidad-relacion y definiendo las entidades, atributos y relaciones.
+
+        El objetivo de esta fase del diseño consiste es representar la información obtenida del usuario final y concretada en el E.R.S. mediante estándares para que el resto de la comunidad informática pueda entender y comprender el modelo realizado. 
+        
+        El modelo que se utiliza en esta primera fase del diseño tiene un gran poder expresivo para poder comunicarse con el **usuario que no es experto en informática** y se denomina **Modelo Conceptual**.
+
+        Ejemplo:
+
+        ![](res/02/fase2.png)
+
+    3. **Diseño lógico**. Traduce el diseño conceptual a la que va a ser la estructura de la base de datos, definiendo las tablas, con sus filas y columnas, y las relaciones en nuestro caso, ya que vamos a seguir un modelo relacional.
+
+        Este modelo es **más técnico** que el anterior porque está orientado al personal informático y generalmente tiene traducción directa al modelo físico que entiende el SGBD. 
+    
+        Ejemplo:
+
+        ![](res/02/fase3.png)
+
+    4. **Diseño físico**. A partir del modelo lógico define la estructura de la base de datos de forma física, es decir, en forma de código. En nuestro caso, SQL.
+    
+        Ejemplo:
+
+            *CREATE TABLE PERSONAS (
+                DNI Text PRIMARY KEY,
+                Nombre Text) 
+            
+            CREATE TABLE TELEFONOS (
+                Identificador Integer PRIMARY KEY Autoincrement,
+                DNIPersona Text,
+                Telefono Text,
+                FOREIGN KEY (DNIPersona) References PERSONAS(DNI)) *
+
+    5. **Implementación**. Creación y compilación para generar los ficheros y aplicaciones que permiten el uso práctico de la base de datos.
+
+        Ejemplo: *agenda.db*
+
+**Conceptos importantes**
+    
+    - **Integridad**. Es el término usado para referise a la exactidud y fiabilidad de los datos. Mantener la integridad de los datos significa asegurarse de que los datos permanezcan intactos y sin cambios a lo largo de todo su ciclo de vida.
+        
+        **Tipos de integridad de datos**
+
+            - **Integridad de la entidad**: define que cada fila sea única dentro de su tabla. No hay dos filas iguales. Para lograr esto, se puede definir una clave principal. El campo de clave principal contiene un identificador único, o sea, no hay dos filas que puedan contener el mismo identificador único.
+
+                ![Integridad de la Entidad ](res/02/integr_ent.png)
+
+            - **Integridad referencial**: se refiere a las relaciones. Cuando dos o más tablas tienen una relación, debemos asegurarnos de que el valor de la clave externa coincida con el valor de la clave primaria en todo momento.
+
+                ![Integridad Referencial](res/02/integr_ref.png)
+     
+            - **Integridad de dominio**: se refiere a la validez de las entradas para una columna determinada. Seleccionar el tipo de datos apropiado para una columna es el primer paso para mantener la integridad del dominio. 
+            
+                Pero también se puede tener en cuenta la configuración de restricciones, las reglas apropiadas para definir el formato de datos o restringir el rango de valores posibles de entrada.
+
+                ![Integridad de Dominio](res/02/integr_dom.png)
+
+            - **Integridad definida por el usuario**: permite al usuario aplicar reglas a la base de datos que no están cubiertas por ninguno de los otros tres tipos de integridad de datos, que son específicas y concretas para la base de datos a la que pertenecen.
+
+                En este ejemplo, la empresa no permite clientes menores de edad:
+
+                ![Integridad de Usuario](res/02/integr_usu.png)
+
+    Puede decirse que cada tipo de integridad afecta a una parte de la estructura de la base de datos:
+        
+        ![](res/02/integr.jpg)
+
+    - **Consistencia**. Es la seguridad de que la información está completa (los datos se mantienen idénticos) durante cualquier operación, como transferencia, almacenamiento y recuperación, es decir, la información es consistente y correcta en cualquier momento.
+
+        Como ejemplo supongamos que se tiene que grabar un pedido y para ello se existen dos tablas: *Cabecera de Pedidos* y *Detalle de Pedidos*. Se graba la cabecera y antes de que se grabe todo el detalle ocurre un corte en la energía eléctrica, se daña la red o algún otro problema que impide grabar todo el detalle de dicho pedido, por lo que este se queda incompleto. 
+
+        En este punto, es necesario conocer el concepto de **transacción**. Las transacciones son unidades o secuencias de trabajo realizadas de forma ordenada y separada en una base de datos, es decir, está compuesta por varios procesos que se han de aplicar uno después del otro. En el ejemplo anterior, una transaccion empieza cuando se inicia la grabación del pedido y finaliza tras insertar todo el detalle.
+
+        El error de consistencia de los datos puede ser detectado y corregido enseguida, pero a veces pueden pasar días, meses o incluso años antes de ser detectado. Este problema causaba serios perjuicios a las empresas, motivo por el cual muchas personas se dedicaron a investigar como solucionarlos. A finales de los años 70 Jim Gray definió las propiedades que debía tener una transacción confiable y en 1983 Andreas Reuter y Theo Härder inventaron la palabra **ACID** para describir a ese tipo de transacción.
+
+
+        ![](res/02/acid.png)
+
+        **ACID** es el acrónimo de **Atomicity**, **Consistency**, **Isolation**, **Durability** (en castellano: Atomicidad, Consistencia, Aislamiento, Durabilidad)
+
+        **Atomicidad**. Las modificaciones a la Base de Datos (agregar, borrar o modificar) deben seguir la regla de todo o nada. Si cualquier parte de la transacción falló, por más pequeña que sea dicha parte, toda la transacción falló.
+
+        **Consistencia**. Solamente datos válidos pueden ser escritos en la Base de Datos. Dentro de una transacción se pueden tener temporalmente datos inválidos pero cuando la transacción termina, sea de la forma que sea, la Base de Datos debe tener solamente datos válidos.
+
+        **Aislamiento**. Si varias transacciones se están ejecutando al mismo tiempo, ninguna de ellas interfiere con las otras. Eso implica que la transacción A no conoce ni puede cambiar lo que la transacción B está haciendo. Cada transacción está aislada de todas las demás transacciones, o sea que cada transacción es totalmente independiente de todas las demás transacciones.
+
+        **Durabilidad**. Cuando los cambios a los datos que realizó la transacción son grabados, dichos cambios permanecerán aún cuando se corte la energía eléctrica, se interrumpa la conexión a la red, o cualquier otro problema físico.
+
+        Si una Base de Datos no cumple con alguno de esos 4 criterios entonces no puede ser considerada confiable.
+
+    - **Redundancia**. La redundancia de datos es la copia (duplicidad) de los datos, que se produce cuando algunas piezas o porciones de datos se almacenan dos o más veces. La redundancia de datos también tiene lugar si ciertos datos se pueden derivar directamente de otros.
+
+        ![Redundancia](res/02/redundancia.png)
+
+        Puede que la redundancia no pueda causar problemas tan graves como los conceptos anteriores, pero está haciendo que la base de datos sea más grande y ocupe más espacio, y además, agrega un problema, si se quiere actualizar esta información no se puede actualizar solo en un lugar para evitar que la información sea inconsistente.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

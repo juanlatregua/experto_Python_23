@@ -1,0 +1,363 @@
+<meta charset="utf-8">
+**04EPPY - 006 - Machine Learning**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Machine Learning
+==============================================================
+
+El aprendizaje automático (Machine Learning) es una de las aplicaciones de la inteligencia artificial que pueden aprender y mejorar automáticamente basándose en la experiencia sin haber sido programada explícitamente para ello. Al aprendizaje entonces sucede como el resultado del análisis de una cantidad de datos que va incrementándose con el tiempo, los algoritmos básicos no cambian, pero los pesos internos y tendencias del código que se usan para seleccionar un respuesta en particular, sí lo hacen.
+
+Los científicos de datos se refieren a la tecnología usada para implementar el aprendizaje automático como algoritmos. Un algoritmo no es más que una serie de operaciones paso a paso, normalmente cálculos, que pueden resolver un problema definido en un número finito de pasos. En el aprendizaje automático, estos algoritmos usan una serie de pasos finitos para resolver el problema aprendiendo de los datos.
+
+Como funciona el aprendizaje automático
+--------------------------------------------------------------
+
+Los algoritmos de aprendizaje automático aprenden, pero suele ser complicado encontrar el significado preciso del termino aprendizaje, puesto que hay muchas maneras de extraer información de los datos, dependiendo de como esté construido el algoritmo de machine learning. Generalmente, el proceso de aprendizaje necesita grandes cantidades de datos, que aportan una respuesta esperada dados unos parámetros de entrada particulares. Cada pareja de entrada/respuesta representa un ejemplo, y cuantos más ejemplos hayan más sencillo es aprender para el algoritmo. Cada pareja entrada/respuesta encaja dentro de una línea, grupo u otra representación estadística que define el dominio de un problema.
+
+El aprendizaje automático es el acto de optimizar un modelo, que en sí mismo es una representación de los datos de manera matemática y sumarizada, de tal menta, que se pueda predecir o determinar una respuesta apropiada incluso cuando recibe datos de entrada que nunca haya visto antes. Cuanta más precisión pueda conseguir el modelo creando las respuestas correctas, mejor habrá aprendido de los datos de entrada proporcionados. Un algoritmo ajusta el modelo a los datos, y este proceso de ajustado (fitting) es el entrenamiento.
+
+![Figure [res/006_000]: Escenario de aprendizaje automático](res/006_000.png)
+
+En Figure [res/006_000] se muestra un gráfico muy simple que simula lo que ocurre durante el aprendizaje automático. En este caso, se empieza con datos de entrada de 1, 4, 5, 8 y 10, que se pintan en el eje X, y se emparejan con unos datos de salida de 7, 13, 15, 21 y 25, para el eje Y. El algoritmo de aprendizaje automático determina que la mejor manera para representar la relación entre las entradas y las salidas es la fórmula $2x + 5$. Esta fórmula define el modelo usado para procesar los datos de entrada (incluso con datos aún no visto) y calcular los datos de salida correspondientes. La línea de tendencia (el modelo) muestra el patrón formado por este algoritmo, de manera que una nueva entrada de un valor 3, producirá una predicción de un valor de salida de 11. Pese a que la mayoría de escenarios de aprendizaje automático son mucho más complicados que esto (y el algoritmo no pueda crear reglas que puedan mapear de manera precisa cada entrada a una salida precisa), el ejemplo muestra la idea básica de lo que sucede. En lugar de programar individualmente una respuesta para un valor de entrada de 3, el modelo puede calcular la respuesta correcta basándose en las parejas entrada/respuesta con las que ha aprendido.
+
+Matemáticas
+--------------------------------------------------------------
+
+La idea central detrás del aprendizaje automático es que se puede representar la realidad usando una función matemática que el algoritmo no conoce a priori, pero que puede adivinar tras ver algunos datos (siempre en la forma de parejas de entradas y salidas). Se puede expresar la realidad y toda su complejidad en términos de funciones matemáticas desconocidas que los algoritmos de aprendizaje automático encuentran y ponen a disposición como una modificación a su propia función matemática interna. Cada algoritmo de aprendizaje automático está construido alrededor de una función matemática modificable. Esta función se puede modificar porque tiene parámetros o pesos internos para este propósito. Como resultado, el algoritmo puede adaptar dicha función a la información específica que ha extraído de los datos. Este concepto es la idea principal de todos los algoritmos de aprendizaje automático.
+
+El aprendizaje por tanto es puramente matemático, y acaba asociando unas entradas con unas salidas. No tiene nada que ver con entender lo que el algoritmo ha aprendido, cuando los humanos analizan datos, se construye un conocimiento de los datos hasta cierto punto. El proceso de aprendizaje suele ser descrito como entrenamiento puesto que el algoritmo es entrenado para encontrar la respuesta correcta (la salida), para cada pregunta ofrecida (la entrada).
+
+Pese a carecer de una compresión de manera deliberada y de ser un proceso matemático, el aprendizaje automático es muy útil en ciertas tareas. Ofrece a muchas aplicaciones de inteligencia artificial la potencia para imitar el pensamiento racional dado un cierto contexto cuando el aprendizaje ocurre usando los datos correctos.
+
+Diferentes estrategias
+--------------------------------------------------------------
+
+El aprendizaje automático ofrece varias maneras de aprender de los datos. En función de las salidas esperadas y el tipo de entradas que se proveen, se pueden categorizar los algoritmos por el estilo de aprendizaje. Este estilo depende de tipo de datos que se tienen y el resultado esperado. Los cuatro estilos principales son:
+
+- Aprendizaje supervisado
+- Aprendizaje no supervisado
+- Aprendizaje auto supervisado
+- Aprendizaje por refuerzo
+
+![Figure [res/006_001]: Estrategías de aprendizaje automático](res/006_001.png)
+
+Cada fila del conjunto de datos a tratar se llama observación, muestra, ejemplo, instancia o registro. Cada columna es una característica (feature), predictor, atributo, variable independiente, entrada, regresor o covariable. Cada valor que se predice es un target, respuesta, salida, etiqueta o variable dependiente.
+
+### Aprendizaje supervisado
+
+Cuando se trabaja con este tipo de algoritmos, los datos de entrada están etiquetados y tienen un resultado esperado específico. Se usa el entrenamiento, para crear un modelo que un algoritmo ajusta a los datos. Tal como el entrenamiento progresa, las predicciones o clasificaciones se vuelven cada vez más precisas. Algunos ejemplos de algoritmos de este tipo son:
+
+- Regresión lineal o logística
+- Support Vector Machines (SVMs)
+- Naïve Bayes
+- K-Nearest Neighbors (KNN)
+
+Hay que distinguir entro los problemas de regresión, cuyo objetivo es un valor numérico y los problemas de clasificación, cuyo objetivo es una variable cualitativa, como una clase o etiqueta. Una tarea de regresión puede determinar los precios medios de las casas en un área determinada, mientras que una tarea de clasificación puede distinguir entre tipos de lirios basándose en las medidas de sus sépalos y pétalos.
+
+- Clasificación, los datos en el conjunto de entrenamiento pertenecen a dos o más categorías o clases, entonces, los datos, ya etiquetados, permiten enseñar al sistema a reconocer las características que distinguen cada clase. Cuando hay que considerar un nuevo valor desconocido para el sistema, este evalua su clase basándose en sus características.
+
+- Regresión, los valores a predecir son una variable continua. El caso más simple es cuando hay que encontrar una línea que describe una tendencia a partir de una serie de puntos representados en un gráfico de dispersión.
+
+Datos de entrada (X) | Datos de Salida (Y) | Aplicación real
+---------------------|---------------------|-----------------
+Historial de compras de clientes | Lista de productos que el cliente nunca ha comprado | Sistema de recomendaciones
+Imágenes | Lista de cajas etiquetadas con el nombre del objeto | Detección y reconocimiento de imágenes
+Texto natural en formato de preguntas | Texto en formato de respuetas | Chatbot
+Texto natural en castellano | Texto en inglés | Traductor
+Audio | Transcripción en texto | Reconocimiento de voz
+Imágenes y datos de sensores | Girar, frenar o acelerar | Conducción autónoma
+[Table [supervised]: Ejemplos de aprendizaje supervisado]
+
+### Aprendizaje no supervisado
+
+Cuando se trabaja con algoritmos de aprendizaje no supervisado, los datos de entrada no están etiquetados y los resultados son desconocidos. En este caso, el análisis de las estructuras en los datos producen el modelo solicitado. El análisis estructural puede tener varios objetivos, como reducir la redundancia o agrupar datos similares. Algunos ejemplos son:
+
+- Clustering, el objetivo de estos métodos es descubrir grupos de ejemplos similares en el conjunto de datos.
+- Reducción de dimensionalidad, la reducción de un conjunto de datos de muchas dimensiones a uno con solo dos o tres dimensiones es util no solo para visualizar dichos datos, si no también para convertir estos datos en unos con una dimensionalidad menor en los cuales cada una de las dimensiones menores acarrea mucha más información.
+- Detección de anomalías, identificación de elementos raros, eventos u observaciones que generan sospechas al diferenciarse significativamente de la mayoría de los datos.
+- Redes neuronales, son modelos simplificados que imitan el funcionamiento del procesamiento de la información en los cerebros de los seres vivos.
+
+### Aprendizaje auto supervisado
+
+Este modo se suele describir como aprendizaje supervisado autónomo, que ofrece todos los beneficios del aprendizaje supervisado pero sin todo el trabajo que se necesita para etiquetar los datos.
+
+La forma más cercana de aprendizaje asociada es el aprendizaje supervisado, puesto que ambos dependen de parejas de entradas y salidas etiquetadas. Además, ambas formas de aprendizaje están asociadas con regresiones y clasificaciones. Sin embargo, la diferencia es que el aprendizaje auto supervisado no necesita que un humano etiquete las salidas. En su lugar, depende de correlaciones, metadatos embebidos o conocimiento del dominio embebido sobre los datos de entrada para descubrir de manera contextual la etiqueta de salida.
+
+Como el aprendizaje no supervisado, el auto supervisado no necesita los datos etiquetados. Sin embargo, el aprendizaje no supervisado se centra en la estructura de los datos, es decir, descubrir patrones en los datos. Por lo tanto, no se usa el aprendizaje auto supervisado para tareas como el clustering, grouping, reducción de dimensiones, motores de recomendación,...
+
+Una solución de aprendizaje semi supervisado trabaja como una no supervisada, en tanto que busca patrones en los datos. Sin embargo, el aprendizaje semi supervisado depende de una mezcla de datos etiquetados y sin etiquetar para realizar sus tareas lo más rápido posible usando estrictamente datos sin etiquetar. El aprendizaje auto supervisado nunca necesita etiquetas y usa el contexto para realizar su trabajo, así que ignoraría las etiquetas si se le facilitaran.
+
+### Aprendizaje por refuerzo
+
+Es una extensión del aprendizaje auto supervisado, puesto que ambos usan la misma aproximación al aprendizaje con datos sin etiquetar para conseguir objetivos similares. Sin embargo, el aprendizaje por refuerzo añade un bucle de retro alimentación. Cuando una solución de aprendizaje por refuerzo realiza una tarea correctamente, recibe una evaluación positiva, lo cual refuerza el modelo al conectar las entradas y salidas. De igual manera, puede recibir evaluaciones negativas para soluciones incorrectas y eso hace que la conexión entre esa entrada y salida pierda fuerza. En muchos aspectos, funciona como trabajar entrenando a un animal basándose en un sistema de recompensas.
+
+![Figure [res/006_002]: Algoritmos de aprendizaje automático](res/006_002.png)
+
+Entrenamiento, validación y testing
+--------------------------------------------------------------
+
+El aprendizaje automático es un proceso, tal como todo es un proceso en el mundo de los ordenadores. Para construir una solución exitosa se realizan algunas tareas tan a menudo como se necesite:
+
+- Entrenamiento, el aprendizaje automático empieza cuando se entrena un modelo usando un algoritmo particular contra unos datos concretos. Los datos de entrenamiento se separan del resto de datos, pero tienen que ser lo suficientemente representativos. Si los datos de entrenamiento no son representan realmente el dominio del problema, el modelo resultante no ofrecerá resultados útiles. Durante el proceso de entrenamiento, se ve como el modelo responde a los datos de entrenamiento y se hacen cambios a los algoritmos que se usan y la manera en la que se trabajan los datos antes de ser dirigidos al algoritmo.
+
+- Validación, muchos conjuntos de datos son lo suficientemente grandes para dividirlos en una parte de entrenamiento y otra de pruebas. Primero se entrena el modelo usando los datos de entrenamiento, y luego se valida usando los datos de pruebas. Por supuesto, los datos de prueba tienen que representar también el dominio del problema de manera precisa. Y tienen que ser estadísticamente compatibles con los datos de entrenamiento. De lo contrario, no se verán los resultados que reflejan como el modelo trabaja en realidad.
+
+- Testing, una vez un modelo ha sido entrenado y validado, aún hay que probarlo usando datos del mundo real. Este paso es importante puesto que hay que verificar que el modelo funcionará en un conjunto de datos grande que no se ha usado para entrenar o probar. Como con los pasos anteriores, los datos usados en este paso deben reflejar el dominio del problema con el que se quiere interactuar usando el modelo.
+
+El entrenamiento le da al algoritmo de aprendizaje automático todo tipo de ejemplos de las entradas y salidas esperadas a partir de esas entradas, y el algoritmo usa esas entradas para crear una función matemática. El entrenamiento es el proceso mediante el cual el algoritmo averigua como ajustar una función a los datos. La salida de esa función es normalmente la probabilidad de una cierta salida o simplemente un valor numérico.
+
+Para entender la idea de lo que pasa durante el proceso de entrenamiento, se puede imaginar un niño aprendiendo a distinguir árboles de otros objetos, animales y gente. Antes de que el niño pueda hacerlo de manera independiente, un profesor muestra al niño una serie de imágenes de árboles, además de ciertos hechos que distinguen a los árboles de otros objetos en el mundo. Estos hechos pueden ser características, como el material de los árboles (madera), sus partes (tronco, ramas, hojas, raíces), y su localización (plantados en el suelo). El niño construye un conocimiento de como se ve un árbol contrastando la visualización de las características de los árboles con las imágenes de otros ejemplos distintos, como muebles hechos de madera, pero que no comparte el resto de características de un árbol.
+
+Un clasificador funciona igual, devuelve una clase como salida. Por ejemplo, se le puede decir que la foto que se le muestra como entrada coincide con la clase árbol (no un animal o una persona). Para hacerlo, construye sus capacidades cognitivas creando una formulación matemática que incluye todas las características de entrada que se le han dado, de una manera que cra una función que puede distinguir una clase de otra.
+
+![Figure [res/006_010]: Entrenamiento y uso de un modelo](res/006_010.png)
+
+Generalización
+--------------------------------------------------------------
+
+Para ser útil, un modelo de aprendizaje automático debe representar una visión general de los datos que se le proveen. Si el modelo no sigue los datos con suficiente precisión, se dice que está desajustado (underfitted), es decir, no está lo suficientemente ajustado por una falta de entrenamiento. Por otro lado, si el modelo sigue los datos demasiado de cerca, está sobreajustado (overfitted), siguiendo los puntos de los datos como un guante a causa de demasiado entrenamiento. Ambos extremos pueden causar problemas, puesto que el modelo no es lo suficiente general para producir resultados útiles. Dado unos datos de entrada desconocidos, las predicciones o clasificaciones resultantes posiblemente contendrán errores significativos. Solo cuando el modelo se ha ajustado correctamente a los datos ofrecerá unos resultados con un rango de errores razonables.
+
+El tema de la generalización también es importante al decidir cuando usar el aprendizaje automático. Una solución de machine learning siempre generaliza desde ejemplos específicos a ejemplos generales del mismo tipo. Como realiza esa tarea depende de la orientación de la solución de aprendizaje automático y los algoritmos usados para hacerla funcionar.
+
+El problema para los usuarios del aprendizaje automático es que el ordenador no muestra una señal diciendo que el modelo ajusta correctamente a los datos. A menudo, es un asunto de intuición humana decidir cuando un modelo está lo suficientemente entrenada para ofrecer un resultado bueno y generalizado. Además, el creador de la solución debe elegir el algoritmo correcto entre los cientos que existen. Sin el algoritmo correcto para ajustar el modelo a los datos, los resultados serán decepcionantes. Hay que ser tener un gran conocimiento de los algoritmos disponibles, experiencia manejando el tipo de datos en cuestión, un conocimiento importante de la salida deseada y capacidad para experimentar con diversos algoritmos de aprendizaje automático.
+
+El último requisito es el más importante, puesto que no hay ninguna regla de oro que diga si un algoritmo en particular funcionará siempre con cualquier tipo de datos en cada situación posible. Si este fuera el caso, no habría tantos algoritmos disponibles. Para encontrar el mejor algoritmo, los científicos de datos a menudo acaban experimentando con varios algoritmos y comparando los resultados.
+
+Sesgo
+--------------------------------------------------------------
+
+El ordenador no tiene sesgo, margen de error o tendencia. De hecho, no tiene ningún tipo de objetivo. La única cosa que puede hacer un ordenador es ofrecer un resultado basándose en una serie de entradas y técnica de procesamiento. Sin embargo, el sesgo llega al ordenador y contamina los resultados que provee de varias maneras.
+
+- Datos, en sí mismos pueden contener falsedades o simplemente tergiversaciones. Por ejemplo, si un valor en particular aparece dos veces más a menudo en los datos que en la vida real, la salida de la solución de aprendizaje automático está contaminada, aunque el dato en sí mismo sea correcto.
+
+- Algoritmo, usar el algoritmo equivocado causará que la solución de aprendizaje automático ajuste el modelo a los datos de manera incorrecta.
+
+- Entrenamiento, muy poco o demasiado entrenamiento cambia como el modelo se ajusta a los datos y por tanto, cambia el resultado.
+
+- Interpretación de los resultados, incluso cuando una solución de aprendizaje automático ofrece un resultado correcto, el humano usando esa salida puede malinterpretarla. En ese caso los resultados son tan malos, o incluso peores que cuando el aprendizaje automático falla al ofrecer resultados incorrectos.
+
+Hay que considerar los efectos del sesgo sin importar el tipo de aprendizaje automático se crea. Es importante saber que tipo de límites estos sesgos introducen en la solución y si ésta sigue siendo lo suficientemente fiable para ofrecer resultados útiles.
+
+Complejidad
+--------------------------------------------------------------
+
+Lo más sencillo siempre es mejor. Muchos algoritmos distintos pueden ofrecer resultados útiles, pero el mejor que se puede usar es aquel que es más sencillo de entender y ofrece los resultados más directos. La navaja de [Ockham](https://es.wikipedia.org/wiki/Navaja_de_Ockham) suele ser la mejor estrategia a seguir, usar siempre la solución más simple para resolver un problema. Cuando la complejidad crece, también lo hacen los errores potenciales.
+
+Scikit-learn
+--------------------------------------------------------------
+
+Esta es una librería de Python que integra la mayoría de algoritmos de aprendizaje automático. Se puede instalar usando el método habitual con `pìp` o `pipenv` con el paquete en [PyPI](https://pypi.org/project/scikit-learn/).
+
+Es parte del grupo SciPy, que es un conjunto de librerías creadas para la computación científica, especialmente para análisis de datos, como NumPy, Pandas,... Estas librerías suelen ser conocidas como `SciKits`, de ahí viene la primera parte del nombre, la segunda parte deriva de `machine learning`.
+
+El aprendizaje supervisado consiste en aprender posibles patrones entre dos o más características (features) al leer valores de un conjunto de datos de entrenamiento, el aprendizaje es posible porque dicho conjunto de entrenamiento contiene los resultados conocidos (etiquetas o targets). A todos los modelos en `scikit-learn` se les llama estimadores supervisados (supervised estimators), y usando el método `fit(x,y)` realizan su entrenamiento. En el parámetro `x` están las características observadas, mientras que `y` indica el target o las etiquetas. Una vez el estimador ha realizado el entrenamiento, será capaz de predecir el valor de `y` para cualquier observación `x` nueva que no esté etiquetada. Esto se realiza a través del método `predict(x)`.
+
+![Figure [res/006_011]: Algoritmos de Scikit-learn](res/006_011.png)
+
+Habitualmente se tienen que mantener las características (features) y las respuestas (targets) del conjunto de datos como objetos separados, de igual manera, ambos objetos deben ser numéricos, aunque para clasificaciones el target puede llegar a ser una cadena de carácteres. El conjunto de features tendrá como primera dimensión el número de observaciones de dicho conjunto, es decir, cuantos elementos se han medido en las filas, mientras que la segunda dimensión será el número de features que ofrece, el número de columnas. En cambio, el conjunto target, tendrá una sola dimensión, que debería coincidir con el número de observaciones.
+
+Por norma el conjunto de features se nombra con una `X` mayúscula, puesto que es una mátriz de dos dimensiones, mientras que el conjunto de targets se nombra con una `y` minúscula, puesto que es un vector de una sola dimensión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X = iris.data
+y = iris.target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [x_and_y]: Features y targets]
+
+### Los 4 pasos de scikit-learn
+
+- Importar la clase que se va a usar, en este caso, supone importar el clasificador KNN, `from sklearn.neighbors import KNeighborsClassifier`.
+
+- Instanciar el estimador, esto es el modelo para scikit-learn, se pueden especificar parámetros para hacer algún ajuste fino al algoritmo, aquellos que no se especifiquen cogerán sus valores por defecto, `knn = KNeighborsClassifier()`.
+
+- Ajustar el modelo con los datos, en este punto el modelo aprende la relación entre X e y, `knn.fit(X_train,y_train)`.
+
+- Predecir la respuesta de una nueva observación, se usa la información que ha aprendido durante el entrenamiento, `knn.predict(X_test)`.
+
+Conjuntos de datos
+==============================================================
+
+Iris
+--------------------------------------------------------------
+
+Este conjunto de datos se usa muy habitualmente para prácticar y probar algoritmos de aprendizaje automático. En él hay datos de tres especies distintas de flores de lirio (setosa, virginica y versicolor), estos datos corresponden a la altura y anchura de los sépalos y los pétalos de dicha flor.
+
+![Figure [res/006_003]: Lirio con el ancho y alto del sépalo y pétalo](res/006_003.png width="400px")
+
+Particularmente se usa muy menudo como ejemplo de problemas de clasificación, que se suelen resolver usando metodologías de aprendizaje automático. De hecho, este conjunto de datos viene junto a la librería `scikit-learn` como un array de Numpy de tamaño 150 x 4.
+
+El primer paso es cargar el conjunto de datos desde `scikit-learn`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import datasets
+iris = datasets.load_iris()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_load]: Cargar el conjunto de datos Iris]
+
+Una vez cargados en una variable local, se puede acceder a ellos accediendo al atributo `data` de dicha variable. Está construido como un `ndarray` de NumPy de dimensiones 150x4, conteniendo los valores numéricos de las mediciones de los sépalos y pétalos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris.data
+
+Output:
+[[5.1 3.5 1.4 0.2]
+ [4.9 3.  1.4 0.2]
+ ...
+ [6.2 3.4 5.4 2.3]
+ [5.9 3.  5.1 1.8]]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_data]: Visualizar los datos de Iris]
+
+Se puede acceder también al nombre de cada una de esas columnas o características de los datos a través del atributo `feature_names`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris.feature_names
+
+Output:
+['sepal length (cm)',
+ 'sepal width (cm)',
+ 'petal length (cm)',
+ 'petal width (cm)']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_feature_names]: Visualizar los nombres de las features de Iris]
+
+Para saber a que tipo o clase de flor pertenece cada elemento hay que acceder al atributo `target`. Se obtienen 150 elementos con tres posibles valores enteros (0, 1 y 2), que corresponden a las tres especies de lirios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris.target
+
+Output:
+[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_target]: Visualizar las especies de Iris]
+
+Para averiguar la correspondencia entre las especies y estos números se tiene el atributo `target_names`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris.target_names
+
+Output:
+array(['setosa', 'versicolor', 'virginica'])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_target_names]: Visualizar los nombres de las especies de Iris]
+
+Para entender mejor este conjunto de datos se puede usar la librería matplotlib. Se crea un gráfico de dispersión scatterplot que muestre las tres especies distintas en colores diferentes. El eje x representará la longitud del sépalo y en el eje y la anchura del mismo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x = iris.data[:,0]
+y = iris.data[:,1]
+species = iris.target
+
+fig, ax = plt.subplots()
+ax.scatter(x,y, c=species)
+ax.set_xlabel('Sepal length')
+ax.set_ylabel('Sepal width')
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_plot_sepals]: Generar gráfico de dispersión sobre los sépalos]
+
+![Figure [res/006_004]: Scatterplot de especies sobre los sépalos](res/006_004.png)
+
+Observando el gráfico Figure [res/006_004] se puede observar que cada especie se muestra con un color diferente, y que las características de la especie representada con el color morado (setosa) difieren claramente de las otras dos, formando un grupo (cluster) de puntos morados separados del resto.
+
+Se puede usar el mismo procedimiento pero usando otras dos variables, en este caso, las medidas de la longitud y anchura del pétalo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x = iris.data[:,2]
+y = iris.data[:,3]
+species = iris.target
+
+fig, ax = plt.subplots()
+ax.scatter(x,y, c=species)
+ax.set_xlabel('Petal length')
+ax.set_ylabel('Petal width')
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_plot_petals]: Generar gráfico de dispersión sobre los pétalos]
+
+![Figure [res/006_005]: Scatterplot de especies sobre los pétalos](res/006_005.png)
+
+En este caso la división entre las tres especies es mucho más evidente, se forman tres grupos claramente separados.
+
+Para realizar una representación gráfica más completa usando la librería seaborn, primero hay que transformar el conjunto de datos en un `Dataframe` de pandas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+df_iris = pd.DataFrame(iris.data, columns=iris.feature_names)
+df_iris["target"] = iris.target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_dataframe]: Cargar conjunto de datos en un Dataframe]
+
+Una vez hecho esto se puede llamar a seaborn con el método `pairplot` para visualizar de manera completa la relación entre todas las features del conjunto de datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+sns.pairplot(data=df_iris, hue="target", palette='viridis')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iris_pairplot]: Generar gráfico `pairplot`]
+
+![Figure [res/006_006]: Pairplot del conjunto de datos Iris](res/006_006.png)
+
+En este gráfico se puede apreciar mucho más claramente la relación entre todas las parejas de features, como forman grupos muchas de ellas, e incluso el gráfico de distribución de cada variable en la diagonal.
+
+Diabetes
+--------------------------------------------------------------
+
+Entre otros conjuntos de datos disponibles en scikit-learn está el dedicado a la diabetes. Para cargar estos datos hay que importar el módulo `datasets`y llamar a la función `load_diabetes` para cargarlo en una variable.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import datasets
+diabetes = datasets.load_diabetes()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [diabetes_load]: Cargar datos de diabetes]
+
+Este conjunto contiene datos fisiológicos recogidos de 442 pacientes y su correspondiente valor de target como indicador de la progresión de la enfermedad tras un año. Estos datos fisiológicos ocupan las primeras 10 columnas con valores que representan lo siguiente, `[Edad, Sexo, Índice de masa corporal, presión sanguínea, S1, S2, S3, S4, S5, S6]`, donde de S1 a S6 se tienen 6 mediciones de análisis de sangre.
+
+Estas mediciones se pueden obtener llamando al atributo `data`. Pero estos valores ya están preprocesados, cada uno de ellos ha sido centrado a la media, y posteriormente escalado por la desviación standard tantas veces como muestras hay. La suma de los cuadrados de cada columna es igual a 1, probando lo anterior.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+np.sum(diabetes.data[:,1]**2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [diabetes_squared]: Suma de cuadrados para una columna]
+
+Aunque estos valores están normalizados y son difíciles de leer, continúan expresando correctamente las 10 características fisiológicas y por tanto no han perdido su valor o información estadística.
+
+En cuanto a los indicadores del progreso de la diabetes, es decir, los valores que deben corresponder a los resultados de las predicciones, se pueden obtener a través del atributo `target`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+diabetes.target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [diabetes_target]: Target del conjunto de datos]
+
+Se obtiene una serie de 442 enteros con valores entre 25 y 346.
+
+
+
+
+Iris
+    PCA
+    KNN
+Diabetes
+    Linear Regression
+SVMs
+    SVC
+    SVC No Lineal
+    SVM Iris
+    SVR Diabetes
+
+
+Classification with Iris
+    KNN
+    SVC
+Regresion with Diabetes
+    Linear Regression
+    SVR
+
+
+
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

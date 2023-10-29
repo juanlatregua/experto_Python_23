@@ -1,0 +1,272 @@
+<meta charset="utf-8">
+**02EPPY - 006 - Puntos y Vectores**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Puntos y vectores
+
+Un mundo virtual suele estar compuesto de muchos objetos tridimensionales y, por tanto, el videojuego necesita gestionar las posiciones, orientaciones y escalas de todos esos objetos, animarlos y transformarlos en el espacio de pantalla para que se puedan pintar en pantalla. Esos objetos suelen estar formados por triángulos, y sus vértices representados por puntos.
+
+## Puntos y coordenadas cartesianas
+
+Un punto es una localización en un espacio n-dimensional. El sistema de coordenadas cartesiano es el más habitual. Usa dos o tres ejes perpendiculares para especificar una posición en el espacio 2D o 3D. Así, un punto es representado por dos o tres números reales.
+
+![Figure [res/006_000]: Punto 3D en coordenadas cartesianas `P(a,b,c)` o `P(x,y,z)`](res/006_000.png)
+
+Otros sistemas menos habituales son el sistema de coordenadas polares, cilíndricas y esféricas.
+
+### Coordenadas polares
+
+En 2D un punto se representa con 2 coordenadas, la primera es el radio desde el origen y la segunda el ángulo θ respecto del eje considerado como polar.
+
+Para convertir de coordenadas cartesianas a polares:
+
+\begin{equation}
+r = \sqrt{x^2 + y^2}\\
+\theta = \tan^{-1}(\frac{y}{x})\\
+\end{equation}
+
+Y de polares a cartesianas:
+
+\begin{equation}
+x = r \cdot \cos{\theta}\\
+y = r \cdot \sin{\theta}\\
+\end{equation}
+
+![Figure [res/006_001]: Punto en 2D en coordenadas polares `P(r,θ)`](res/006_001.png)
+
+### Coordenadas cilíndricas
+
+Un punto se representa con 3 coordenadas, la primera es el radio, la segunda el ángulo Φ y la tercera la altura, dentro de un cilindro definido por los ejes.
+
+Para convertir de coordenadas cartesianas a cilíndricas:
+
+\begin{equation}
+r = \sqrt{x^2 + y^2}\\
+\phi = \tan^{-1}(\frac{y}{x})\\
+z = z\\
+\end{equation}
+
+Y de cilíndricas a cartesianas:
+
+\begin{equation}
+x = r \cdot \cos{\phi}\\
+y = r \cdot \sin{\phi}\\
+z = z\\
+\end{equation}
+
+![Figure [res/006_002]: Punto en 3D en coordenadas cilíndricas `P(r,Φ,z)`](res/006_002.png)
+
+### Coordenadas esféricas
+
+Un punto se representa con 3 coordenadas, donde la primera es el radio, la segunda es la latitud θ y tercera es la longitud Φ, dentro de una esfera con centro en (0, 0, 0).
+
+Para convertir de coordenadas cartesianas a esféricas:
+
+\begin{equation}
+r = \sqrt{x^2 + y^2 + z^2}\\
+\theta = \tan^{-1}(\frac{z}{\sqrt{x^2 + y^2}})\\
+\phi = \tan^{-1}(\frac{y}{x})\\
+\end{equation}
+
+Y de esféricas a cartesianas:
+
+\begin{equation}
+x = r \cdot \sin(theta) \cdot \cos{\phi}\\
+y = r \cdot \sin(\theta) \cdot \sin{phi}\\
+z = r \cdot \cos(theta)\\
+\end{equation}
+
+![Figure [res/006_003]: Punto 3D en coordenadas esféricas `P(r,θ,Φ)`](res/006_003.png)
+
+Por norma general se usa el sistema de coordenadas cartesianas, pero algunos problemas se pueden solucionar de manera mucho más simple usando el sistema que mejor se ajuste. Por ejemplo, en 2D mover un punto a lo largo de una espiral es mucho más sencillo si se usan coordenadas polares, basta ir reduciendo el radio mientras se va moviendo el ángulo.
+
+## Sistema de mano izquierda/derecha
+
+Suelen haber dos maneras de ordenar los tres ejes perpendiculares, mano izquierda y mano derecha. La única diferencia entre ambos es la dirección a la que apunta el eje Z. Si el eje Y apunta hacia arriba y el X apunta hacia la derecha, entonces el eje Z apunta hacia nosotros en un sistema mano derecha, y apunta lejos de nosotros en un sistema mano izquierda. Se llaman así porque se puede usar la mano para determinar hacia donde apunta la Z con el dedo corazón si se usa el pulgar como X y el índice como Y.
+
+![Figure [res/006_004]: Sistema mano izquierda / derecha](res/006_004.png)
+
+El uso de uno u otro sistema no cambia las reglas matemáticas, solo cambia la interpretación de los números.
+
+## Vectores
+
+Un vector es una cantidad que tiene magnitud (longitud) y dirección, se interpreta como un segmento dirigido desde un punto llamado cola a otro punto llamado cabeza. Se representa con dos o tres números reales. La distinción entre punto y vector es bastante sutil, técnicamente un vector es un desplazamiento relativo a un punto conocido. Por norma, en programación se usa el término vector para referirse a ambos (puntos y vectores), pero hay que tener muy en consideración la diferencia entre ambos, puesto que más adelante se verá cómo deben ser tratados de manera distinta al convertirlos a coordenadas homogéneas.
+
+![Figure [res/006_005]: Vector 3D `v(x,y,z)`](res/006_005.png)
+
+### Multiplicación por escalar
+
+Se realiza multiplicando cada componente individual del vector por el escalar y tiene el efecto de escalar la magnitud del vector.
+
+\begin{equation}
+\vec{a} \cdot s = (a_x \cdot s , a_y \cdot s )\\
+\end{equation}
+
+![Figure [res/006_006]: Vector multiplicado por 2 y por -1](res/006_006.png width="200px")
+
+### Suma y resta de vectores
+
+La suma de dos vectores está definida como el vector cuyos componentes son las sumas de los componentes de los dos vectores originales. Se visualiza como situar la cabeza del primer vector en la cola del segundo vector, la suma es entonces el vector desde la cola del primer vector a la cabeza del segundo.
+
+\begin{equation}
+\vec{a} + \vec{b} = (a_x + b_x , a_y + b_y)\\
+\end{equation}
+
+![Figure [res/006_007]: Suma de dos vectores](res/006_007.png width="200px")
+
+La resta no es más que la suma de a y -b, se realiza restando las componentes de a y b.
+
+\begin{equation}
+\vec{a} - \vec{b} = (a_x - b_x , a_y - b_y)\\
+\end{equation}
+
+![Figure [res/006_008]: Resta de dos vectores](res/006_008.png width="200px")
+
+### Suma y resta de puntos y vectores
+
+Las operaciones que tienen sentido entre puntos y vectores son:
+- Vector + Vector = Vector
+- Vector - Vector = Vector
+- Punto + Vector = Punto
+- Punto - Punto = Vector
+- Punto + Punto = Sin Sentido
+
+![Figure [res/006_009]: Cabeza(Punto) - Cola(Punto) = Vector](res/006_009.png)
+
+### Longitud
+
+La longitud de un vector es un escalar que representa su magnitud como sería medida en el espacio. Se usa el teorema de Pitágoras para calcularlo.
+
+\begin{equation}
+|\vec{a}| = \sqrt{a^2_x + a^2_y}
+\end{equation}
+
+![Figure [res/006_010]: Longitud de un vector en 2D](res/006_010.png)
+
+### Aplicación de operaciones
+
+Con solo estas operaciones ya se pueden resolver muchos problemas en videojuegos.
+
+Por ejemplo, si se tiene la posición de un personaje manejado por la IA, $P_1$ y un vector que representa su velocidad $\vec{v}$, se puede calcular su posición en el siguiente frame $P_2$ escalando el vector velocidad por el intervalo de tiempo de ese frame $\Delta t$, y luego sumándolo a la posición actual.
+
+\begin{equation}
+P_2 = P_1 + (\vec{v} \cdot \Delta t)
+\end{equation}
+
+### Normalización y vectores unitarios
+
+Un vector unitario es aquel que tiene una longitud de 1. Obtener el vector unitario a partir de un vector se llama normalización, y se obtiene dividiendo cada componente del vector por su longitud.
+
+\begin{equation}
+\vec{u} = \frac{\vec{v}}{|\vec{v}|}
+\end{equation}
+
+### Vectores normales
+
+Un vector es normal a una superficie si es perpendicular a la misma. En programación gráfica son muy útiles a la hora de determinar la dirección de las superficies relativas a la dirección de los rayos de luz que inciden sobre ellas, cuando se hacen cálculos de iluminación.
+
+Los vectores normales suelen tener longitud 1, pero no es necesario. Es importante tener clara la diferencia entre vectores normales y normalizados.
+
+![Figure [res/006_011]: Vector normal a un plano](res/006_011.png)
+
+### Producto escalar
+
+Los vectores se pueden multiplicar entre ellos, pero hay diversos tipos de multiplicación entre vectores. En videojuegos se suelen usar el producto escalar y el vectorial.
+
+El producto escalar entre dos vectores da como resultado un escalar, definido como la suma de los productos de los componentes de cada vector:
+
+\begin{equation}
+\vec{a} \cdot \vec{b} = a_x \cdot b_x + a_y \cdot b_y
+\end{equation}
+
+También puede ser escrito como el producto de las longitudes de los dos vectores y el coseno del ángulo entre ellos:
+
+\begin{equation}
+\vec{a} \cdot \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \cos{\theta}
+\end{equation}
+
+El producto escalar es conmutativo y distributivo respecto de la suma:
+
+\begin{equation}
+\vec{a} \cdot \vec{b} = \vec{b} \cdot \vec{a}
+\end{equation}
+
+\begin{equation}
+\vec{a} \cdot (\vec{b} + \vec{c}) = \vec{a} \cdot \vec{b} + \vec{a} \cdot \vec{c}
+\end{equation}
+
+Si  es un vector unitario, entonces el producto escalar $(\vec{a} \cdot \vec{u})$ representa la longitud de la proyección del vector $\vec{a}$ sobre la línea infinita definida por la dirección de $\vec{u}$.
+
+![Figure [res/006_012]: Proyección de un vector sobre otro usando el producto escalar](res/006_012.png)
+
+La longitud cuadrada de un vector se puede calcular como el producto escalar de un vector consigo mismo, para obtener la longitud entonces basta con realizar la raíz cuadrada del producto escalar. Si bien la longitud cuadrada se suele usar muy a menudo puesto que para comparar distancias suele ser suficiente y se ahorra el coste de realizar la raíz cuadrada (suele ser alto).
+
+El producto escalar se suele usar para determinar si dos vectores son colineales o perpendiculares, así como si apuntan hacia direcciones similares u opuestas. Dados dos vectores $\vec{a}$ y $\vec{b}$, se suelen usar los siguientes test:
+
+- Colineales, $\vec{a} \cdot \vec{b} = |\vec{a}| \cdot |\vec{b}|$ el ángulo entre ellos es exactamente 0 grados. Cuando $\vec{a}$ y $\vec{b}$ son vectores unitarios el producto escalar es 1.
+
+![Figure [res/006_013]: Vectores colineales](res/006_013.png width="100px")
+
+- Colineales pero opuestos, $\vec{a} \cdot \vec{b} = -\vec{a} \cdot \vec{b}$ el ángulo entre ellos es de 180 grados. Cuando $\vec{a}$ y $\vec{b}$ son vectores unitarios el producto escalar es -1.
+
+![Figure [res/006_014]: Vectores colineales opuestos](res/006_014.png width="100px")
+
+- Perpendiculares, $\vec{a} \cdot \vec{b} = 0$ el ángulo entre ellos es de 90 grados.
+
+![Figure [res/006_015]: Vectores perpendiculares](res/006_015.png width="100px")
+
+- Misma dirección, $\vec{a} \cdot \vec{b} > 0$ el ángulo entre ellos es menor de 90 grados.
+
+![Figure [res/006_016]: Vectores con la misma dirección](res/006_016.png width="100px")
+
+- Direcciones opuestas, $\vec{a} \cdot \vec{b} < 0$ el ángulo entre ellos es mayor de 90 grados.
+
+![Figure [res/006_017]: Vectores con direcciones opuestas](res/006_017.png width="100px")
+
+### Aplicaciones del producto escalar
+
+Para averiguar si un enemigo está enfrente de un jugador o detrás, se puede calcular un vector desde la posición del jugador $P$, hasta la posición del enemigo $E$ con una simple resta de puntos $\vec{v} = E- P$ y se tiene un vector $\vec{f}$ apuntando en la dirección hacia donde está mirando el jugador (forward). El producto escalar $d = \vec{v} \cdot \vec{f}$ será positivo si el enemigo está enfrente del jugador y negativo si está detrás.
+
+### Producto vectorial
+
+El producto vectorial de dos vectores produce otro vector que es perpendicular a los dos vectores multiplicados. Solo está definido en 3 dimensiones.
+
+\begin{equation}
+\vec{a} \times \vec{b} = (a_y \cdot b_z - a_z \cdot b_y, a_z \cdot b_x - a_x \cdot b_z, a_x \cdot b_y - a_y \cdot b_x)
+\end{equation}
+
+![Figure [res/006_018]: Producto vectorial](res/006_018.png width="150px")
+
+También puede ser escrito como el producto de las longitudes de los dos vectores y el seno del ángulo entre ellos y $\vec{n}$ como un vector unitario perpendicular al plano que contiene $\vec{a}$ y $\vec{b}$, siguiendo la regla de la mano derecha.
+
+\begin{equation}
+\vec{a} \times \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \sin{\theta} \cdot \vec{n}
+\end{equation}
+
+La longitud del producto vectorial es igual al área del paralelogramo definido por $\vec{a}$ y $\vec{b}$, y puesto que el área de un triangulo es la mitad de la de un paralelogramo, el área del triángulo cuyos vértices están definidos por $\vec{a}$ y $\vec{b}$ resulta en:
+
+\begin{equation}
+A = \frac{1}{2} \cdot |\vec{a} \times \vec{b}|
+\end{equation}
+
+![Figure [res/006_019]: Área del paralelogramo](res/006_019.png width="150px")
+
+Se puede saber la dirección del producto vectorial usando la regla de las manos, su dirección la apunta el pulgar si se cierran los demás dedos en torno al vector $\vec{a}$ primero y luego al vector $\vec{b}$.
+
+Es anti conmutativo y distributivo respecto a la suma:
+
+\begin{equation}
+\vec{a} \times \vec{b} = -(\vec{b} \times \vec{a})
+\end{equation}
+
+\begin{equation}
+\vec{a} \times (\vec{b} + \vec{c}) = \vec{a} \times \vec{b} + \vec{a} \times \vec{c}
+\end{equation}
+
+### Aplicaciones del producto vectorial
+
+El uso más común es para encontrar vectores perpendiculares a otros dos vectores. Por ejemplo, a la hora de encontrar un vector normal a la superficie de un triángulo al realizar cálculos de iluminación.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,610 @@
+<meta charset="utf-8">
+**03EPPY - Anexo 4 - Prácticas SQL**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+
+# Anotaciones previas
+
+- Para abreviar se hará alusión al par tabla/campo de la base de datos con el formato: *tabla.campo*. Por ejemplo, *Cliente.Nombre*.
+
+# Uso de Interfaz Gráfica (DB Browser)
+
+![](res/a4/sql_db_cine.png)
+
+1. Crear la base de datos siguiendo el modelo relacional propuesto, con los siguientes requisitos:
+    - El código de la película será un número que se asigne automaticamente.
+        - *Pelicula.Codigo* Restricción AUTOINCREMENT. (Por ser de tipo entero y clave primaria se asigna automaticamente).    
+    - El nombre de la película no puede estar vacío. 
+        - *Pelicula.Nombre* Restricción NOT NULL.
+    - El nombre de una película no puede repetirse. 
+        - *Peliculas.Nombre* UNIQUE
+    - El nombre de la sala ha de tener por defecto el valor 'Por determinar'.
+        - *Peliculas.ClasificacionEdad* Restricción DEFAULT 
+    - La calificación por edades de las películas ha de ser mayor o igual que 0. 
+        - *Peliculas.CalificacionEdad* ha de ser mayor que 0.
+
+2. Realizar las siguientes modificaciones en la base de datos creada anteriormente.
+    - Añadir columna *Pelicula.Director*.
+    - Eliminar columna *Pelicula.Director*.
+    - Crear tabla *PRUEBA*.
+    - Renombrar tabla *PRUEBA*.
+    - Borrar tabla *PRUEBA*.
+    - Insertar registros (solucionar en caso de error):
+        - Insertar película *Harry Potter* y su calificación por edades de 7 años.
+        - Insertar una sala llamada "Sala Azul".
+        - Indicar que la película *Harry Potter* se proyecta en la *Sala Azul*.
+        - Insertar película *El resplandor (-16)*.
+            - Error CHECK. 
+            - Solución: Indicar un número >=0.
+        - Insertar una sala llamada "Sala Azul".
+        - Indicar que la película *El resplandor* se proyecta en la *Sala Roja*.
+        - Cambiar el nombre de la *Sala Roja* a *Sala Azul*.
+            - Error UNIQUE.
+            - Solución: poner un nombre que no exista para otra sala, por ejemplo, *Sala Verde*.
+            - Para indicar insensibilidad a mayúsculas y minúsculas: *COLLATE NO CASE*.
+
+
+# Crear Base de Datos en consola
+
+![](res/a4/biblioteca.png)
+
+1. Crear/abrir base de datos.
+
+    ~~~~   
+    sqlite3 biblioteca_consola.db
+    ~~~~
+
+2. Crear tabla LIBROS.
+
+    ~~~~
+    CREATE TABLE LIBROS (
+        IdLibro	integer PRIMARY KEY,
+        Titulo text NOT NULL,
+        Precio decimal CHECK(Precio>=0),
+        NumPaginas integer DEFAULT 0,
+        Anyo integer,
+        Donado Boolean NOT NULL DEFAULT 0
+    );
+    ~~~~  
+
+    Importante: indicar **NOT NULL** cuando la clave primaria no es de tipo entero.
+
+    - Prueba de IF NOT EXISTS:
+
+        - Crear tabla LIBROS de nuevo.
+
+            ~~~~
+            CREATE TABLE LIBROS (
+                IdLibro	integer PRIMARY KEY,
+                Titulo text NOT NULL,
+                Precio decimal CHECK(Precio>=0),
+                NumPaginas integer DEFAULT 0,
+                Anyo integer,
+                Donado Boolean NOT NULL DEFAULT 0
+            );
+            ~~~~
+    
+            Resultado: Error 
+
+            ~~~~
+            CREATE TABLE IF NOT EXISTS LIBROS (
+                IdLibro	integer PRIMARY KEY,
+                Titulo text NOT NULL,
+                Precio decimal CHECK(Precio>=0),
+                NumPaginas integer DEFAULT 0,
+                Anyo integer,
+                Donado Boolean NOT NULL DEFAULT 0
+            );
+            ~~~~
+
+3. Crear tabla AUTORES.
+
+    ~~~~
+    CREATE TABLE AUTORES (
+        IdAutor	integer PRIMARY KEY,
+        Nombre text NOT NULL UNIQUE,
+        AnyoNacimiento integer,
+        AnyoFallecimiento integer
+    );
+    ~~~~
+
+4. Crear tabla ESCRITOS.
+
+    ~~~~
+    CREATE TABLE ESCRITOS (
+        IdLibro	integer,
+        IdAutor	integer,
+        CONSTRAINT PK_ESCRITOS PRIMARY KEY(IdLibro,IdAutor),
+        FOREIGN KEY(IdAutor) REFERENCES AUTORES(IdAutor),
+        FOREIGN KEY(IdLibro) REFERENCES LIBROS(IdLibro)
+    );
+    ~~~~
+
+5. Crear tabla USUARIOS.
+
+    - Nota: No se va a crear el campo *FechaNacimiento* aunque aparece en el modelo relacional porque se creará posteriormente usando otro comando.
+
+        ~~~~
+        CREATE TABLE USUARIOS (
+            IdUsuario integer PRIMARY KEY,
+            Nombre text NOT NULL,
+            Apellidos text NOT NULL
+        ); 
+        ~~~~
+
+6. Crear tabla PRESTAMOS.
+
+    ~~~~
+    CREATE TABLE PRESTAMOS (
+        IdLibro	integer,
+        IdUsuario integer,
+        FechaPrestamo Date,
+        FechaDevolucion	Date,
+        CONSTRAINT PK_PRESTAMOS PRIMARY KEY(IdLibro,IdUsuario),
+        FOREIGN KEY(IdLibro) REFERENCES LIBROS(IdLibro),
+        FOREIGN KEY(IdUsuario) REFERENCES USUARIOS(IdUsuario)
+    );  
+    ~~~~
+
+7. Añadir columna FechaNacimiento en tabla USUARIOS.
+
+    ~~~~
+    ALTER TABLE USUARIOS ADD COLUMN FechaNacimiento DATE;
+    ~~~~
+
+8. Renombrar tabla.
+
+    create table prueba (f1 integer, f2 text);
+    
+    ~~~~
+    ALTER TABLE prueba RENAME TO prueba2;
+    ~~~~    
+
+9. Eliminar columna/tabla.
+
+    ~~~~
+    ALTER TABLE prueba2 DROP COLUMN f2;
+    DROP TABLE prueba2;
+    ~~~~    
+
+10. Insertar registros.
+
+    ~~~~
+    INSERT INTO LIBROS VALUES (1,'Harry Potter',10.50,264,1997,0);
+    ~~~~
+
+    - Errores:
+        ~~~~
+        INSERT INTO LIBROS VALUES ('Harry Potter',5,2);
+        INSERT INTO LIBROS (Titulo) VALUES (NULL);
+        ~~~~
+
+11. Borrar todos los autores.
+    ~~~~
+    DELETE FROM AUTORES
+    WHERE ....
+    ~~~~
+
+12. Importar datos.
+
+    ~~~~
+    .mode csv
+    .import datos.csv LIBROS
+    ~~~~
+
+# Sentencias
+
+- Nota: Antes de continuar importar los datos desde DB Browser usando el fichero *datos_import_dbbrowser.sql*.
+
+- Todos los libros.
+    ~~~~
+    SELECT * FROM LIBROS
+    ~~~~
+- Nombres de los usuarios.
+    ~~~~
+    SELECT Nombre FROM USUARIOS
+    ~~~~
+- Nombres de los usuarios sin repetir ninguno.
+    ~~~~
+    SELECT DISTINCT Nombre FROM USUARIOS  
+    ~~~~
+- Autores con nombre 'J. R. R. Tolkien'.
+    ~~~~
+    SELECT * 
+    FROM AUTORES 
+    WHERE Nombre='J. R. R. Tolkien'
+    ~~~~
+- Autores con nombre 'J. R. R. Tolkien' o 'Dan Brawn'.
+    ~~~~
+    SELECT * 
+    FROM AUTORES 
+    WHERE Nombre='J. R. R. Tolkien' OR Nombre='Dan Brown'
+
+    SELECT * 
+    FROM AUTORES 
+    WHERE Nombre IN ('J. R. R. Tolkien','Dan Brown')
+    ~~~~
+- Autores con nombre distinto a 'J. R. R. Tolkien' y 'Dan Brawn'.
+    ~~~~
+    SELECT * 
+    FROM AUTORES 
+    WHERE Nombre<>'J. R. R. Tolkien' AND Nombre<>'Dan Brown'
+
+    SELECT * 
+    FROM AUTORES 
+    WHERE Nombre NOT IN ('J. R. R. Tolkien','Dan Brown')
+    ~~~~
+- Libros que no están en venta (Precio=0) y libros que sí están en venta y su precio es mayor de 10 €.
+    ~~~~
+    SELECT * FROM LIBROS 
+    WHERE (Precio=0) OR (PRECIO>10)
+    ~~~~
+- Libros que no están en venta y tienen más de 500 páginas o que sí están en venta y no se conoce el número de páginas.
+    ~~~~
+    SELECT * FROM LIBROS 
+    WHERE ((precio=0) AND (NumPaginas>500)) or ((precio>0) AND (NumPaginas = 0))
+    ~~~~
+- Libros que no tienen autor relacionado.
+    ~~~~
+    SELECT * FROM LIBROS 
+    WHERE NOT EXISTS (SELECT * FROM ESCRITOS WHERE ESCRITOS.IdLibro=LIBROS.IdLibro)
+
+    SELECT * FROM LIBROS L
+    WHERE NOT EXISTS (SELECT * FROM ESCRITOS E WHERE E.IdLibro=L.IdLibro)
+
+    SELECT * FROM LIBROS L
+    WHERE L.IdLibro NOT IN (SELECT E.IdLibro FROM ESCRITOS E)
+    ~~~~
+- Autores cuyo nombre empieza por 'M'.
+    ~~~~
+    SELECT * FROM AUTORES 
+    WHERE Nombre LIKE 'M%'
+    ~~~~
+- Autores cuyo nombre empieza por 'J' y tienen algún '.' en su nombre.
+    ~~~~
+    SELECT * FROM AUTORES 
+    WHERE Nombre LIKE 'J%' AND Nombre LIKE '%.%'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre LIKE 'j%' AND Nombre LIKE '%.%'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre GLOB 'J*' AND Nombre GLOB '*.*'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre GLOB 'j*' AND Nombre GLOB '*.*'
+    ~~~~
+- Autores cuyo nombre tiene una 'a' en segunda posición.
+    ~~~~
+    SELECT * FROM AUTORES 
+    WHERE Nombre LIKE '_a%'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre LIKE '_A%'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre GLOB '?a*'
+
+    SELECT * FROM AUTORES 
+    WHERE Nombre GLOB '?A*'
+    ~~~~
+- Autores cuyo nombre no tiene ningún espacio.
+    ~~~~
+    SELECT * FROM AUTORES 
+    WHERE Nombre NOT LIKE '% %'
+    ~~~~
+- Los tres primeros registros de AUTORES.
+    ~~~~
+    SELECT * FROM AUTORES 
+    ORDER BY Nombre
+    LIMIT 3
+    ~~~~
+- Del cuarto al séptimo registro de AUTORES si están ordenados por nombre.
+    ~~~~
+    SELECT * FROM AUTORES 
+    ORDER BY Nombre
+    LIMIT 4 OFFSET 3
+    ~~~~
+- Ordenar los libros por título.
+    ~~~~
+    SELECT * FROM LIBROS 
+    ORDER BY Titulo
+
+    SELECT * FROM LIBROS 
+    ORDER BY 2 --Titulo
+    ~~~~
+- Mostrar título y precio de los libros ordenados por precio.
+    ~~~~
+    SELECT Titulo,Precio FROM LIBROS 
+    ORDER BY Precio
+
+    SELECT * FROM LIBROS 
+    ORDER BY 2
+    ~~~~  
+- Nombres de los autores en mayúsculas y título de los libros en minúsculas.
+    ~~~~
+    SELECT UPPER(Nombre) FROM AUTORES
+
+    SELECT LOWER(Titulo) FROM LIBROS
+    ~~~~
+- Nombres de los autores y su longitud.
+    ~~~~
+    SELECT Nombre, Length(Nombre) FROM AUTORES 
+    ~~~~
+- Libro más barato que no sea 0 y libro más caro.
+    ~~~~
+    SELECT MIN(Precio) FROM LIBROS
+    WHERE Precio>0 
+
+    SELECT MAX(Precio) FROM LIBROS
+    ~~~~
+- Coste total de los libros que hay en total en la biblioteca.
+    ~~~~
+    SELECT SUM(Precio) FROM LIBROS 
+    ~~~~
+- Cantidad de usuarios.
+    ~~~~
+    SELECT COUNT(*) FROM USUARIOS 
+    ~~~~
+- Cantidad de autores que han escrito algún libro.
+    ~~~~
+    SELECT COUNT(DISTINCT IdAutor) FROM ESCRITOS 
+    ~~~~
+- Precio medio de los libros.
+    ~~~~
+    SELECT AVG(Precio) FROM LIBROS 
+
+    SELECT ROUND(AVG(Precio),2) FROM LIBROS 
+    ~~~~
+- Precio medio de los libros que tienen más de 1000 páginas.
+    ~~~~
+    SELECT AVG(Precio) FROM LIBROS 
+    WHERE NumPaginas>1000
+
+    SELECT ROUND(AVG(Precio),2) FROM LIBROS
+    WHERE NumPaginas>1000
+    ~~~~
+- Cantidad de libros escritos por cada autor.
+    ~~~~
+    SELECT IdAutor, COUNT(*) 
+    FROM ESCRITOS 
+    GROUP BY IdAutor
+    ORDER BY IdAutor
+    ~~~~
+- Cantidad de libros escritos por cada autor que ha escrito más de un libro.
+    ~~~~
+    SELECT IdAutor, COUNT(*) 
+    FROM ESCRITOS 
+    GROUP BY IdAutor
+    HAVING COUNT(*)>1
+    ORDER BY IdAutor
+    ~~~~
+- Cantidad de libros escritos por cada autor que ha escrito más de un libro mostrando el nombre del autor.
+    ~~~~
+    SELECT ESCRITOS.IdAutor, Nombre, COUNT(*) 
+    FROM ESCRITOS 
+    INNER JOIN AUTORES ON ESCRITOS.IdAutor=AUTORES.IdAutor
+    GROUP BY ESCRITOS.IdAutor
+    HAVING COUNT(*)>1
+    ORDER BY ESCRITOS.IdAutor
+
+    -- Error ambigüedad
+    SELECT IdAutor, Nombre, COUNT(*) 
+    FROM ESCRITOS 
+    INNER JOIN AUTORES ON ESCRITOS.IdAutor=AUTORES.IdAutor
+    GROUP BY IdAutor
+    HAVING COUNT(*)>1
+    ORDER BY IdAutor
+
+        -- Solución: Uso de alias
+        SELECT E.IdAutor, Nombre, COUNT(*) 
+        FROM ESCRITOS E
+        INNER JOIN AUTORES A ON E.IdAutor=A.IdAutor
+        GROUP BY E.IdAutor
+        HAVING COUNT(*)>1
+        ORDER BY E.IdAutor
+    ~~~~
+
+- Nombre y Precio de los libros escritos por 'Paulo Coelho'.
+    ~~~~
+    SELECT Titulo, Precio 
+    FROM ESCRITOS
+    INNER JOIN LIBROS ON LIBROS.IdLibro=ESCRITOS.IdLibro
+    INNER JOIN AUTORES ON AUTORES.IdAutor=ESCRITOS.IdAutor
+    WHERE Nombre='Paulo Coelho'
+
+    -- Uso de alias
+    SELECT Titulo, Precio 
+    FROM ESCRITOS E
+    INNER JOIN LIBROS L ON L.IdLibro=E.IdLibro
+    INNER JOIN AUTORES A ON A.IdAutor=E.IdAutor
+    WHERE Nombre='Paulo Coelho'
+    ~~~~
+- Unir todos los nombres de libros con todos nombres de autores.
+    ~~~~
+    SELECT Titulo,Nombre 
+    FROM LIBROS 
+    CROSS JOIN AUTORES
+    ~~~~
+- Nombre de los usuarios que han sacado libros de la biblioteca y el nombre de estos libros.
+    ~~~~
+    SELECT U.Nombre, L.Titulo
+    FROM USUARIOS U 
+    INNER JOIN PRESTAMOS P ON P.IdUsuario=U.IdUsuario
+    INNER JOIN LIBROS L ON L.IdLibro=P.IdLibro
+    ~~~~
+- Nombre de los libros y el de su autor, mostrando el autor vacío si no está indicado.
+    ~~~~
+    SELECT Titulo,Nombre
+    FROM LIBROS L
+    LEFT OUTER JOIN ESCRITOS E ON L.IdLibro=E.IdLibro
+    LEFT OUTER JOIN AUTORES A ON A.IdAutor=E.IdAutor
+    ~~~~  
+- Nombre de los libros y el de su autor solo si el autor está indicado.
+    ~~~~
+    SELECT Titulo,Nombre
+    FROM LIBROS L
+    INNER JOIN ESCRITOS E ON L.IdLibro=E.IdLibro
+    INNER JOIN AUTORES A ON A.IdAutor=E.IdAutor
+    ~~~~
+- Listado de los nombres de libros y autores indicando el tipo (Libro o Autor).
+    ~~~~
+    SELECT 'Libro' as Tipo, Titulo as Cabecera
+    FROM LIBROS 
+
+    UNION 
+
+    SELECT 'Autor' as Tipo, Nombre as Cabecera
+    FROM AUTORES
+
+    -- Ordenado por Cabecera
+    ORDER BY Cabecera
+    -- Ordenado por Tipo
+    ORDER BY Tipo
+    -- Ordenado por Tipo y Cabecera
+    ORDER BY Tipo,Cabecera
+
+    SELECT Titulo as Cabecera, 'Libro' as Tipo
+    FROM LIBROS 
+
+    UNION 
+
+    SELECT Nombre as Cabecera, 'Autor' as Tipo
+    FROM AUTORES
+
+    ORDER BY Cabecera, Tipo
+    ~~~~
+- Actualizar el precio a 3€ de los libros que no tienen precio y están escritos por autores cuyo nombre empieza por 'H'.
+    ~~~~
+    UPDATE LIBROS
+    SET Precio=3
+    WHERE Precio=0 AND IdLibro IN (
+                                    SELECT IdLibro
+                                    FROM ESCRITOS E
+                                    INNER JOIN AUTORES A ON A.IdAutor=E.IdAutor
+                                    WHERE Nombre LIKE 'H%'
+                                 )
+    ~~~~
+- El usuario 2 ha cogido prestados todos los libros con autor no fallecido. Insertar los registros a fecha '01.01.2023'.
+    ~~~~
+    INSERT INTO PRESTAMOS (IdLibro,IdUsuario,FechaPrestamo)
+    SELECT IdLibro, 2, '2023-01-01'
+    FROM ESCRITOS E
+    INNER JOIN AUTORES A ON A.IdAutor=E.IdAutor
+    WHERE A.AnyoFallecimiento IS NULL
+    ~~~~
+- Nombre y edad de los usuarios
+    ~~~~
+    SELECT Nombre,(strftime('%Y','now') - strftime('%Y',FechaNacimiento)) as edad
+    FROM USUARIOS
+    ~~~~
+- Nombre y año de publicación de los libros que ha sido leido por los usuarios mayores de 25 años y del que es conocido el autor.
+    ~~~~
+    SELECT Titulo, Anyo
+    FROM LIBROS L
+    INNER JOIN ESCRITOS E ON E.IdLibro=L.IdLibro
+    INNER JOIN PRESTAMOS P ON P.IdLibro=L.IdLibro
+    INNER JOIN USUARIOS U ON U.IdUsuario=P.IdUsuario
+    WHERE (strftime('%Y','now') - strftime('%Y',U.FechaNacimiento)) > 25
+    ~~~~
+
+## Fechas
+- SELECT datetime('now','localtime'); --ahora
+- SELECT date('now','start of month','+1 month','-1 day'); --ultimo dia del mes actual
+- SELECT strftime('%d',datetime('now','localtime')); --dia actual
+- SELECT strftime('%m',datetime('now','localtime')); --mes actual
+- SELECT strftime('%d-%m-%Y %H:%M:%S',datetime('now','localtime')); --fecha y hora actual en formato dd-mm-yyyy h:m:s
+- SELECT strftime('%d-%m-%Y %H:%M:%S',datetime('now','localtime'),'+2 hours'); --fecha y hora dentro de 2 horas
+- SELECT strftime('%s',datetime('now','localtime')) - strftime('%s',USUARIOS.FechaNacimiento) FROM USUARIOS; --segundos desde la fecha de nacimiento
+
+- Usuarios que son menores de edad
+    ~~~~
+    SELECT Nombre 
+    FROM USUARIOS 
+    WHERE (strftime('%Y','now') - strftime('%Y',USUARIOS.FechaNacimiento)) < 18;
+    ~~~~
+    
+# Vistas
+- Fecha de préstamo de los libros que no han sido devueltos con el nombre del libro, el precio que tienen y todos los datos del usuario.
+    ~~~~~
+    CREATE VIEW LIBROS_NO_DEVUELTOS AS
+    SELECT P.FechaPrestamo, L.Titulo, L.Precio, U.* 
+    FROM PRESTAMOS P
+    INNER JOIN LIBROS L ON L.IdLibro=P.IdLibro
+    INNER JOIN USUARIOS U ON U.IdUsuario=P.IdUsuario
+    WHERE FechaDevolucion IS NULL
+
+    -- Libros no devueltos por el usuario 1
+    SELECT *
+    FROM LIBROS_NO_DEVUELTOS
+    WHERE IdUsuario=1
+    ORDER BY FechaPrestamo DESC
+    ~~~~
+- Fecha de préstamo y devolución, y todos los datos del usuario de todos los libros que han sido prestados. 
+    ~~~~
+    CREATE VIEW LIBROS_PRESTADOS AS
+    SELECT P.FechaPrestamo, L.Titulo, U.* 
+    FROM PRESTAMOS P
+    INNER JOIN LIBROS L ON L.IdLibro=P.IdLibro
+    INNER JOIN USUARIOS U ON U.IdUsuario=P.IdUsuario
+    
+    SELECT *
+    FROM LIBROS_PRESTADOS
+    ~~~~
+# Disparadores
+- Cada vez que se da de alta un usuario se registra un log con la fecha en la que se ha creado.
+
+    ~~~~
+    CREATE TABLE LOG (
+			      IdLog INTEGER PRIMARY KEY AUTOINCREMENT,
+				  Fecha DateTime DEFAULT CURRENT_TIMESTAMP,
+				  Evento TEXT NOT NULL,
+				  Valor TEXT NOT NULL
+				);
+
+    CREATE TRIGGER USUARIOS_AFTER_INSERT 
+    AFTER INSERT ON USUARIOS
+    BEGIN
+        INSERT INTO LOG (Evento,Valor) 
+        VALUES ('Nuevo usuario',new.Nombre);
+    END 
+    
+    CREATE TRIGGER USUARIOS_AFTER_DELETE
+    AFTER DELETE ON USUARIOS
+    BEGIN
+        INSERT INTO LOG (Evento,Valor) 
+        VALUES ('Borrado usuario',old.Nombre);
+    END 
+    
+    INSERT INTO USUARIOS (Nombre,FechaNacimiento)
+    VALUES ('Ana','1987-11-11')
+
+    DELETE FROM USUARIOS 
+    WHERE Nombre='Ana'
+    ~~~~
+
+# Transacciones
+
+    ~~~~
+    BEGIN TRANSACTION;
+    INSERT INTO AUTORES (Nombre) VALUES ('Carlo Collodi');
+    INSERT INTO AUTORES (Nombre) VALUES ('Edgar Allan Poe');
+    ROLLBACK;
+
+    BEGIN TRANSACTION;
+    INSERT INTO AUTORES (Nombre) VALUES ('Carlo Collodi');
+    INSERT INTO AUTORES (Nombre) VALUES ('Edgar Allan Poe');
+    COMMIT;
+    ~~~~
+
+# Comandos útiles
+
+- **.schema [tabla]**
+- **.exit**
+- **current_timestamp**
+- **.header on / .mode column**
+
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

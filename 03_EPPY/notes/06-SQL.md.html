@@ -1,0 +1,1121 @@
+<meta charset="utf-8">
+**03EPPY - 06 - SQL**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# Definición e História
+
+El término SQL significa ***Structured Query Language*** (Lenguaje de Consulta Estructurada) ya que fué concebido para consultar o recuperar los datos de bases de datos estructuradas o relacionales, así como administrar los diferentes sistemas de gestión de bases de datos.
+
+SQL nació en 1974, fue IBM quien desarrolló el lenguaje SEQUEL (por sus siglas en inglés Structured English Query Language), que es el origen del actual SQL.
+
+IBM desarrolló SEQUEL basándose en las ideas de Edgar Frank Codd, que en 1970 había imaginado un modelo relacional con un lenguaje que permitiera el acceso a la información. En un principio se desarrolló System R, el software de base de datos y posteriormente nació SQL, el lenguaje destinado a administrar y gestionar bases de datos.
+
+# Características de SQL
+
+La solvencia, versatilidad y consistencia de las bases de datos relacionales y de SQL, hacen de este lenguaje uno de los más importantes útiles y demandados para analizar datos.
+
+Estas son algunas de las principales características de SQL, y por lo que es tan popular y básico dentro del mundo del análisis de datos:
+
+- **Integridad de los datos**. Asegura que los datos sean válidos, correctos y completos. SQL y las bases de datos relacionales tienen la función de preservar esta integridad.
+- **Lenguaje estandarizado**. SQL se puede implementar en diferentes sistemas utilizando el mismo código para todos ellos.
+- **Sencillez y claridad**. SQL es un lenguaje unificado, claro y simple, de fácil comprensión.
+- **Flexibilidad**. Permite definir diferentes formas de ver los datos para satisfacer las especificaciones requeridas por parte del usuario.
+   
+# A tener en cuenta
+
+- **Mayúsculas y minúsculas**. SQL NO distingue entre mayúsculas y minúsculas.
+
+- **Punto y coma**. Algunos sistemas de bases de datos necesitan un punto y coma al final de cada declaración SQL. El punto y coma es la forma estándar de separar cada instrucción SQL en los sistemas de bases de datos que permiten ejecutar más de una instrucción SQL en la misma llamada al servidor. 
+
+# Lenguaje DDL, DML y DCL
+
+Las sentencias SQL pertenecen a dos categorías principales: 
+    - **Lenguaje de Definición de Datos** o **DDL** (Database Definition Language) 
+    - **Lenguaje de Manipulación de Datos** o **DML** (Database Management Language) 
+
+Estos dos lenguajes no son lenguajes en sí mismos, sino que es una forma de clasificar las sentencias de lenguaje SQL en función de su cometido. La diferencia principal reside en que el DDL crea la estructura de la base de datos, mientras que el DML es el que permite consultar, insertar, modificar y eliminar la información almacenada la base de datos.
+
+Existe otra categoría es **Lenguaje de Control de Datos** o **DCL** (Data Control Language) es un
+lenguaje proporcionado por el Sistema de Gestión de Base de Datos que incluye una serie de
+comandos SQL que permiten al administrador **controlar el acceso** a los datos contenidos en la Base
+de Datos.
+
+A continuación se presenta una tabla con las sentencias SQL más comunes, clasificadas según el lenguaje al que pertenezcan.
+
+Las sentencias DDL se pueden agrupar en:
+- **CREATE**
+- **ALTER**
+- **DROP**
+
+Las sentencias DML se pueden agrupar en:
+- **SELECT**
+- **INSERT**
+- **UPDATE**
+- **DELETE**
+
+Las sentencias DCL se pueden agrupar en:
+- **GRANT**
+- **REVOKE**
+
+# Restricciones en SQL
+
+Al crear las columnas de una tabla se puede añadir una serie de reglas y restricciones que permiten mantener la integridad de los datos. Es decir, si al insertar o modificar los datos se cumplen estas restricciones, estos se guardaran con éxito. En caso contrario se dice que se ha violado la restricción y la operación se cancelará.
+
+Las restricciones pueden aplicarse a una o más columnas.
+
+    -   **NOT NULL**: se usa para evitar insertar valores NULL en la columna especificada, considerándolo entonces como un valor no aceptado para esa columna.
+
+        Ejemplo:  
+
+            |         |USUARIO |          |
+            |---------|--------|----------|
+            | Id      | Entero | NOT NULL |
+            | Nombre  | Texto  |          |
+
+            Al insertar los siguiente datos:
+            * Id=1, Nombre='usuario1' -> insertado con éxito
+            * Id=2 -> insertado con éxito con la columna nombre con valor vacío
+            * Nombre='usuario2' -> error al insertar ya que viola la restricción NOT NULL
+
+            Los datos en la tabla quedarían de la siguiente manera:
+
+            | Id      |Nombre    | 
+            |---------|----------|
+            | 1       | usuario1 |
+            | 2       | null     |
+
+    
+    - **UNIQUE**: se usa para evitar insertar valores duplicados en una o varias columnas específicas (que no forman parte de la clave primaria)
+
+        Ejemplo:
+
+            |         |USUARIO |          |
+            |---------|--------|----------|
+            | Id      | Entero |          |
+            | Nombre  | Texto  | UNIQUE   |
+
+            Al insertar los siguiente datos:
+            * Id=1, Nombre='usuario1' -> insertado con éxito
+            * Id=2 -> insertado con éxito con la columna nombre con valor vacío
+            * Id=3, Nombre='usuario1' -> error al insertar ya que viola la restricción UNIQUE
+
+            Los datos en la tabla quedarían de la siguiente manera:
+
+            | Id      | Nombre   | 
+            |---------|----------|
+            | 1       | usuario1 |
+            | 2       | null     |
+
+    - **CHECK**: se usa para limitar el rango de valores que puede tener el dato contenido en una columna.
+
+        - Permite el valor nulo, por lo que no dará un error al insertarlo.
+        - Pueden utilizarse los operadores de comparación (AND, OR, BETWEEN, IN, LIKE y IS NULL).
+    
+        Ejemplo:
+
+        |         |EMPLEADO|          |
+        |---------|--------|----------|
+        | Id      | Entero |          |
+        | Nombre  | Texto  |          |
+        | Salario | Decimal| CHECK >0 |
+
+        Al insertar los siguiente datos:
+        * Id=1, Nombre='Pepe', Salario=1000 -> insertado con éxito
+        * Id=2, Salario=555.22 -> insertado con éxito con la columna nombre con valor vacío
+        * Id=3, Nombre='Juan', Salario=0 -> error al insertar ya que viola la restricción CHECK
+        * Id=3, Nombre='Juan', Salario=null -> insertado con éxito con la columna salario con valor vacío
+
+        Los datos en la tabla quedarían de la siguiente manera:
+
+        | Id      | Nombre   | Salario | 
+        |---------|----------|---------|
+        | 1       | Pepe     | 1000    | 
+        | 2       | null     | 555.22  |
+        | 3       | Juan     | null    |
+        
+
+    - **DEFAULT**: provee un valor por defecto a una columna si no se especifica un valor en concreto al insertar el registro.
+    
+        - Es de gran ayuda para conservar la integridad del dominio.
+        - El valor por defecto puede ser un valor constante, una función o NULL.
+        - Suele usarse conjuntamente con NOT NULL para así evitar los valores nulos cuando NOT NULL está definido en una columna.
+
+        |         |EMPLEADO  |           |
+        |---------|----------|-----------|
+        | Id      | Entero   |           |
+        | Nombre  | Texto    |           |
+        | Salario | Decimal  | DEFAULT 0 |  
+
+        Al insertar los siguiente datos:
+        * Id=1, Nombre='Pepe', Salario=1000 -> insertado con éxito
+        * Id=2, Salario=555.22 -> insertado con éxito con la columna nombre con valor vacío
+        * Id=3, Nombre='Juan', Salario=null -> insertado con éxito con la columna salario con valor 0
+
+        Los datos en la tabla quedarían de la siguiente manera:
+
+        | Id      | Nombre   | Salario | 
+        |---------|----------|---------|
+        | 1       | Pepe     | 1000    | 
+        | 2       | null     | 555.22  |
+        | 3       | Juan     | 0       |
+
+  <!--  Eliminar restricciones
+
+    https://www.sqlshack.com/es/restricciones-en-sql-server-sql-not-null-unique-y-sql-primary-key/ 
+    
+  -->
+
+## Clave Primaria (PK) 
+
+Es una restricción que consta de una columna o varias columnas con valores que identifican de forma única cada fila de la tabla. Con esta restricción se garantiza la integridad de la entidad de la tabla, es decir, que cada fila de la tabla sea de forma única una entidad identificable.
+
+- Solo se puede definir una clave primaria por tabla. 
+
+- Es una combinación de las restricciones de NOT NULL y UNIQUE, ya que la clave primaria no puede contener valores nulos ni puede tener valores repetidos.
+
+    Ejemplo: 
+
+    |         |USUARIO |          |
+    |---------|--------|----------|
+    | Id      | Entero | PK       |
+    | Nombre  | Texto  |          |
+
+    Al insertar los siguiente datos:
+        * Id=1, Nombre='usuario1' -> insertado con éxito
+        * Nombre='usuario2' -> error al insertar ya que se viola la clave primaria (id nulo)
+        * Id=2, Nombre='usuario1' -> insertado con éxito
+        * Id=2, Nombre='usuario2' -> error al insertar ya que viola la clave primaria (id repetido)
+        * Id=3, Nombre='usuario3' -> insertado con éxito
+
+        Los datos en la tabla quedarían de la siguiente manera:
+
+        | Id      | Nombre   | 
+        |---------|----------|
+        | 1       | usuario1 |
+        | 2       | usuario1 |
+        | 3       | usuario3 |
+
+- Cuando la clave primaria está contituida por varias columnas se pueden repetir los valores en cada columna individualmente, pero nunca en todas las columnas a la vez.
+
+    Ejemplo: 
+
+        |         |USUARIO |          |
+        |---------|--------|----------|
+        | Id      | Entero | PK       |
+        | Nombre  | Texto  | PK       |
+
+        Al insertar los siguiente datos:
+            * Id=1, Nombre='usuario1' -> insertado con éxito
+            * Id=2 -> error al insertar ya que se viola la clave primaria (nombre nulo)
+            * Id=2, Nombre='usuario1' -> insertado con éxito
+            * Id=2, Nombre='usuario1' -> error al insertar ya que viola la clave primaria (todos los valores repetidos)
+            * Id=2, Nombre='usuario2' -> insertado con éxito
+
+            Los datos en la tabla quedarían de la siguiente manera:
+
+            | Id      | Nombre   | 
+            |---------|----------|
+            | 1       | usuario1 |
+            | 2       | usuario1 |
+            | 2       | usuario2 |
+
+         <!-- Este ejemplo se resolvería poniendo ID como PK y NOMBRE Unique-->          
+
+## Clave Foranea o Ajena (FK)
+
+Indica la relación entre dos tablas referenciando una o varias columnas de la tabla que contiene la clave foránea (tabla hija) a la clave primaria de la tabla a la que hace referencia (tabla padre).
+
+![](res/06/sql_fk.png)
+
+Esta restricción se utiliza para garantizar la integridad referencial, es decir, que los valores que aparecen en la tabla hijo y que pertenecen a la o las columnas de la clave ajena aparecen en la clave primaria de la tabla padre, preservando la relación durante el proceso de inserción.
+
+- Al contrario que para la clave primaria, pueden crearse **múltiples** claves ajenas. Tantas como columnas deban referencia a otras tablas padre.
+
+![](res/06/sql_fk_multiple.png)
+
+- La clave ajena permite valores **nulos** (si no se indica lo contrario con NOT NULL), pero si el valor no es nulo en la columna de la tabla hija, el valor ha de aparecer obligatoriamente en la tabla padre.
+
+    |         |USUARIO |          |
+    |---------|--------|----------|
+    | Id      | Entero | PK       |
+    | Nombre  | Texto  |          |
+
+    |           |ACCESOS |               |
+    |-----------|--------|---------------|
+    | Id        | Entero | PK            |
+    | IdUsuario | Entero | FK USUARIO.Id |
+    | Fecha     | Fecha  |               |
+
+    La tabla USUARIO tiene los siguientes datos:
+
+    | Id      | Nombre   | 
+    |---------|----------|
+    | 1       | usuario1 |
+    | 2       | usuario2 |
+
+    Al insertar los siguiente datos en la tabla ACCESOS:
+        * IdUsuario=1, Fecha='14.08.22' -> insertado con éxito
+        * IdUsuario=3 -> error al insertar ya que se viola la clave ajena (no existe Id=3 en USUARIO)
+        * Fecha='03.06.22' -> insertado con éxito pero con IdUsuario con valor vacío
+        * IdUsuario=2, Fecha='14.08.22' -> insertado con éxito
+        * IdUsuario=1, Fecha='14.08.22' -> insertado con éxito
+        * IdUsuario=2, Fecha='15.08.22' -> insertado con éxito
+
+    Los datos en la tabla ACCESOS quedarían de la siguiente manera:
+
+        | Id | IdUsuario | Fecha    | 
+        |----|-----------|----------|
+        | 1  | 1         | 14.08.22 |
+        | 2  | null      | 03.06.22 |
+        | 3  | 2         | 14.08.22 |
+        | 4  | 1         | 14.08.22 |
+        | 5  | 2         | 15.08.22 |
+
+- Las claves ajenas permiten controlas que acciones tomar sobre la tabla hija cuando se realizan cambios en la tabla padre, tales como modificación o borrado.
+
+- Las cláusulas utilizadas son:
+    - **ON UPDATE**: para indicar que acción tomar cuando se realiza una modificación.
+    - **ON DELETE**: para indicar que acción tomar cuando se realiza una eliminación.
+
+- Las posibles acciones a tomar son:
+    - **NO ACTION**: no permite realizar acciones que violen la integridad referencial. Si esto ocurre se lanzará un error y se cancelará la acción.
+    - **CASCADE**: se realizará la misma acción de la tabla padre en la tabla hija. Por ejemplo, si se borra un registro referenciado en la tabla padre, se eliminarán todos los registros de la tabla hija que le estén referenciando.
+    - **SET NULL**: si un registro referenciado de la tabla padre es modificado o eliminado, el valor de la tabla hija que lo referencia se pondrá a valor NULO.
+    - **SET DEFAULT**: si un registro referenciado de la tabla padre es modificado o eliminado, el valor de la tabla hija que lo referencia se pondrá al valor por defecto que tenga indicado.
+
+- No indicar las cláusulas *ON UPDATE* u *ON DELETE* tendrá el mismo efecto que si se indicara *NO ACTION*, es decir, no podrá realiarse ninguna acción que viole la integridad referencial.
+
+<!--
+## INDICES
+
+Los índices son una estructura de datos que contiene punteros a los contenidos de una tabla organizada en un orden específico, para ayudar a la base de datos a optimizar las consultas. Son similares al índice del libro, donde las páginas (filas de la tabla) se indexan por su número de página.
+
+Cuando existe un índice en las columnas utilizadas en la cláusula WHERE de una consulta, la cláusula JOIN o la cláusula ORDER BY, puede mejorar sustancialmente el rendimiento de la consulta, ya que son una forma de acelerar las consultas de lectura ordenando las filas de una tabla según una columna. 
+
+El efecto de un índice no es notable para bases de datos pequeñas, pero si hay un gran número de filas, puede mejorar considerablemente el rendimiento. En lugar de revisar cada fila de la tabla, el servidor puede hacer una búsqueda binaria en el índice.
+
+Los índices pueden contener una o varias columnas:
+
+~~~~~~~~~~~~~~~~sql
+    CREATE INDEX idx_indice1 ON USUARIOS (Nombre);
+    CREATE INDEX idx_indice2 ON USUARIOS (Id,Nombre);
+~~~~~~~~~~~~~~
+
+Un índice sería útil para consultas que soliciten ordenar o seleccionar por todas las columnas incluidas, si el conjunto de condiciones se ordena de la misma manera. Eso significa que al recuperar los datos, puede encontrar las filas para recuperar usando el índice, en lugar de mirar a través de la tabla completa.
+
+Por ejemplo, el siguiente caso utilizaría el segundo índice:
+
+~~~~~~~~~~~~~~~~sql
+    SELECT * FROM USUARIOS WHERE Id = 1 Order by Nombre
+~~~~~~~~~~~~~~~~
+
+Sin embargo, si el orden difiere, el índice no tiene las mismas ventajas:
+
+~~~~~~~~~~~~~~~~sql
+    SELECT * FROM USUARIOS WHERE Nombre='usuario1' Order by Id 
+~~~~~~~~~~~~~~~~
+
+El índice no es tan útil porque la base de datos debe recuperar el índice completo, en todos los valores de Id, para encontrar qué elementos tienen *Nombre='usuario1'*.
+
+Para crear un índice hay que tener en cuenta la compensación entre velocidad de escritura y tamaño de la base de datos. El almacenamiento del índice ocupa espacio. Además, cada vez que se realiza un INSERT o se actualiza la columna, el índice debe actualizarse. Esta no es una operación tan costosa como escanear la tabla completa en una consulta SELECT, pero aún es algo a tener en cuenta.
+-->
+
+<!--
+# Lenguaje de Definición de Datos (DDL: Data Definition Language)
+
+* Permite crear y modificar la estructura de una base de datos. 
+
+## CREATE
+
+- **Crear Bases de datos**
+
+~~~~~~~~~~~~ 
+    CREATE DATABASE databasename;
+~~~~~~~~~~~~~
+
+- **Crear Tabla**
+
+    ~~~~~~~~~~~~sql
+    CREATE TABLE nombre_tabla (
+        columna1 tipo_dato, 
+        columna2 tipo_dato, 
+        ...
+    );
+    ~~~~~~~~~~~~~
+
+    En cada columna se pueden poner las restricciones si las hay.
+
+    ~~~~~~~~~~~~sql
+    CREATE TABLE table_name (
+        column1 datatype constraint,
+        column2 datatype constraint,
+        column3 datatype constraint,
+        ....
+    );
+    ~~~~~~~~~~~~
+
+    - Restricción **NOT NULL**
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype NOT NULL
+        );
+        ~~~~~~~~~~
+
+    - Restricción **UNIQUE**
+
+        Sintaxis para una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype UNIQUE
+        );
+        ~~~~~~~~~~
+
+        Sintaxis para más de una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype UNIQUE(col1,col2,...)
+        );
+        ~~~~~~~~~~
+
+    - Restricción **PRIMARY KEY**
+
+        Sintaxis para una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype PRIMARY KEY
+        );
+        ~~~~~~~~~~
+
+        Sintaxis para más de una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype,
+            column2 datatype,
+            CONSTRAINT PK_name PRIMARY KEY (col1,col2, ...)
+        );
+        ~~~~~~~~~~
+
+    - Restricción **FOREIGN KEY**
+
+        Sintaxis para una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype,
+            column2 datatype FOREIGN KEY (column_child) REFERENCES table_name_parent(column_parent),
+            ...        
+        );
+        ~~~~~~~~~~
+
+        Sintaxis para más de una columna:
+        ~~~~~~~~~~sql
+        CREATE TABLE table_name (
+            column1 datatype,
+            column2 datatype,
+            ...,
+            CONSTRAINT FK_name FOREIGN KEY (column_child) REFERENCES table_name_parent(column_parent)
+        );
+        ~~~~~~~~~~
+
+    - Restricción **CHECK**
+
+        ~~~~~~~~~~~~
+        CREATE TABLE table_name (
+            column1 datatype,
+            column2 datatype,
+            ...,
+            CHECK (sentence)
+        );
+        ~~~~~~~~~~~~
+        
+    - Restricción **DEFAULT**
+
+        ~~~~~~~~~~~~
+        CREATE TABLE table_name (
+        column1 datatype,
+        column2 datatype DEFAULT value/function,
+        ...
+        );
+        ~~~~~~~~~~~~
+
+- **Crear Indice**
+
+        ~~~~~~~~~~~~
+        CREATE INDEX index_name
+        ON table_name (column1, column2, ...);
+        ~~~~~~~~~~~~
+
+## ALTER
+
+- **Renombrar una tabla**
+
+~~~~~~~~~~
+ALTER TABLE nombre_tabla
+RENAME TO new_name;
+~~~~~~~~~~~~~
+
+- **Añadir una columna**
+
+~~~~~~~~~~
+ALTER TABLE nombre_tabla
+ADD COLUMN nombre_columna datatype;
+~~~~~~~~~~~~~
+
+- **Eliminar una columna**
+
+~~~~~~~~~~
+ALTER TABLE nombre_tabla
+DROP COLUMN nombre_columna;
+~~~~~~~~~~~~~
+
+- **Modificar una columna**
+
+~~~~~~~~~
+ALTER TABLE nombre_tabla
+ALTER COLUMN nombre_columna datatype;
+~~~~~~~~~~~~~
+
+    - Restricción **NOT NULL**
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ALTER COLUMN column_name datatype NOT NULL;
+    ~~~~~~~~~~
+
+- Añadir Restricción **UNIQUE**
+    Sintaxis para una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD UNIQUE (column_name);
+    ~~~~~~~~~~
+
+    Sintaxis para más de una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD CONSTRAINT UC_name UNIQUE (col1,col2,...);
+    ~~~~~~~~~~
+
+- Eliminar Restricción **UNIQUE**
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    DROP CONSTRAINT UC_name;
+    ~~~~~~~~~~
+
+- Añadir Restricción **PRIMARY KEY**
+
+    Sintaxis para una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD PRIMARY KEY (column_name);
+    ~~~~~~~~~~
+
+    Sintaxis para más de una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD CONSTRAINT PK_name PRIMARY KEY (col1,col2,...);
+    ~~~~~~~~~~
+
+- Eliminar Restricción **PRIMARY KEY**
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    DROP CONSTRAINT PK_name;
+    ~~~~~~~~~~
+
+- Añadir Restricción **FOREIGN KEY**
+
+    Sintaxis para una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD FOREIGN KEY (column_child) REFERENCES table_parent(column_parent);
+    ~~~~~~~~~~
+
+    Sintaxis para más de una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD CONSTRAINT FK_name
+    FOREIGN KEY (column_child) REFERENCES table_parent(column_parent);
+    ~~~~~~~~~~
+
+- Eliminar Restricción **FOREIGN KEY**
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    DROP CONSTRAINT PK_name;
+    ~~~~~~~~~~
+
+- Añadir Restricción **CHECK**
+
+    Sintaxis para una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD CHECK (sentence));
+    ~~~~~~~~~~
+
+    Sintaxis para más de una columna:
+    ~~~~~~~~~~sql
+    ALTER TABLE table_name
+    ADD CONSTRAINT CHK_name
+    CHECK (sentence1 AND sentence2 AND ...);
+    ~~~~~~~~~~
+
+- Eliminar Restricción **CHECK**
+    ~~~~~~~~~~~~
+    ALTER TABLE Personas
+    DROP CONSTRAINT CHK_name;
+    ~~~~~~~~~~~~
+
+- Añadir Restricción **DEFAULT**
+    ~~~~~~~~~~~~
+    ALTER TABLE table_name
+    ADD CONSTRAINT df_name 
+    DEFAULT value FOR column_name;
+    ~~~~~~~~~~~~
+
+- Eliminar Restricción **DEFAULT**
+    ~~~~~~~~~~~~
+    ALTER TABLE table_name
+    ALTER COLUMN column_name DROP DEFAULT;
+    ~~~~~~~~~~~~
+
+- Eliminar **Indice**
+    ~~~~~~~~~~~~
+    DROP INDEX table_name.index_name;
+    ~~~~~~~~~~~~
+
+## DROP 
+
+- **Eliminar Base de Datos**
+    ~~~~~~~~~~~~
+    DROP DATABASE databasename;
+    ~~~~~~~~~~~~
+
+- **Eliminar Tabla**
+    ~~~~~~~~~~~~
+    DROP TABLE table_name;
+    ~~~~~~~~~~~~
+
+# Lenguaje de Manipulación de Datos (DML: Data Manipulation Language)
+
+* Permite realizar diferentes acciones a los datos que se encuentran en una base de datos.
+
+## SELECT
+
+- **Seleccionar columnas de una tabla**
+~~~~~~~~~~~~
+SELECT columna1, columna2, ...
+FROM nombre_tabla;
+~~~~~~~~~~~~
+
+  - SELECT *: El asterisco es el valor que se utiliza para seleccionar todos los valores, por lo que cuando después del select añadimos *.
+    ~~~~~~~~~~~~
+    SELECT *
+    FROM nombre_tabla;
+    ~~~~~~~~~~~~
+
+  - SELECT **DISTINCT**: consultar los distintos valores de una tabla.
+    ~~~~~~~~~~~~
+    SELECT DISTINCT columna1, columna2, ...
+    FROM nombre_tabla;
+    ~~~~~~~~~~~~
+
+        - SELECT **COUNT DISTINCT**: cuenta los distintos valores de una columna.
+        ~~~~~~~~~~~~
+        SELECT COUNT(DISTINCT columna)
+        FROM nombre_tabla;
+        ~~~~~~~~~~~~ 
+
+    - Cláusula **WHERE**: se usa para establecer condiciones y filtrar registros.
+    ~~~~~~~~~~~~
+    SELECT columna1, columna2, ...
+    FROM nombre_tabla
+    WHERE condicion;
+    ~~~~~~~~~~~~ 
+
+    WHERE no solo se usa en la instrucción SELECT,también se utiliza en las instrucciones UPDATE y DELETE.
+
+        - Operador **AND**: añadir condiciones.
+        ~~~~~~~~~~~~
+        SELECT columna1, columna2, ... 
+        FROM nombre_tabla 
+        WHERE condición1 AND condición2 AND condición3 ...;
+        ~~~~~~~~~~~~
+
+        - Operador **OR**: para seleccionar los registros que tengan una condición **O** alguna otra condición.
+        ~~~~~~~~~~~~
+        SELECT columna1, columna2, ... 
+        FROM nombre_tabla 
+        WHERE condición1 OR condición2 OR condición3 ...;
+        ~~~~~~~~~~~~
+
+        - Operador **NOT**: para seleccionar registros que **no** cumplan una condición.
+        ~~~~~~~~~~~~
+        SELECT columna1, columna2, ... 
+        FROM nombre_tabla 
+        WHERE NOT condición;
+        ~~~~~~~~~~~~
+
+        - Los operadores AND, OR y NOT se pueden combinar, por ejemplo:
+        ~~~~~~~~~~~~
+        SELECT * 
+        FROM Clientes
+        WHERE Pais='Italia' AND (Ciudad='Roma' OR Ciudad='Milán');
+        ~~~~~~~~~~~~
+
+    - *Ordenar selección*
+        ~~~~~~~~~~~~
+        SELECT columna1, columna2, ...
+        FROM nombre_tabla
+        ORDER BY columna1, columna2, ... ASC|DESC;
+        ~~~~~~~~~~~~~~~~
+
+    - Valores **NULL** y **NOT NULL**
+        ~~~~~~~~~~
+        SELECT nombre_columna
+        FROM nombre_tabla
+        WHERE nombre_columna IS [NOT] NULL;
+        ~~~~~~~~~~
+
+- Operador **TOP**
+Se utiliza para especificar el número de registros a devolver.
+
+~~~~~~~~~~
+SELECT TOP numero * / numero PERCENT nombre_columna(s)
+FROM nombre_tabla
+WHERE condicion;
+~~~~~~~~~~~~
+
+- Funciones de agregación **MIN** y **MAX**
+    - La función MIN () devuelve el valor más pequeño de la columna seleccionada.
+    - La función MAX () devuelve el valor más grande de la columna seleccionada.
+~~~~~~~~~~
+SELECT MIN/MAX(nombre_columna)
+FROM nombre_tabla
+WHERE condicion;
+~~~~~~~~~~~
+
+- Funciones de agregación **COUNT**, **AVERAGE** y **SUM**
+    - COUNT: devuelve el número de filas que coinciden con un criterio.
+    - AVERAGE: devuelve el valor promedio de una columna numérica.
+    - SUM: devuelve la suma total de una columna numérica.
+~~~~~~~~~~~~~~~
+SELECT COUNT/AVERAGE/SUM(nombre_columna)
+FROM nombre_tabla
+WHERE condicion;
+~~~~~~~~~~~~~
+
+- Condición **LIKE**
+
+Se utiliza en una cláusula WHERE para buscar un patrón específico en una columna. 
+- **%**: El signo de porcentaje representa cero, uno o múltiples caracteres.
+- **_**: El guión bajo representa un solo carácter.
+
+~~~~~~~~~~~
+SELECT columna1, columna2, ...
+FROM nombre_tabla
+WHERE columna LIKE 'caracteres a buscar';
+~~~~~~~~~~~~
+
+Ejemplos: LIKE 'a%' o '%a' o '%a%' o '_a%' o 'a_%_%' o 'a%o';
+
+Se puede utilizar LIKE conjuntamente con NOT: NOT LIKE 'a%';
+
+- Operador **IN**
+Permite especificar valores múltiples
+
+~~~~~~~~~~~~~
+SELECT nombre_columna(s)
+FROM nombre_tabla
+WHERE nombre_columna IN (valor1, valor2, ...);
+~~~~~~~~~~~
+
+    - Se puede utilizar IN conjuntamente con NOT: WHERE nombre_columna NOT IN (valor1, valor2, ...);
+    - Se puede utilizar una sentencia SELECT para indicar los valores: WHERE nombre_columna NOT IN (SELECT ...);
+
+- **BETWEEN**
+
+Selecciona valores dentro de un rango dado. 
+    - Los valores pueden ser números, texto o fechas. 
+    - El operador BETWEEN es inclusivo: se incluyen los valores de inicio y finalización.
+
+~~~~~~~~~~~~
+SELECT nombre_columna(s)
+FROM nombre_tabla
+WHERE nombre_columna BETWEEN valor1 AND valor2;
+~~~~~~~~
+
+Se puede utilizar BETWEEN conjuntamente con NOT: NOT BETWEEN 'a%';
+
+- Alias **AS**
+
+Se utilizan para dar a una tabla, o una columna de una tabla, un nombre temporal, se usan a menudo para hacer que los nombres de las columnas sean más representativos o intuitivos.
+
+~~~~~~~~~~~~~~~~
+SELECT nombre_columna AS nombre_alias
+FROM nombre_tabla;
+~~~~~~~~~~~~~~~~
+
+Se pueden combinar columnas para crear el alias:
+~~~~~~~~~~~
+SELECT nombre_columna + nombre_columna + ... AS nombre_alias
+FROM nombre_tabla;
+~~~~~~~~~~~~
+
+Tambien se puede asignar alias a las tablas:
+~~~~~~~~~~~
+SELECT *
+FROM nombre_tabla as nombre_alias;
+~~~~~~~~~~~~
+
+## INSERT
+
+- **Insertar valores**
+~~~~~~~~~~~~
+INSERT INTO nombre_tabla (columna1, columna2, columna3, ...)
+VALUES (valor1, valor2, valor3, ...);
+~~~~~~~~~~~~~~~~
+
+
+## UPDATE
+
+- **Modificar valores*
+~~~~~~~~~~~~~
+UPDATE nombre_tabla
+SET columna1 = valor1, columna2 = valor2, ...
+WHERE condicion;
+~~~~~~~~~~~~~~
+
+## DELETE
+
+- **Eliminar registros**
+~~~~~~~~~~~~
+DELETE FROM nombre_tabla 
+WHERE condicion;
+~~~~~~~~~~~~~~
+
+    - **Eliminar TODOS los registros**
+    ~~~~~~~~~~~~
+    DELETE FROM nombre_tabla;
+    ~~~~~~~~~~~~~~
+
+
+
+-> TRUNCATE: Empleado para eliminar todos los registros de una tabla.
+
+TRUNCATE TABLE table_name;
+
+-> COMMENT: Utilizado para agregar comentarios al diccionario de datos.
+-> RENAME: Tal como su nombre lo indica es utilizado para renombrar objetos.
+
+    Lenguaje sobre base de datos
+    -> Crear base de datos o cargar
+    Si la base de datos no existe se creará y si existe se cargará para poder trabajar con ella en adelante.
+    La ubicación de la base de datos será la misma que el del fichero Jupyter-lab en el que se está trabajando.
+
+    -> Eliminar base de datos
+    %sql DROP DATABASE 
+     * sqlite:///almacen.db
+    (sqlite3.OperationalError) near "DATABASE": syntax error
+    [SQL: DROP DATABASE sqlite:///almacen.db]
+    (Background on this error at: https://sqlalche.me/e/14/e3q8)
+    Lenguaje sobre tablas
+    -> Crear tabla
+    %%sql sqlite://
+
+    CREATE TABLE articulos (
+        id_articulo SERIAL AUTO INCREMENT,
+        codigo  varchar NOT NULL,
+        nombre varchar NOT NULL,
+        peso text NOT NULL
+    )
+    -> Visualizar estructura de una tabla
+    %sql PRAGMA TABLE_INFO(articulos)
+     * sqlite:///almacen.db
+    Done.
+    cid	name	type	notnull	dflt_value	pk
+    -> Borrar tabla
+    %%sql
+    DROP TABLE IF EXISTS articulos
+    -> Añadir columna
+    %%sql
+    ALTER TABLE articulos
+    ADD COLUMN descricion varchar
+    -> Eliminar columna
+    %%sql
+    ALTER TABLE articulos
+    DROP COLUMN descricion
+
+
+CREATE: Utilizado para crear nuevas tablas, campos e índices.
+ALTER: Utilizado para modificar las tablas agregando campos o cambiando la definición de los campos.
+DROP: Empleado para eliminar tablas e índices.
+TRUNCATE: Empleado para eliminar todos los registros de una tabla.
+COMMENT: Utilizado para agregar comentarios al diccionario de datos.
+RENAME: Tal como su nombre lo indica es utilizado para renombrar objetos.
+
+#  Lenguaje de Manipulación de Datos (DML: Data Manipulation Language)
+
+*  Permite realizar diferentes acciones a los datos que se encuentran en una base de datos.
+
+    Consulta de datos
+    -> Mostrar todos los campos
+    %%sql
+    SELECT *
+    FROM articulos
+    -> Mostrar campos concretos
+    %%sql
+    SELECT codigo, nombre
+    FROM articulos
+    -> Consulta condicional
+    %%sql
+    SELECT *
+    FROM articulos
+    WHERE descripcion=''
+    ***** MUY IMPORTANTE EL WHERE *****
+    
+    Inserción de datos
+    %%sql
+    INSERT INTO articulos (codigo,nombre,peso,descripcion) 
+    VALUES 
+    ('TAZA250', 'Taza de Spiderman 250 ml', '300', 'Taza de cerámica con serigrafía de Spiderman.'),
+    ('BOLI', 'Boligrafo de Star Wars', '15', '')
+    Modificación de datos
+    %%sql
+    UPDATE articulos
+    SET descripcion='Boligrafo serigrafiado. Color negro.'
+    WHERE codigo='BOLI'
+    Borrado de datos
+    %%sql
+    DELETE FROM articulos
+    WHERE codigo='TAZA'
+
+# Lenguaje de Control de Datos (DCL: Data Control Language)
+
+* Permite crear roles, permisos e integridad referencial, así como el control al acceso a la base de datos.
+
+    Permisos de usuario
+    -> Dar permiso
+    %sql GRANT CREATE TABLE TO usuario
+    -> Quitar permiso
+    %sql REVOKE CREATE TABLE TO usuario
+    
+
+    # Mi primera base de datos 
+
+    ## Crear base de datos
+    ## Crear tablas
+    ## Claves primaria y foránea
+    ## DDL
+    ### Insert
+    ### Select
+    ### Update
+    ### Delete
+    ### Cláusula where
+    ## DML
+
+# Lenguaje de Control Transaccional (TCL: Transactional Control Language)
+
+* Permite administrar diferentes transacciones que ocurren dentro de una base de datos.
+
+Elementos del TCL
+COMMIT: Empleado para guardar el trabajo hecho.
+ROLLBACK: Utilizado para deshacer la modificación que hice desde el último COMMIT.
+
+# Disparadores
+
+
+
+## Claves primarias y ajenas/foráneas
+
+## Insertar registros
+
+INSERT INTO NombreTabla (campo1, campo2, ...) VALUES (valor1,valor2, ...)
+
+Han de coincidir el número de campos con el número de valores.
+
+## Seleccionar registros
+
+SELECT */campos_separados_por_comas FROM NombreTabla
+[WHERE campo=valor]
+
+* = todos los campos de la tabla
+
+## Actualizar registros
+
+UPDATE NombreTabla SET campo1=valor1, campo2=valor2, ...
+[WHERE criterios_de_búsqueda]
+
+## Eliminar registros
+
+DELETE FROM NombreTabla
+[WHERE criterios_de_búsqueda]
+
+RECORDAR EL WHERE!!!!
+
+## Ejecutar SQL
+
+Todas las sentencias sql se pueden ejecutar desde esta pestaña, introduciendo la sentencia y ejecutando. 
+
+![](res/sqlt_dbb_esql.png =100x)
+
+# Cláusula WHERE
+
+Como hemos repetidos en varias ocasiones, es muy importante indicar esta cláusula cuando queremos seleccionar, modificar o eliminar solo una parte de los registros de una tabla.
+
+Si no se indica los cambios se realizarán sobre todos los registros de la tabla.
+
+Evidentemente, no es tan importante no olviadarlo en 
+
+# Operadores Relacionales
+
+- *Igualdad*
+
+    SELECT * FROM NombreTabla WHERE campo=valor
+
+- *Distinto*
+
+    SELECT * FROM NombreTabla WHERE campo<>valor
+
+- *Mayor* y *menor que*
+
+    SELECT * FROM NombreTabla WHERE campo>valor
+    SELECT * FROM NombreTabla WHERE campo<valor
+
+- *Mayor o igual* y *menor o igual que*
+
+    SELECT * FROM NombreTabla WHERE campo>=valor
+    SELECT * FROM NombreTabla WHERE campo<=valor
+
+# Operadores lógicos
+
+- **AND** 
+
+    SELECT * FROM NombreTabla WHERE campo1=valor1 **AND** campo2=valor2 AND ...
+
+    - Devolverá los registros que cumplan todas las condiciones
+
+- **OR** 
+
+    SELECT * FROM NombreTabla WHERE campo1=valor1 OR campo2=valor2 OR ...
+
+    - Devolverá los registros que cumpla alguna de las condiciones
+
+- **NOT** 
+
+    SELECT * FROM NombreTabla WHERE NOT campo1=valor1
+
+    - Devolverá los registros que no cumpla la condición que se niega
+    - Se puede negar varias condiciones a la vez????
+
+- Combinación de operadores lógicos
+
+    - Se pueden combinar los operadores AND, OR y NOT según las condiciones que se quiera indicar en la consulta.
+
+
+# Operador BETWEEN
+
+    SELECT * FROM NombreTabla WHERE campo>=valor 1 and campo<=valor2
+
+    se puede escribir como
+
+    SELECT * FROM NombreTabla WHERE campo BETWEEN campo1 AND campo2
+
+    - Se puede combinar con el operador lógico NOT
+
+# Operador IN
+
+    SELECT * FROM NombreTabla WHERE campo **IN** (valor1,valor2,...)
+
+    - Ejemplo para valor tipo texto
+        
+        SELECT * FROM NombreTabla WHERE campo **IN** ('valor1','valor2',...)
+
+    - Ejemplo para valor numérico
+
+        SELECT * FROM NombreTabla WHERE campo **IN** (valor1,valor2,...)
+
+    - Ejemplo combinado con NOT 
+
+        SELECT * FROM NombreTabla WHERE campo **NOT IN** ('valor1','valor2',...)
+
+# Operador LIKE
+
+    SELECT * FROM NombreTabla WHERE campo **LIKE** '%valor%'
+
+        % sustituye a cualquier texto
+
+        - Ejemplo al final del valor
+            
+            SELECT * FROM NombreTabla WHERE campo **LIKE** 'valor%'
+
+        - Ejemplo al inicio del valor
+
+            SELECT * FROM NombreTabla WHERE campo **LIKE** '%valor'
+
+        - Ejemplo al incio y al final
+
+            SELECT * FROM NombreTabla WHERE campo **LIKE** '%valor%'
+
+    SELECT * FROM NombreTabla WHERE campo **LIKE** '%valor%'
+
+        _ ignora las letras que existan en esa posición
+    
+            - Ejemplo al final del valor
+                
+                SELECT * FROM NombreTabla WHERE campo **LIKE** 'valor_'
+    
+            - Ejemplo al inicio del valor
+    
+                SELECT * FROM NombreTabla WHERE campo **LIKE** '_valor'
+    
+    - Se puede combinar con el operador lógico NOT
+
+        SELECT * FROM NombreTabla WHERE campo **NOT LIKE** '%valor%'
+
+# Operadores de agrupación
+
+- Cuenta
+
+    SELECT **COUNT(*)** FROM NombreTabla WHERE [criterios_de_búsqueda]
+
+    - todo tipo de datos
+- Suma
+
+    SELECT **SUM(campo)** FROM NombreTabla WHERE [criterios_de_búsqueda]
+
+    - solo numérico
+
+- Máximo
+
+    SELECT **MAX(campo)** FROM NombreTabla WHERE [criterios_de_búsqueda]
+
+    - todo tipo de datos
+- Mínimo
+
+    SELECT **MIN(campo)** FROM NombreTabla WHERE [criterios_de_búsqueda]
+
+    - todo tipo de datos
+
+- Promedio
+
+    SELECT **AVG(campo)** FROM NombreTabla WHERE [criterios_de_búsqueda]    
+
+    - solo numérico
+    
+# Triggers
+# Procedimientos almacenados
+
+# Scripts ???
+
+
+
+
+
+
+
+
+
+# Glosario
+- **Lenguaje declarativo**: describe lo que debe lograrse en lugar de cómo debe lograrse. Aplicado a SQL, es el SGBD el que decide la forma más óptima de ejecutar la sentencia.
+
+-->
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

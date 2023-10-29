@@ -1,0 +1,512 @@
+<meta charset="utf-8">
+**02EPPY - 009 - Random, Json, DateTime**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Random
+
+En muchas tareas de programación es necesario generar datos aleatorios. Pero esto no es enteramente posible, un ordenador es determinista por definición. En su lugar, se habla de datos pseudoaleatorios, generados con un algoritmo que genera datos aparentemente aleatorios, pero aún así reproducibles. Se suele empezar con una semilla, y usar un algoritmo para generar una secuencia de números pseudoaleatorios basados en dicha semilla.
+
+## Módulo `random`
+
+La herramienta más usada para generar datos aleatorios en Python es el módulo `random`, el cual usa el algoritmo [PRNG de Mersenne Twister](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/emt19937ar.html) como generador.
+
+Se tiene el método `random` dentro del módulo `random`, el cual devuelve un número aleatorio decimal en coma flotante en el rango `[0.0, 1.0)`, es decir el resultado siempre será igual o mayor a 0.0, e inferior a 1.0, pero nunca 1.0.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import random
+>>> random.random()
+0.44986943584962724
+>>> random.random()
+0.19700588923054407
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [random]: Genera número aleatorio entre `[0.0, 1.0)`]
+
+Los números generados en cada máquina serán distintos, por defecto, el generador usa como semilla la hora del sistema. Pero se puede especificar dicha semilla, con el método `seed`, y hacer que los datos generados sean reproducibles, es decir, cada llamada a `random` tras definir la semilla producirán la misma secuencia de datos aleatorios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> random.seed(2323)
+>>> random.random()
+0.6693785369261394
+>>> random.random()
+0.053516500150797675
+>>> random.seed(2323)
+>>> random.random()
+0.6693785369261394
+>>> random.random()
+0.053516500150797675
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [random_seed]: Genera número aleatorio entre `[0.0, 1.0)` tras usar una semilla]
+
+La secuencia de datos aleatorios se ha vuelto determinista tras definir la misma semilla dos veces, se devuelve la misma secuencia. Esto suele ser interesante cuando se quiere probar algunos algoritmos en entornos de desarrollo, y hacerlo siempre contra el mismo conjunto de datos.
+
+Se puede generar un número aleatorio entero entre dos números usando `randint`, esto cubre todo el rango incluyendo ambos extremos `[start, end]`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> random.randint(0,10)
+4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [randint]: Genera número aleatorio entre `[0, 10]`]
+
+Con el método `randrange` se puede excluir el límite superior del rango `[start, end)`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> random.randrange(0,10)
+7
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [randrange]: Genera número aleatorio entre `[0, 10)`]
+
+Si se necesita generar números aleatorios decimales en coma flotante dentro de un rango determinado `[start, end]`, se puede usar el método `uniform`, que sigue una [distribución continua uniforme](hhttps://en.wikipedia.org/wiki/Continuous_uniform_distribution)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> random.uniform(0,10)
+6.2177818497634
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [uniform]: Genera número aleatorio decimal entre `[0, 10)`]
+
+Para elegir un elemento aleatorio de una secuencia, como una lista o una tupla, se usa el método `choice`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> lista = ['orange', 'apple', 'grapes']
+>>> random.choice(lista)
+'apple'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [choice]: Elige un elemento de la lista de manera aleatoria]
+
+O se puede usar `choices` para seleccionar varios elementos de golpe, usando el parámetro `k` para elegir cuantos elementos, donde pueden haber elementos repetidos en la salida.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> lista = ['orange', 'apple', 'grapes']
+>>> random.choices(lista, k=3)
+['apple', 'orange', 'orange']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [choices]: Elige varios elementos de la lista de manera aleatoria]
+
+Para realizar el mismo efecto, pero sin duplicados se usa el método `sample`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> lista = ['orange', 'apple', 'grapes']
+>>> random.sample(lista, 2)
+['grapes', 'orange']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sample]: Elige varios elementos de la lista de manera aleatoria sin repeticiones]
+
+Se puede mezclar una secuencia en el sitio usando el método `shuffle`, esto modificará la secuencia mezclando el orden de los elementos. Si no se quiere modificar la lista original, hay que hacer antes una copia de la misma y mezclar la copia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> lista = ['orange', 'apple', 'grapes']
+>>> random.shuffle(lista)
+>>> print(lista)
+['grapes', 'orange', 'apple']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [shuffle]: Mezcla los elementos de una lista]
+
+Para generar una lista de números aleatorios se puede usar una `comprehension list` con cualquier método.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> [random.random() for _ in range(10)]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [random_list]: Crear una lista de elementos aleatorios]
+
+# Json
+
+JSON es un standard para el intercambio de información, y se ha convertido en el standard habitual para transportar datos entre sistemas, programas,... Otros formatos habituales para esto son `XML`, `CSV` o `YAML`.
+
+JSON viene de JavaScript Object Notation, inspirado por un subconjunto del lenguaje JavaScript a la hora de trabajar con objetos literales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+{
+    "screen_size" : [640, 480] ,
+    "title" : "Shmup",
+    "fps" : 60,
+    "background_color" : [0,0,0],
+
+    "hero" : {
+        "image_path" : "shmup.assets.images",
+        "image_filename" : "hero.png",
+        "speed" : 0.3
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json]: Contenido de fichero JSON]
+
+Es un formato fácilmente legible, soporta tipos primitivos, como cadenas o números, así como listas, diccionarios anidados, objetos,... Se parece mucho a como se diseñan los diccionarios en Python.
+
+Python viene con un paquete integrado en el lenguaje llamado `json` para codificar y decodificar datos de JSON. Al proceso de codificar un JSON se le llama serialización, es decir, transformar los datos en una serie de bytes para ser almacenados o transmitidos a través de la red. Y el termino deserialización se refiere al proceso recíproco de decodificar los datos que han sido almacenados o enviados en un standard JSON.
+
+## Serializar JSON
+
+La librería `json` expone un método `dump` para escribir datos a un fichero JSON. Los objetos simples de Python se traducen a JSON de acuerdo a la siguiente tabla.
+
+Python | JSON
+-------|------
+dict | object
+list, tupla | array
+str | string
+int, long, float | number
+True, False | true, false
+None | null
+[Table [python-json]: Traducción tipos de Python a JSON]
+
+Guardar un objeto en memoria a fichero es tan simple como crear un fichero, por ejemplo, a través del gestor de contextos `with`, y usar el método `dump` para volcar dicha información al fichero en formato JSON. Este método recibe dos parámetros, primero el objeto a serializar, y segundo el fichero donde guardar los datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+data = {
+    "screen_size" : (640, 480) ,
+    "hero" : {
+        "image_path" : "shmup.assets.images",
+        "image_filename" : "hero.png",
+        "speed" : 0.3
+    }
+}
+
+with open("data_file.json", "w") as write_file:
+    json.dump(data, write_file)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_dump]: Guardar datos a un fichero JSON]
+
+Incluso usando el método `dumps`, se puede crear ese JSON como una cadena de carácteres.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+json_string = json.dumps(data)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_dumps]: Convertir datos a un string JSON]
+
+Esos dos métodos tienen un parámetro `indent` que especifica el tamaño de identación para las estructuras anidadas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+json_string = json.dumps(data, indent=4)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_indent]: Convertir datos a un string JSON]
+
+Otro parámetro interesante es `separators`, que espera una tupla que especifica los strings que se usan como separadores en el JSON. Por defecto se usa `(", ", ": ")`, pero es habitual cambiarlo por algo más compacto como `(",", ":")`.
+
+## Deserializar JSON
+
+Existe un método `load` para convertir información en formato JSON hacia objetos Python, la traducción para la deserialización es la siguiente.
+
+JSON | Python
+-----|--------
+object | dict
+array | list
+string | str
+number (int) | int
+number (float) | float
+true, false | True, False
+null | None
+[Table [json-python]: Traducción tipos de JSON a Python]
+
+Técnicamente, esta conversión no es una inversa perfecta de la tabla de serialización, eso quiere decir, que codificar un objeto, y volver a decodificarlo, puede que no devuelva exactamente el mismo objeto. Por ejemplo, en el caso de las listas y las tuplas.
+
+Para cargar un fichero JSON que se quiere manipular en memoria, usando el gestor de contextos `with`, se llama a `load` sobre el fichero. En la mayoría de los casos el objeto raíz será un diccionario o una lista.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+with open("data_file.json", "r") as read_file:
+    data = json.load(read_file)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_load]: Cargar un fichero JSON a un objeto Python]
+
+Si se tiene un string en formato JSON que se ha obtenido por algún método, como una API,... se puede deserializar con el método `loads`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+json_string = '{
+    "screen_size" : (640, 480) ,
+    "hero" : {
+        "image_path" : "shmup.assets.images",
+        "image_filename" : "hero.png",
+        "speed" : 0.3
+    }
+}'
+
+data = json.loads(json_string)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_load]: Cargar un fichero JSON a un objeto Python]
+
+## Objetos Propios
+
+Un problema habitual es serializar/deserializar objetos de clases que se han definido por el programador, es decir, no son objetos incluidos en el lenguaje. Si se intenta usar los métodos de JSON con estos objetos Python dará un error al intentar serializarlo.
+
+### Codificar tipos propios
+
+Para traducir un objeto custom a JSON, solo hay que darle al método `dump` un función que se encargue de codificar los datos en el parámetro `default`. El módulo `json` llamará a esta función para cada objeto que no pueda serializar de manera nativa, donde se devuelven
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def encode_car(car):
+    if isinstance(car, Car):
+        return (car.nombre, car.color)
+    else:
+        type_name = car.__class__.__name__
+        raise TypeError(f"Object of type '{type_name}' is not JSON serializable")
+
+car = Car("Porsche", "red")
+json_car = json.dumps(car, default=encode_car)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_custom_encoding]: Codificar objetos propios]
+
+La otra manera habitual de hacerlo es heredar de la clase `JSONEncoder` y sobreescribir el método `default`. Y suministrando dicha clase en el parámetro `cls` del método `dump`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+class CarEncoder(json.JSONEncoder):
+    def default(self, car):
+        if isinstance(car, Car):
+            return (car.nombre, car.color)
+        else:
+            return super().default(car)
+
+car = Car("Porsche", "red")
+json_car = json.dumps(car, cls=CarEncoder)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_custom_encoding]: Codificar objetos propios]
+
+### Decodificar objetos propios
+
+Si se cogen directamente los datos codificados con un codificador propio, se leen como objetos básicos de Python, pero hay que interpretarlos como objetos. El módulo `json` espera que todos los tipos custom sean expresados como objetos en el standard JSON.
+
+Se puede crear de igual manera una función para deserializar un objeto JSON y con ello crear un objeto Python custom.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def decode_car(dct):
+    if "__car__" in dct:
+        return Car(dct["nombre"], dct["color"])
+    return dct
+
+json_string = '{
+    "__car__": true,
+    "name": "Porsche",
+    "color": "red"
+}'
+
+car = json.loads(json_string, object_hook=decode_car)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [json_custom_decoding]: Decodificar objetos propios]
+
+El método `loads` recibe un parámetro `object_hook` con la función que se usa para decodificar los objetos. La única diferencia es que la cadena JSON tiene que tener una clave `__car__` con el tipo del  objeto, que la función usará para encontrar sus objetos y crear instancias con los valores del JSON.
+
+## Pickle
+
+El módulo ´jsonpickle´ se suele usar para serializar/deserializar objetos en Python a JSON de manera sencilla. Su interfaz es muy similar a la del módulo `json`, pero soporta la serialización de objetos custom de manera directa.
+
+Este módulo está disponible en `PyPI` [aquí](https://pypi.org/project/jsonpickle/). Se puede instalar de la manera habitual con `pip` o `pipenv`.
+
+Provee un método `encode` que devuelve el objeto serializado como un string en formato JSON.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import jsonpickle
+json_string = jsonpickle.encode(car)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [jsonpickle_encode]: Codificar objeto propio con `jsonpickle`]
+
+Y para decodificar el objeto se usa el método `decode` que devuelve un objeto del tipo correcto ya formado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import jsonpickle
+car = jsonpickle.decode(json_string)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [jsonpickle_decode]: Decodificar objeto propio con `jsonpickle`]
+
+# DateTime
+
+Trabajar con fechas y horas es uno de los mayores retos en programación, manejar zonas horarias, horario de verano, diferentes maneras de escribir las fechas,...
+
+Casi todos los ordenadores cuentan el tiempo desde un instante llamado [Epoch](https://en.wikipedia.org/wiki/Unix_time), que es el 1 de Enero de 1970 a las 00:00:00 UTC. UTC es el acrónimo para
+[Coordinated Universal Time](https://en.wikipedia.org/wiki/Coordinated_Universal_Time), que es la hora en la longitud 0º, muchas veces se usa como sinónimo de GMT [Greenwich Mean Time](https://en.wikipedia.org/wiki/Greenwich_Mean_Time). UTC no tiene en cuenta el horario de verano, así que tiene de manera consistente 24 horas cada día.
+
+Se puede averiguar la fecha y hora en UTC de cualquier momento desde el 1 de enero de 1970, contando el número de segundos desde `epoch`. Casi todos los lenguajes de programación, incluyendo Python, usan el concepto de tiempo Unix. La librería standard de Python incluye un módulo `time` que se puede consultar para averiguar el número de segundos desde `epoch`, con el método `time`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import time
+>>> time.time()
+1623399582.269119
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [time_time]: Segundos desde `epoch`]
+
+En Python existen tres módulos para trabajar con fechas y horas.
+
+- `calendar`, que muestra calendarios y provee funciones usando un calendario Gregoriano
+- `datetime`, que ofrece clases para manipular fechas y horas
+- `time`, que contiene funciones solo para tiempo, donde no se necesitan fechas
+
+El módulo `datetime` tiene tres clases que conforman el interface de alto nivel que casi todos los programadores usan.
+
+- 'datetime.date', representa una fecha dentro del calendario Gregoriano y se extiende infinitamente hacia el futuro y el pasado, esto objeto almacena el año, mes y día como atributos
+- `datetime.time`, representa un tiempo, que asume que hay 86.400 segundos por día, este objeto almacena la hora, minuto, segundo, microsegundo e información sobre la zona horaria
+- `datetime.datetime`, es una combinación de `date` y `time`, y tiene todos los atributos de las dos clases
+
+## Crear instancias de `datetime`
+
+Las tres clases que representan fechas y horas en el módulo `datetime` tienen inicializadores similares, pueden ser instanciados pasando los argumentos con nombre.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from datetime import date, time, datetime
+>>> date(year=2021, month=6, day=2)
+datetime.date(2021, 6, 2)
+>>> time(hour=11, minute=36, second=55)
+datetime.time(11, 36, 55)
+>>> datetime(year=2021, month=6, day=2, hour=11, minute=36, second=55)
+datetime.datetime(2021, 6, 2, 11, 36, 55)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [date]: Crear objetos de fecha y tiempo]
+
+Este módulo también suministra muchas otras maneras más sencillas de crear instancias de estos objetos. El método `today`, crea una instancia de tipo `date` con la fecha actual en la máquina local, `now` crea una instancia de tipo `datetime` con la fecha y hora local, y `combine` combina una instancia de `date` y otra de `time` en una sola `datetime`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from datetime import date, time, datetime
+>>> today = date.today()
+>>> today
+datetime.date(2021, 6, 2)
+>>> now = datetime.now()
+>>> now
+datetime.datetime(2021, 6, 2, 10, 42, 54, 315906)
+>>> current_time = time(now.hour, now.minute, now.second)
+>>> datetime.combine(today, current_time)
+datetime.datetime(2021, 6, 2, 10, 42, 54)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [today]: Crear objetos de fecha y tiempo a partir de `today`, `now` y `combine`]
+
+## Crear instancias de `datetime` desde strings
+
+Otra manera de crear objetos de estos tipos es usar el método `fromisoformat`, que recibe un string con la fecha en formato [8601](https://en.wikipedia.org/wiki/ISO_8601). Este standard define que las fechas deberían describirse de izquierda a derecha ordenando por los datos más significativos. Es decir, primero los años, meses, días, horas, minutos, segundos...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+YYYY-MM-DD HH:MM:SS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iso8601]: Formato de fecha en formato ISO-8601]
+
+Pasando como parámetro una cadena en este formato, este método creará un objeto `date` que la representará.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from datetime import date
+>>> date.fromisoformat("2021-06-02")
+datetime.date(2021, 6, 2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fromisoformat]: Crear objetos de fecha y tiempo a partir de string en ISO-8601]
+
+Pero no es habitual encontrarse las fechas en strings en este formato, si no que en diferentes zonas del mundo estas fechas se suelen expresar en diferentes formatos. Para manejar esta situación el módulo tiene un método `strptime`, este recibe el string con la fecha a convertir, y otro string que representa el formato de dicha fecha.
+
+Para construir el formato se incluyen los separadores entre elementos de la fecha, suelen ser `-`, `:`, `/`, y además los códigos que representan las partes de las fechas.
+
+Componente | Código | Valor
+-----------|--------|-------
+Año (4 dígitos) | %Y | 2021
+Mes (2 dígitos, con ceros por la izquierda) | %m | 06
+Día (2 dígitos, con ceros por la izquierda) | %d | 02
+Hora (2 dígitos, con ceros por la izquierda en formato 24 horas) | %H | 10
+Minuto (2 dígitos, con ceros por la izquierda) | %M | 42
+Segundo (2 dígitos, con ceros por la izquierda) | %S | 54
+[Table [format_string]: Componentes del formato de fecha]
+
+La lista completa de todas las opciones se puede encontrar en la [documentación](https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> date_string = "02/06/2021 10:42:54"
+>>> format_string = "%d/%m/%Y %H:%M:%S"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [formato_spain]: Formato de fecha habitual en España `dd/mm/yyyy hh:mm:ss`]
+
+Una vez definido el formato se puede usar dicho formato para crear una fecha con el método `strptime`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from datetime import datetime
+>>> date_string = "02/06/2021 10:42:54"
+>>> format_string = "%d/%m/%Y %H:%M:%S"
+>>> datetime.strptime(date_string, format_string)
+datetime.datetime(2021, 6, 2, 10, 42, 54)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [strptime]: Crear `datetime` desde un string con formato]
+
+## Zonas horarias
+
+El módulo `datetime` provee `tzinfo`, que es una clase abstracta que permite a los tres tipos, incluir información acerca de la zona horaria, incluyendo el horario de verano. Sin embargo, este módulo no ofrece una manera directa de interactuar con la base de datos de zonas horarias de [IANA](https://www.iana.org/time-zones), que es el organismo encargado de mantener datos actualizados para todas las zonas horarias del mundo. Para trabajar con esto se suele recomendar usar el paquete `dateutil`, que se puede instalar desde PyPI con el método habitual `pip` o `pipenv`, desde [aquí](https://pypi.org/project/python-dateutil/).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> pip install python-dateutil
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [install_dateutil]: Instalar `dateutil`]
+
+A la hora de crear una fecha, por ejemplo, con `now`, se le puede pasar como parámetro `tz`, para determinar la zona horaria, que usando `tz.tzlocal` del módulo `dateutil` representa la zona horaria del sistema local que se está ejecutando. De esta manera se tiene toda la información acerca de dicha zona horaria y horario de verano.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from dateutil import tz
+>>> from datetime import datetime
+>>> now = datetime.now(tz=tz.tzlocal())
+>>> now
+datetime.datetime(2021, 6, 2, 11, 48, 57, 878160, tzinfo=tzlocal())
+>>> now.tzname()
+'Romance Daylight Time'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [tz]: Crear `datetime` con zona horaria local]
+
+En el ejemplo se obtiene la fecha actual, y se especifica el timezone para usar el local, luego se puede consultar el nombre de dicha zona horaria.
+
+También se pueden crear zonas que no correspondan a la zona horaria del sistema donde se está ejecutando el script. Para ello, se usa el método `tz.gettz` del módulo `dateutil` y se le pasa como parámetro el nombre oficial en [IANA](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) para dicha zona. De esta manera, dicha fecha estará expresada en la zona horaria que corresponda.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from dateutil import tz
+>>> from datetime import datetime
+>>> now = datetime.now(tz=tz.gettz("Japan"))
+>>> now
+datetime.datetime(2021, 6, 2, 11, 48, 57, 878160,  tzinfo=tzfile('Japan'))
+>>> now.tzname()
+'JST'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [tz_japan]: Crear `datetime` con zona horaria de Japón]
+
+Python distingue entre dos tipos de datos para fechas, los que tienen información sobre su zona horaria, y los que no. A los primeros los llama `aware`, y a los segundos `naive`. Cuando se comparan dos datos `aware`, es decir, que los dos tienen zona horaria, siempre devolverá el intervalo correcto entre ellas al hacer operaciones aritméticas, puesto que está claramente definido toda su información. Pero las `naive` pueden resultar ambiguas, y los cálculos puede que no sean precisos. Si se necesita trabajar con fechas que potencialmente pueden tener diferentes zonas horarias, es importante tenerlo en cuenta, e intentar que todas ellas sean `aware`.
+
+## Aritmética con fechas
+
+Las instancias de `datetime` soportan muchos tipos distintos de operaciones aritméticas. Se apoyan en la clase `timedelta` del módulo `datetime`, que representa un intervalo de tiempo entre dos momentos. Para calcular la fecha que representa el día de mañana, por ejemplo, se puede crear un objeto `timedelta`, pasando como parámetro `days` un `+1`, que representa un día más, si se suma este objeto a la fecha obtenida con `now`, que es la fecha actual, se obtiene la fecha de mañana.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from datetime import datetime, timedelta
+>>> now = datetime.now()
+>>> now
+datetime.datetime(2021, 6, 2, 12, 27, 21, 10051)
+>>> tomorrow = timedelta(days=+1)
+>>> now + tomorrow
+datetime.datetime(2021, 6, 3, 12, 27, 21, 10051)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [tomorrow]: Uso de ´timedelta´ para calcular mañana]
+
+También se pueden pasar valores negativos a `timedelta`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> yesterday = timedelta(days=-1)
+>>> now + yesterday
+datetime.datetime(2021, 5, 3, 12, 27, 21, 10051)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [yesterday]: Uso de ´timedelta´ para calcular ayer]
+
+Este método soporta mezclar sumas y restas, valores positivos o negativos, incluso mezclarlos para distintos argumentos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> delta = timedelta(days=+3, hours=-5)
+>>> now + delta
+datetime.datetime(2021, 9, 3, 7, 27, 21, 10051)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [delta]: Uso de ´timedelta´ para calcular otra fecha]
+
+El método `timedelta` tiene una limitación, solo llega hasta `weeks`, semanas, si se quieren expresar intervalos como meses o años, hay que usar `relativedelta` del módulo `dateutil`. La sintaxis es la misma, pero admite más parámetros.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from dateutil.relativedelta import relativedelta
+>>> delta = relativedelta(years=+5, months=+1, days=+3, hours=-4, minutes=-30)
+>>> now + delta
+datetime.datetime(2026, 7, 14, 7, 57, 21, 10051)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [relativedelta]: Uso de ´relativedelta´ para calcular otra fecha]
+
+También se puede usar `relativedelta` para calcular la diferencia entre dos objetos de fecha.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> now
+datetime.datetime(2021, 6, 11, 12, 27, 21, 10051)
+>>> tomorrow_delta = timedelta(days=+1)
+>>> tomorrow = now + tomorrow_delta
+>>> relativedelta(now, tomorrow)
+relativedelta(days=-1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [relativedelta_substract]: Calcular el intervalo entre dos fechas]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

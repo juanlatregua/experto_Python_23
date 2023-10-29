@@ -1,0 +1,931 @@
+<meta charset="utf-8">
+**02EPPY - 008 - Sys, Files & Shell Commands**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Sys
+
+El modulo `sys` en Python contiene muchas funciones y variables que se usan para manipular diferentes partes del entorno de ejecución de Python . Permite operar sobre el intérprete puesto que da acceso a los datos con los que interactúa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import sys
+>>> sys.version
+'3.9.5 (tags/v3.9.5:0a7dcbd, May  3 2021, 17:27:52) [MSC v.1928 64 bit (AMD64)]'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_version]: Versión de Python]
+
+La variable `version` del módulo `sys` devuelve un string que contiene la versión del intérprete de Python y algunos datos adicionales.
+
+## Input y output
+
+Este módulo provee variables para controlar mejor la entrada y salida de los scripts. Incluso se puede redirigir la entrada y salida a otros dispositivos, usando tres variables `stdin`, `stdout` y `stderr`.
+
+### `stdin`
+
+`stdin` puede ser usada para obtener información directamente de la línea de comandos. Se usa para la entrada standard, internamente llama al método `input()`, y automáticamente añade `\n` después de cada sentencia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+for line in sys.stdin:
+    if 'q' == line.rstrip():
+        break
+    print(f'Input = {line}')
+
+print("Exit")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_stdin]: Entrada standard]
+
+### `stdout`
+
+Este es un objeto integrado en el lenguaje que es análogo a la salida standard de Python. Se usa para mostrar información directamente a la pantalla de la consola. Esta salida puede ser de cualquier forma, puede ser una salida de una sentencia `print`, una expresión,... Por defecto, la transmisión de datos está en modo texto. De hecho, cada vez que la función `print` se llama desde el código, primero se escribe a `stdout` y entonces acaba en la pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+sys.stdout.write("Salida Standard")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_stdin]: Salida standard]
+
+### `stderr`
+
+Siempre que se produce una excepción en Python, ésta se escribe sobre `stderr`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+sys.stderr.write("Error!!!")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_stdin]: Salida standard de errores]
+
+## Argumentos de línea de comandos
+
+Los argumentos de línea de comandos, son aquellos que recibe un programa cuando es invocado a través de la sentencia de llamada. Para esto, el módulo `sys` provee una variable llamada `argv`. Es una lista de los argumentos con los que se ha llamado al programa. Se puede consultar `len`, para obtener el número total de argumentos que se han usado. Y el primer elemento de la lista, es decir, `sys.argv[0]` es siempre el nombre del script de Python actualmente en ejecución.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+n_args = len(sys.argv)
+print(f"Number of arguments passed = {n_args}")
+
+print(f"Name of Python script '{sys.argv[0]}'")
+
+print("List of arguments passed")
+
+for i in range(1, n_args):
+    print(f"\tArg {i} = {sys.argv[i]}")
+
+sum = 0
+for i in range(1, n_args):
+    sum += int(sys.argv[i])
+
+print(f"Result = {sum}")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_argv]: Script para sumar los argumentos recibidos]
+
+Este programa de ejemplo está preparado para recibir cualquier número de enteros como argumentos de línea de comando cuando sea invocado, y hará la suma de todos ellos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python suma_args.py 5 2 8 12
+Number of arguments passed = 5
+Name of Python script 'suma_args.py'
+List of arguments passed
+        Arg 1 = 5
+        Arg 2 = 2
+        Arg 3 = 8
+        Arg 4 = 12
+Result = 27
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_argv_test]: Ejecución del script recibiendo parámetros desde la consola de línea de comandos]
+
+## Exit
+
+El método `exit` se puede usar para cerrar y salir del programa. Puede recibir un parámetro opcional para devolver dicho valor a quien hubiera llamado al script, habitualmente la consola. Si ese valor a devolver es un entero, se suele considerar que un cero es una finalización exitosa, cualquier otro valor suele suponer un error y se devuelve en ese valor el código de error. Pero incluso, se pueden devolver strings como resultado de un script.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+def do_something:
+    if is_ok:
+        return 0
+    else:
+        return -1
+
+sys.exit(do_something())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_exit]: Cerrar la ejecución del programa con un resultado de éxito o error]
+
+## Módulos
+
+El módulo `sys` contiene también información relevante para el trabajo con módulos. La ariable `path` devuelve la lista de directorios donde el intérprete buscará los módulos solicitados. Cuando un módulo se importa dentro de un fichero Python, el intérprete primero busca ese módulo dentro de los integrados por el lenguaje, si no lo encuentra, entonces busca en la lista de directorios definidos en `path`.
+
+Esta variable es una lista y puede ser manipulado desde código.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import sys
+>>> sys.path
+['', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\DLLs', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\lib', ...]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_path]: Directorios de búsqueda de módulos]
+
+Se puede manipular dicha variable en tiempo de ejecución para hacer disponible un módulo a la aplicación no instalado pero cuyo código estuviera dentro de la misma aplicación. O incluso, trabajar con la propia aplicación como si fuera un paquete sin haberlo definido como tal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os, sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "internal")))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_path_append]: Añadir el path actual del fichero a la búsqueda de módulos]
+
+En la variable `modules` se almacenan los módulos que ya se han importado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import sys
+>>> sys.modules
+{'sys': <module 'sys' (built-in)>, 'builtins': <module 'builtins' (built-in)>, '_frozen_importlib': <module 'importlib._bootstrap' (frozen)>, '_imp': <module '_imp' (built-in)>, '_thread': <module '_thread' (built-in)>,...}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_modules]: Módulos cargados]
+
+## Conteo de referencias
+
+En Python la gestión de memoria se gestiona de manera automática por el propio intérprete, el programador no tiene que preocuparse del tiempo de vida de los objetos, cuando se destruyen,... Para eso se usa el sistema de conteo de referencias. Python internamente dentro del propio objeto se guarda un número indicando cuantas referencias se tienen a dicho objeto en ese momento determinado. Cada vez que en el código se hace referencia a un objeto, ese contador se incrementa en una unidad, y cada vez que se pierde una referencia, ese contador se decrementa. Cuando ese contador llega a 0, entonces el programa pierde todas sus referencias al objeto y se considera que puede liberarse de memoria de manera segura, puesto que nadie depende de él en ese punto.
+
+
+El módulo `sys` tiene un método `getrefcount`, que recibe como parámetro un objeto y devuelve el número de referencias que tiene ese objeto en ese momento. Cuando dicho valor llega a 0, la memoria para ese objeto se libera y el objeto se pierde.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> a = "String"
+>>> b = a
+>>> sys.getrefcount(a)
+3
+>>> b = None
+>>> sys.getrefcount(a)
+2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_getrefcount]: Conteo de referencias]
+
+Esta función siempre devuelve un valor una unidad más alta de lo que debería, porque la referencia se copia por valor al llamar a la función `getrefcount` con un valor temporal, que se incrementa al número de referencias.
+
+## Otros
+
+Función | Descripción
+--------|-------------
+sys.setrecursionlimit() | Determina la profundidad máxima de la pila del intérprete de Python
+sys.getrecursionlimit() | Obtiene la profundidad máxima de la pila del intérprete de Python
+sys.settrace() | Se usa para implementar herramientas de depuración, registra la pila de llamadas en un momento determinado
+sys.setswitchinterval() | Determina el intérvalo de tiempo que usa el intérprete para cambiar los hilos
+sys.maxsize | Obtiene el mayor valor que una variable de un tipo `size` puede almacenar
+sys.getdefaultencoding() | Devuelve la codificación actual por defecto para trabajar con strings en Unicode
+[Table [sys_functions]: Otras funciones del módulo `sys`]
+
+# Paths & Files
+
+El módulo `os` provee de funciones útiles para trabajar con directorios y ficheros.
+
+## Listado de directorios
+
+En las versiones modernas de Python se usar el método `scandir` del módulo `os` para obtener los contenidos de un directorio en el sistema de archivos. Este método devuelve un iterador y recibe como parámetro el directorio sobre el cual obtener su contenido. El iterador que devuelve puede recorrerse en un bucle para acceder a su contenido e imprimir el nombre de los ficheros.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+with os.scandir('src') as entries:
+    for entry in entries:
+        print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [scandir]: Contenido de directorio]
+
+Se usa conjuntamente con `with` porque soporta el protocolo de gestión de contextos, de esta manera, el gestor de contextos `with` cierra el iterador y libera todos los recursos automáticamente cuando el iterador se ha agotado.
+
+Otra manera de conseguir el contenido de un directorio es usar el módulo `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+entries = Path('src')
+for entry in entries.iterdir():
+    print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib]: Contenido de directorio usando `pathlib`]
+
+El objeto que devuelve `Path` son objetos de Windows o Posix, y tienen un método `iterdir` que devuelve un iterador con todos los ficheros y carpetas en un directorio. Cada una de esas entradas tiene información acerca del fichero o carpeta, como su nombre o atributos del fichero.
+
+El módulo `pathlib` ofrece un conjunto de clases para trabajar con la mayoría de las operaciones habituales con directorios de una manera muy simple y orientada a objetos. Usar esta librería es tan eficiente como usar el módulo `os`.
+
+## Listado de ficheros/subdirectorios en un directorio
+
+Una vez conseguidos los contenidos de un directorio, si se quiere obtener solo la lista de ficheros que contiene, hay que filtrar los resultados. Para cada objeto que tiene el iterador que devuelve la función se puede consultar su método `is_file`, que devolverá `True` si el elemento es un fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+with os.scandir('src') as entries:
+    for entry in entries:
+        if entry.is_file():
+            print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [scandir_is_file]: Contenido de directorio, solo los ficheros]
+
+En `pathlib` los elementos de un directorio tienen un método similar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+entries = Path('src')
+for entry in entries.iterdir():
+    if entry.is_file():
+        print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_is_file]: Contenido de directorio, solo los ficheros usando `pathlib`]
+
+Esto se puede hacer de una manera más Pythonic usando expresiones generadoras.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+base_path = Path('src')
+files_in_base_path = (entry for entry in base_path.iterdir() if entry.is_file())
+for entry in files_in_base_path:
+    print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_is_file_gen]: Contenido de directorio, solo los ficheros usando `pathlib` y generadores]
+
+De igual manera, para comprobar si una entrada de la lista es un subdirectorio se puede consultar el atributo `is_dir`, tanto del iterable de `scandir` como de `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+with os.scandir('src') as entries:
+    for entry in entries:
+        if entry.is_dir():
+            print(entry.name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [scandir_is_dir]: Contenido de directorio, solo los subdirectorios]
+
+## Atributos de fichero
+
+El método `scandir` devuelve un iterador como se ha visto, y cada elemento de dicho iterador tiene un método `stat` que obtiene información acerca del fichero o directorio al que apunta, tal como el tamaño del fichero, la fecha de última modificación,... Usando la librería `pathlib` el mecanismo es idéntico, acceder al método `stat` de cada elemento de la lista.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+with os.scandir('src') as entries:
+    for entry in entries:
+            print(entry.stat().st_size)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [scandir_size]: Contenido de directorio, solo el tamaño]
+
+Se pueden consultar en la documentación todos los posibles atributos que se pueden obtener de un fichero/subdirectorio, [stat](https://docs.python.org/3/library/stat.html)
+
+Si se consulta la fecha de modificación del fichero, a través del atributo `st_mtime`, se obtiene como un valor decimal en coma flotante, que representa los segundos desde [`epoch`](https://en.wikipedia.org/wiki/Epoch#Computing). Para convertir esa información a un dato que se pueda mostrar de manera que se pueda entender fácilmente hay que usar el módulo `datetime` de Python. A través de una función auxiliar que hace uso del método `strftime` para convertir la fecha a un formato legible.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from datetime import datetime
+from os import scandir
+
+def convert_date(timestamp):
+    d = datetime.utcfromtimestamp(timestamp)
+    return d.strftime('%d %b %Y')
+
+dir_entries = scandir('src/modules')
+for entry in dir_entries:
+    if entry.is_file():
+        print(f'{entry.name}\t Last Modified: {convert_date(entry.stat().st_mtime)}')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [scandir_size]: Contenido de directorio, solo el tamaño]
+
+## Crear directorios
+
+Tarde o temprano, los programas tendrán que crear directorios para almacenar datos en ellos.
+
+### Crear un solo directorio
+
+Para crear un directorio se puede usar el método `mkdir` del módulo `os`, pasando como parámetro el nombre del directorio a crear.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.mkdir('my_dir')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [os_mkdir]: Crear un directorio]
+
+De manera similar, se puede hacer en `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+base_path = Path('my_dir')
+base_path.mkdir()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_mkdir]: Crear un directorio, con `pathlib`]
+
+Si el directorio ya existe, esta llamada levantará una excepción. Para evitar esto, se puede hacer uso de la construcción `try..catch`, o bien pasar un valor `True` como parámetro `exist_ok` al método `mkdir`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+base_path = Path('my_dir')
+try:
+    base_path.mkdir()
+except FileExistError as e:
+    print(e)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_mkdir_try]: Crear un directorio, con `pathlib` protegiendo con `try..catch`]
+
+### Creando varios directorios
+
+El método `makedirs`, funciona de manera similar a `mkdir`, pero es capaz de crear árboles de directorios, es decir, puede crear todos los directorios intermedios para asegurar que existe un path completo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.makedirs('my_dir/my_dir_1/my_dir_2')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [os_makedirs]: Crear varios directorios]
+
+Esta función creará los directorios con los permisos por defecto, si se necesita crear directorios con permisos diferentes, se le puede pasar como parámetro `mode` el modo que se necesita.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.makedirs('my_dir/my_dir_1/my_dir_2', mode=0o770)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [os_makedirs_mode]: Crear varios directorios con permisos]
+
+Este último ejemplo, creará la estructura de directorios que se pide, y dará al propietario y al grupo permisos de lectura, escritura y ejecución. El modo por defecto es `0o777`, para más detalles acerca de los permisos se puede consultar la [documetanción](https://docs.python.org/3/library/os.html#os.makedirs).
+
+Para realizar la misma operación con `pathlib` se puede usar el método `mkdir` visto anteriormente, pero usando el parámetro `parents` dándole un valor `True`, para que cree todos los directorios padre necesarios para hacer el path valido.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+base_path = Path('my_dir/my_dir_1/my_dir_2')
+base_path.mkdir(parents=True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_mkdir_parents]: Crear varios directorio, con `pathlib`]
+
+## Buscar ficheros
+
+Una vez se obtiene una lista de ficheros de un directorio es habitual necesitar buscar los ficheros que cumplen algún patrón.
+
+### Usando métodos de string
+
+Python tiene varios métodos para modificar y manipular strings, dos de ellos, `startswith` y `endswith` pueden ser útiles al buscar patrones en los nombres de los ficheros. Por ejemplo, encontrar los ficheros con una determinada extensión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+for f_name in os.listdir('my_dir'):
+    if f_name.endswith('.py'):
+        print(f_name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [endswith]: Encontrar ficheros con extensión `.py`]
+
+### `fnmatch`
+
+El método `fnmatch` del módulo `fnmatch` soporta el uso de `wildcards` para encontrar nombres de fichero. Concretamente `*` y `?`, el primero sustituye a varios carácteres, mientras que el segundo solo a uno. Se puede usar para buscar todos los ficheros con una extensión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+import fnmatch
+
+for f_name in os.listdir('my_dir'):
+    if fnmatch.fnmatch(file_name, '*.py'):
+        print(f_name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fnmatch]: Encontrar ficheros con extensión `.py` con `fnmatch`]
+
+### `glob`
+
+El módulo `glob` tiene una función `glob` que busca todos los ficheros con una extensión determinada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import glob
+
+glob.glob('*.py')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [glob]: Encontrar ficheros con extensión `.py` en el directorio actual con `glob`]
+
+Soporta patrones de strings como el shell de bash, de manera similar a como lo hacen las expresiones regulares. El ejemplo siguiente busca ficheros con extensión `.py` que contengan dígitos en el nombre.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import glob
+
+for name in glob.glob('*[0-9]*.py'):
+    print(name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [glob_pattern]: Ficheros con dígitos en el nombre con extensión `py`]
+
+Para hacer dichas búsquedas recursivas se puede hacer uso de la función `iglob`, que devuelve un iterador en lugar de una lista como hace `glob`, y además pasando un `True` al parámetro `recursive`, de esta manera buscará los ficheros en el directorio actual y en todos sus subdirectorios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import glob
+
+for name in glob.iglob('**/*.py', recursive=True):
+    print(name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iglob]: Ficheros recursivamente con extensión `py`]
+
+El modulo `pathlib` contiene métodos similares, en concreto el método `glob`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+p = Path('.')
+for name in p.glob('*.py'):
+    print(name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pathlib_glob]: Ficheros con extensión `py` en el directorio actual]
+
+## Recorrer directorios y procesar ficheros
+
+Una tarea habitual es recorrer un directorio y procesar los ficheros que se encuentran en él. Para eso se puede usar el método `walk` del módulo `os`. Devuelve los ficheros en un árbol de directorios recorriendo dicho árbol de arriba-abajo o de abajo-arriba.
+
+Por defecto recorre el árbol de directorios de arriba a abajo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for dirpath, dirnames, files in os.walk('.'):
+    print(f'Found directory: {dirpath}')
+    for file_name in files:
+        print(file_name)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [walk]: Recorrer el directorio actual]
+
+El método `walk` devuelve, tres valores para cada iteración del bucle, `dirpath` el nombre del directorio actual, `dirnames` una lista de directorios en el directorio actual, `files` una lista de ficheros en el directorio actual.
+
+Para recorrer el árbol de directorios de abajo a arriba, se le pasa `False` al parámetro `topdown`.
+
+## Crear ficheros y directorios temporales
+
+Python tiene un módulo `tempfile` para crear ficheros y directorios temporales, es decir, que solo existan mientras el programa esté en ejecución. Este módulo maneja el borrado de dichos recursos automáticamente cuando el programa ha acabado con ellos.
+
+Se crea un objeto de la clase `TemporaryFile`, pasando el modo de apertura habitual para los ficheros de Python, esto creará un fichero temporal sobre el cual se pueden almacenar datos temporales. Del cual se puede escribir o leer de la manera habitual, una vez el fichero se cierra se elimina del sistema de ficheros. Estos ficheros se crean en un directorio especial del sistema operativo, típicamente en directorios como `c:\temp` en Windows. También se puede usar como un gestor de contexto, y por tanto con la instrucción `with` para hacer el cierre y eliminación automática.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from tempfile import TemporaryFile
+
+with TemporaryFile('w+t') as fp:
+    fp.write('Hello!!')
+    fp.seek(0)
+    fp.read()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [tempfile]: Uso de un fichero temporal]
+
+También se pueden usar directorios temporales, los cuales se destruirán al cerrarse con el gestor de contextos y `with`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from tempfile import TemporaryDirectory
+
+with TemporaryDirectory() as tmpdir:
+    ....
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [tempdir]: Uso de un directorio temporal]
+
+
+## Borrar ficheros y directorios
+
+### Borrar ficheros
+
+Para borrar un único fichero se puede usar el método `remove` o `unlink` del módulo `os`, son semánticamente idénticos. Simplemente hay que pasar el nombre del fichero a eliminar del sistema de ficheros. Si la ruta apunta a un directorio en lugar de un fichero se lanzará un error, para evitarlo habría que verificar antes que es un fichero con `isfile` o hacer uso de `try...catch`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.remove('my_file.py')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [remove]: Borrar un fichero]
+
+También se puede usar de manera similar el método `unlink` del módulo `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pathlib import Path
+
+data_file = Path('my_file.py')
+data_file.unlink()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [unlink]: Borrar un fichero con ``pathlib`]
+
+El programa que se ejecuta tiene los mismos permisos del usuario que lo ha lanzado, y por tanto, si el usuario no tiene permisos para borrar los ficheros, entonces se lanzará un error.
+
+### Borrar directorios
+
+Para borrar un solo directorio se puede usar el método `rmdir` del módulo `os`, o el método `rmdir` del módulo `pathlib`, funcionan de igual manera, y solo borran el directorio si éste está vacío, en caso contrario lanzan un error, para evitar esto se puede usar una construcción `try...catch`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.rmdir('my_dir')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rmdir]: Borrar un directorio]
+
+### Borrar árboles de directorios
+
+Para borrar directorios que no estén vacíos y árboles de directorios completos se usa el método `rmtree` del módulo `shutil`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import shutil
+
+shutil.rmtree('my_dir')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rmtree]: Borrar un árbol de directorios]
+
+## Copiar, mover y renombrar ficheros y directorios
+
+Python tiene el módulo `shutil`, que es un acrónimo de `shell utils`, que provee varias operaciones de alto nivel para trabajar con ficheros y directorios.
+
+### Copiar ficheros
+
+Para copiar ficheros de un sitio a otro se suele usar el método `copy` del módulo `shutil`. Esta función solo copia los contenidos del fichero y sus permisos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import shutil
+
+src = 'path/to/file.txt'
+dst = 'path/to/dest_dir'
+shutil.copy(src, dst)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [copy]: Copiar un fichero de origen a destino]
+
+Si se necesita preservar los metadatos del fichero (fecha de creación, modificación,...) se puede usar el método `copy2`.
+
+### Copiar directorios
+
+Mientras que el método `copy` copia un solo fichero, `copytree` copia un directorio entero y todo lo que contiene. Recibe dos parámetros, el directorio origen y el directorio destino, donde todos los ficheros y subdirectorios serán copiados. El directorio destino no debe existir, y este se creará así como todos los pares que necesite. Es una buena manera de hacer una copia de seguridad de ficheros importantes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import shutil
+
+shutil.copytree('data_folder', 'backup_folder')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [copytree]: Copiar un directorio de origen a destino]
+
+### Mover ficheros y directorios
+
+Para esto se usa el método `move` del módulo `shutils`, pasando el nombre original y el destino como parámetros.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import shutil
+
+shutil.move('data_folder', 'backup_folder')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [move]: Mover un directorio de origen a destino]
+
+### Renombrar ficheros y directorios
+
+El método `rename` del módulo `os` se puede usar para renombrar ficheros o directorios, recibiendo el nombre original y el destino. También se puede usar el método `rename` del módulo `pathlib` de manera similar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.rename('data_folder', 'backup_folder')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rename]: Renombrar un directorio de origen a destino]
+
+## Directorio de trabajo
+
+Cuando se ejecuta en script de Python este se lanza sobre un directorio de trabajo, y todas las operaciones que ejecute con rutas relativas se harán a partir de dicho directorio de trabajo. Normalmente ese directorio corresponde con el directorio desde donde ha sido invocado el script. Se puede usar el método `getcwd` del módulo `os` para obtener dicho directorio de trabajo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+print(os.getcwd())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [getcwd]: Obtener el directorio de trabajo actual]
+
+Y se puede cambiar para que a partir de ese momento todas las operaciones del programa se ejecuten sobre un directorio distinto, para eso se usa el método `chdir`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.chdir('subdir/mydir')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [chdir]: Cambiar el directorio de trabajo actual]
+
+## Verificar existencia
+
+En ocasiones se puede necesitar verificar si un fichero existe antes de realizar alguna operación sobre él. Para ello se puede llamar al método `path.isfile` del módulo `os`, o el método `is_file` del módulo `pathlib`, que devolverán `True` si el destino existe fisicamente en el sistema de ficheros, y además es un fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+if os.path.isfile('my_file.py'):
+    load_file('my_file.py')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isfile]: Verificar si un fichero existe]
+
+Igualmente se puede verificar si existe un directorio con `path.isdir` de `os`, o `is_dir` de `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+if os.path.isdir('my_dir'):
+    os.rmdir('my_dir')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isdir]: Verificar si un directorio existe]
+
+También se puede verificar si una ruta existe, independientemente de si es un fichero o un directorio, con el método `path.exists` del módulo `os` o de `pathlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+if os.path.exists('my_dir'):
+    print('Exists!!!')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [exists]: Verificar si una ruta existe]
+
+## Crear rutas independientes de plataforma
+
+Siempre que se tiene que trabajar con rutas en Python, se tienen que componer de varios subdirectorios, ficheros,... suelen ser rutas relativas al directorio de trabajo actual. Para componer dichas rutas se usan separadores entre los subdirectorios y los ficheros, pero estos separadores varían entre plataformas. Para Windows dicho separador es el carácter ´\´, pero para sistemas Posix es el carácter `/`. Eso puede suponer un problema a la hora de escribir los programas de una manera que funcionen en todas las plataformas. Para evitar este problema se suelen concatenar dichas rutas usando el método `path.join` del módulo `os`, que se encarga de esos detalles de plataforma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+print(os.path.join("my_dir", "my_file.py"))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_join]: Crea una ruta a partir de los elementos]
+
+Es habitual incluso crear dichas rutas como listas, donde cada elemento es una parte del path, y luego se pueden pasar dichas rutas a `path.join` para que las concatene correctamante. En ese caso, hay que usar el operador `splat` sobre la lista, que la desempaqueta antes de pasarsela a `join`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+filename = ["my_dir", "sub_dir", "my_file.py"]
+print(os.path.join(*filename)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_join]: Crea una ruta a partir de los elementos]
+
+## Otros métodos de `os.path`
+
+### os.path.split
+
+Este método devuelve una tupla cuyos elementos son las partes separadas de una ruta completa, el primer elemento de la tupla es la ruta, y el segundo elemento el nombre del fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/my_file.py"
+>>> print(os.path.split(filepath)
+('my_dir/sub_dir', 'my_file.py')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_split]: Separar ruta del nombre del fichero]
+
+### os.path.splitext
+
+Devuelve una tupla separando el nombre del fichero de su extensión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filename = "my_file.py"
+>>> print(os.path.splitext(filename)
+('my_file', 'py')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_splitext]: Separar nombre del fichero de su extensión]
+
+### os.path.basename
+
+Devuelve la parte del nombre de la ruta completa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/my_file.py"
+>>> print(os.path.basename(filepath)
+'my_file.py'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_basename]: Obtener el nombre del fichero desde una ruta completa]
+
+### os.path.dirname
+
+Devuelve la parte de los directorios de la ruta completa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/my_file.py"
+>>> print(os.path.dirnam(filepath)
+'my_dir/sub_dir'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_dirname]: Obtener los directorios desde una ruta completa]
+
+### os.parh.isabs
+
+Determina si una ruta es absoluta o no.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/my_file.py"
+>>> print(os.path.isabs(filepath)
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_isabs]: Obtener si una ruta es absoluta]
+
+### os.path.normpath
+
+Normaliza los nombres de las rutas, colapsando separadores redundantes, referencias a niveles superiores,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/./my_file.py"
+>>> print(os.path.normpath(filepath)
+'my_dir/sub_dir/my_file.py'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_normpath]: Normalizar una ruta]
+
+### os.path.realpath, os.path.abspath
+
+Devuelen la ruta absoluta a partir de una ruta relativa, `realpath` además resuelve cualquier enlace símbolico que aparezca en la ruta.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "my_dir/sub_dir/./my_file.py"
+>>> print(os.path.abspath(filepath)
+'c:/users/my_dir/sub_dir/my_file.py'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_abspath]: Obtener la ruta absoluta]
+
+### os.path.relpath
+
+Devuelve una ruta relativa a partir de una ruta absoluta, teniendo en cuenta al directorio actual de trabajo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import os
+>>> filepath = "c:/users/my_dir/sub_dir/my_file.py"
+>>> print(os.path.relpath(filepath)
+'my_dir/sub_dir/my_file.py'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [path_relpath]: Obtener la ruta relativa]
+
+# Shell Commands
+
+Una tarea habitual, especialmente si se usa Python como herramienta para automatizar tareas, es ejecutar comandos del shell. En general se suelen crear ficheros con comandos en `bash` o ficheros `batch` con un montón de comandos a ejecutar, pero esto puede ser sustituido facilmente por programas en Python.
+
+## Usando el módulo ´os´
+
+La primera aproximación, y la más directa es usar el método `system` del módulo `os`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+os.system('ls -l')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [os_system]: Lanzar un comando del shell con `os.system`]
+
+Al ejecutar este script de Python se ve el resultado en la línea de comandos, en este caso, el listado del directorio actual. El problema de este método es su inflexibilidad, ni siquiera se puede recoger la salida que devuelve el comando como una variable.
+
+Otra manera es usar el comando `popen` que abre un `pipe` desde o hacia la línea de comandos. Esto significa que se tiene acceso al flujo de datos desde Python. De esta manera se puede recoger la salida en una variable.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import os
+
+stream = os.popen('echo Returned output')
+output = stream.read()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [os_popen]: Lanzar un comando del shell con `os.popen` y recoger la salida]
+
+Al usar el método `read` sobre la ejecución, se recoje toda la salida como una sola cadena de carácteres. Se puede usar `readlines` para recoger cada línea por separado en una lista. También se puede escribir al flujo de datos usando el parámetro `mode` con el valor `w`. Se pueden encontrar más detalles acerca de este sistema en la [documentación](https://docs.python.org/3/library/os.html#os.popen)
+
+## Usando el módulo ´subprocess´
+
+Este sistema es el más versatil y por tanto, el recomendado. Este módulo provee servicios para lanzar nuevos procesos y recoger sus resultados. La clase `Popen` es la responsable para la creación y gestión de los procesos ejecutados, esta clase ejecuta un solo comando con argumentos en una lista.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process = subprocess.Popen(['echo', 'More output'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+stdout, stderr = process.communicate()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_popen]: Lanzar un comando del shell con `subprocess.Popen`]
+
+En el ejemplo se pasan como parámetros `stdout` y `stderr` para que se usen como `pipes`, esto indica que se debería abrir un `pipe` que se puede luego leer con el método `communicate`, para comunicarse con el comando. Incluso se puede recoger la salida directamente hacia un fichero de texto, pasando dicho fichero en el parámetro `stdout`. Puesto que la salida es en modo `bytes`, se podría usar el parámetro `universal_newlines` con valor `True`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+with open('test.txt', 'w') as f:
+    process = subprocess.Popen(['ls', '-l'], stdout=f)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_popen_tofile]: Lanzar un comando del shell con `subprocess.Popen` y guardar la salida en un fichero]
+
+Cuando se llama a `communicate`, se esperará hasta que el comando acabe, pero también se puede consultar el resultado de manera asíncrona, usando el método `poll` para verificar el código de retorno del proceso, que devolverá `None` mientras está en ejecución.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process = subprocess.Popen(['ping', '-c 4', 'python.org'],
+                            stdout=subprocess.PIPE,
+                            universal_newlines=True)
+
+while True:
+    output = process.stdout.readline()
+    print(output.strip())
+    # Do something else
+    return_code = process.poll()
+    if return_code is not None:
+        print('RETURN CODE', return_code)
+        # Process has finished, read rest of the output
+        for output in process.stdout.readlines():
+            print(output.strip())
+        break
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_poll]: Lanzar un comando del shell y hacer `poll` hasta que acabe]
+
+También se puede usar el método `call` que trabaja exactamente igual que la clase `Popen`, pero espera a que el comando acabe y devuelve el código de retorno.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+return_code = subprocess.call(['echo', 'Even more output'])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_call]: Lanzar un comando del shell con `subprocess.call`]
+
+De todas maneras, la manera recomendada es usar el método `run` que trabaja sobre versiones modernas de Python, y es una simplificación de `Popen`. Dicho método devuelve un objeto `CompletedProcess`. En dicho objeto se puede encontrar la salida accediendo a su atributo `stdout`.
+
+La manera correcta de usar este comando es pasarle una lista de strings en lugar de una sola string. En esa lista, el primer elemento es el nombre del comando, y el resto de elementos de la lista son los `flags` y argumentos que tiene que recibir el comando. Normalmente se separan dichos argumentos por espacios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process_result = subprocess.run(['echo', 'Even more output'],
+                                stdout=subprocess.PIPE,
+                                universal_newlines=True)
+print(process_result.stdout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run]: Lanzar un comando del shell con `subprocess.run`]
+
+Este método esperará hasta que el proceso se haya completado. Se puede abrir un `pipe` de comunicaciones de entrada sobre `stdin` y usarlo a través del objeto `CompletedProcess`, mediante su método `write` para mandar datos al proceso mientras está en ejecución.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+ssh = subprocess.Popen(["ssh", "-i .ssh/id_rsa", "user@host"],
+                        stdin =subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        universal_newlines=True,
+                        bufsize=0)
+
+# Send ssh commands to stdin
+ssh.stdin.write("uname -a\n")
+ssh.stdin.write("uptime\n")
+ssh.stdin.close()
+
+# Fetch output
+for line in ssh.stdout:
+    print(line.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_ssh]: Lanzar un comando del shell con `subprocess.run` para usar ´ssh´]
+
+Se puede redirigir la salida a un dispositivo especial `/dev/null`, para que no se muestre dicha salida en la consola.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process_result = subprocess.run(['echo', 'Even more output'],
+                                stdout=subprocess.DEVNULL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_devnull]: Lanzar un comando del shell con `subprocess.run` dirigido a `/dev/null`]
+
+También se puede usar el parámetro `input` para darle información al comando. Y con el parámetro `text` con valor `True` devuelve los datos como texto, en lugar del formato por defecto que es como bytes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process_result = subprocess.run(['echo', 'Even more output'],
+                                stdout=subprocess.PIPE,
+                                text=True,
+                                input="Hello from the other side"))
+print(process_result.stdout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_input]: Lanzar un comando del shell con `subprocess.run` usando `input`]
+
+Con el parámetro `check` a `True` se le dice a Python que levante una excepción si se ha encontrado algún error en la ejecución del comando.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+
+process_result = subprocess.run(['no_command'],
+                                check = True)
+print(process_result.stdout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_check]: Lanzar un comando del shell con `subprocess.run` usando `check`]
+
+Si se necesita lanzar un script de Python, se puede hacer referencia al intérprete de Python a través del atributo `executable` del módulo `sys`, que contiene la ruta absoluta al ejecutable de Python. Y si en lugar de ejecutar un fichero de scripts de Pyhton, se quiere ejecutar una cadena de carácteres con código Python se usa el flag `-c` que hace que el intérprete acepte una cadena con código.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+import sys
+
+process_result = subprocess.run([sys.executable, "-c", "print('Hello!!!')"])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_python]: Lanzar un comando del shell con `subprocess.run` para ejecutar código Python]
+
+El método `run` también tiene un paramétro `timeout`, donde se puede indicar el tiempo máximo en segundos que tiene el comando para ejecutarse, en caso de no acabar antes de ese tiempo se lanzará una excepción.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import subprocess
+import sys
+
+process_result = subprocess.Popen(['ping', '-c 4', 'python.org'],
+                            timeout = 1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subprocess_run_timeout]: Lanzar un comando del shell con `subprocess.run` con `timeout`]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

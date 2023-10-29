@@ -1,0 +1,116 @@
+<meta charset="utf-8">
+**03EPPY - 04 - Modelo Entidad-Relación Extendido**
+    <small>©2022 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# Modelo Entidad-Relación Extendido
+ 
+El modelo Entidad-Relación inicial creado por Peter Chen se ha ido mejorando con el paso de los años por diversos autores añadiendo nuevos conceptos.
+
+![](res/04/entrel_ext.png)
+
+# Relaciones ISA o de herencia
+
+Son relaciones que distinguen tipos de entidades, es decir tendremos entidades que **son un** (is a, en inglés) tipo de entidad respecto a otra entidad más general.
+
+![](res/04/isa.png)
+
+## Uso de relaciones ISA
+ 
+- **Generaliación**. Unificar entidades agrupándolas en una entidad más general.
+- **Especificación**. Dividir una entidad en entidades más específicas.
+
+Hoy en día se denominan **relaciones de herencia**. Ningún diseñador intenta distinguir entre si tenemos una especialización o una generalización, porque al final ambas implican el mismo esquema interno en la base de datos.
+
+- **Superentidad**. Entidad general de las que derivan las otras.
+- **Subentidad**. Entidad que deriva de la superentidad.
+
+![Simbología Relaciones ISA](res/04/isa_esquema.png)
+
+
+## Atributos
+
+En la superentidad se indican los atributos comunes a todas las subentidades, se sobreentiende que las subentidades también tienen esos atributos, que no se indican de nuevo. 
+
+Por ejemplo, en el ejemplo anterior las entidades *Cta_Ahorro* y *Cta_Cheque* tienen los atributos *No_Cta* y *Saldo*, que no se especifican en cada entidad ya que está 
+especificado en su superentidad *CUENTA*. Y luego, cada subentidad tiene sus propios atributos que solo le pertenece a ella, como *Cta_Ahorro* que tiene el atributo *TasaInteres*, por ejemplo.
+
+Normalmente cuando tenemos una especialización, las subentidades comparten clave con la superentidad (además de los atributos comunes), pero puede darse el caso de que cada entidad tenga su propio atributo identificador.
+
+![](res/04/isa_card.png)
+
+## Cardinalidad
+
+En general se suelen indicar las cardinalidades en las relaciones ISA, pero se suele sobreentender (cuando no se indican explícitamente) que hay un (0,1) encima de cada subentidad (que significa que cada ejemplar de la superentidad solo puede relacionarse como mucho con uno de la subentidad e incluso con ninguno. Siguiendo con el ejemplo de la figura 2, una ocurrencia de la entidad *Cuenta* puede ser *Cta_Ahorro* o *Cta_Cheque*, pero no las dos a la vez.
+
+En el ejemplo anterior un artículo solo puede ser un disco, un libro o un artículo de marchandising, pero no más de uno al mismo tiempo. 
+
+## Entidades
+
+Una entidad es cualquier objeto o elemento acerca del cual se pueda almacenar información en la BD. Las entidades se representan gráficamente mediante rectángulos y su nombre aparece en el interior. Un nombre de entidad sólo puede aparecer una vez en el esquema conceptual.
+
+- **Fuerte**. Para existir no depende de otra entidad.
+- **Débil**. Su existencia depende de la existencia de una entidad fuerte.    
+
+    ![](res/04/ent_fue_deb_ej.png)
+
+## Cuando utilizar relaciones ISA
+
+No es conveniente abusar de este tipo de relaciones, ya que aumentan en exceso el número de entidades.
+
+No todos los tipos de entidades suponen la aparición de una generalización o una especialización. A veces es suficiente con diferenciar los tipos de entidad con el uso de un simple atributo tipo o, como mucho, una entidad que contenga los tipos de entidades.
+
+![](res/04/isa_tipo.png)
+
+Lo recomendable es utilizar relaciones ISA cuando ocurre cualquiera de estas situaciones:
+
+- Las subentidades tienen atributos distintos.
+- Las subentidades tienen relaciones distintas.
+
+## Exclusividad
+
+### En Entidades
+
+En las relaciones ISA, el hecho de que cada ejemplar sólo puede participar en una de entre varias ramas de una relación se marca con un **arco** entre las distintas relaciones. Por ejemplo:
+
+![Exclusividad en las entidades](res/04/isa_ej_personal.png)
+
+En el ejemplo, el personal sólo puede ser o bedel o profesor o técnico; una y sólo una de las tres cosas (es, por cierto, la forma más habitual de relación ISA).
+
+### En Relaciones
+
+Se pueden marcar relaciones de exclusividad en otras relaciones. Significará lo mismo, es decir que solo uno de las situaciones enmarcadas por un arco se pueden dar a la vez.
+
+![Exclusividad en las relaciones](res/04/isa_ej_rel.png)
+
+En este ejemplo solo puede ocurrir a la vez una de las dos relaciones: *Participar* o *Competir*. Significa que en las competiciones o participan personas o compiten equipos. En este caso se podría generalizar indicando una superentidad llamada *Competidores* para las personas y los equipos.
+
+![De exclusividad a entidad](res/04/isa_excl_rel.png)
+
+## Tipos de relaciones ISA
+
+![](res/04/isa_tipos.png)
+
+Realmente lo que hay que matizar bien en las relaciones ISA es la forma de relacionarse la superentidad con la subentidad. En base a dos conceptos:
+
+- **Obligatoriedad**. Indica si los ejemplares obligatoriamente se relacionan con ejemplares de las subentidades. Es decir si hay personal que no es profesor ni bedel ni técnico o si fijo es alguna de esas tres profesiones. Posibilidades:
+
+    - **Relaciones de jerarquía parcial**. Indican que hay ejemplares de la superentidad que no se relacionan con ningún ejemplar de las subentidades (por ejemplo, hay personal que no es ni profesor, ni bedel ni técnico). Se indican con un **círculo** encima del triángulo de la relación ISA.
+    - **Relaciones de jerarquía total**. Indican que todos los ejemplares de la superentidad se relacionan con alguna subentidad (no hay personal que no sea ni profesor, ni bedel ni técnico).
+
+- **Número de relaciones**. En este caso se mide con cuántas subentidades se relaciona la subentidad; por ejemplo, si hay personal que pueda ser profesor y bedel a la vez o si sólo puede ser una cosa. Posibilidades:
+
+    - **Relaciones de jerarquía solapada**. Indican que un ejemplar de la superentidad puede relacionarse con más de una subentidad (el personal puede ser profesor y bedel). Ocurren cuando **no hay dibujado un arco** de exclusividad.
+    - **Relaciones de jerarquía exclusiva**. Indican que un ejemplar de la superentidad sólo puede relacionarse con una subentidad (el personal no puede ser profesor y bedel). Ocurren cuando hay dibujado un **arco** de exclusividad.
+
+# Otras formas de representación del modelo Entidad-Relación
+
+Las herramientas CASE actuales no suelen utilizar la forma de dibujar del modelo clásico. Las razón fundamental está en la dificultad de dibujar los atributos ya que ocupan un excesivo espacio en el diagrama. Como, además, los analistas están acostumbrados a representar diagramas lógicos basados en el modelo relacional de bases de datos, se usan diagramas entidad relación en los que la representación de entidades y relaciones se hace de esta forma:
+
+Las entidades son rectángulos en los que la primera fila se dedica al nombre de la entidad y las siguientes filas a cada uno de sus atributos.
+Las relaciones son rombos y sus atributos cuelgan en una caja que contiene el nombre de dichos atributos. En algunos casos ni siquiera se representa la relación con un rombo, sino que simplemente se indica su nombre.
+
+![](res/04/case.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,1227 @@
+<meta charset="utf-8">
+**02EPPY - 202 - Backend**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Django
+
+Por detrás, las páginas web de hoy en día son aplicaciones complejas que son similares a las aplicaciones de escritorio clásicas. Python tiene un conjunto de herramientas llamado `Django` para construir aplicaciones web.
+
+Hay muchos frameworks de desarrollo web, pero Django es una de las mejores elecciones. Por el alcance de sus características, si se va a crear un sitio web a través de Django, no se necesita usar bibliotecas o paquetes externos, con las ventajas que eso conlleva, como simplicidad de desarrollo (no hay que entender o conocer más frameworks), actualizaciones cruzadas,... Tiene una [documentación](https://www.djangoproject.com/) muy extensiva y detallada de cada aspecto de la librería, con ejemplos, tutoriales,... La comunidad de desarrolladores también es muy amplia, y las posibilidades de encontrar ayuda en caso de problemas es muy amplia.
+
+En resumen, Django es un framework de desarrollo de aplicaciones web de alto nivel con un montón de características, y es una buena elección para empezar en el mundo del desarrollo web gracias a su documentación.
+
+## Estructura
+
+Un sitio web de Django consiste en un solo proyecto (project), que está dividido en aplicaciones (apps) separadas. La idea es que cada app, maneja una función auto contenida que el sitio necesita representar. En una aplicación completa, como Instagram, hay varias funciones diferentes que se necesitan representar:
+
+- Gestión de los usuarios, login, logout, registro,...
+- Alimentación de imágenes, actualización, edición y mostrar imágenes
+- Mensajería privada, mensajes entre usuarios y notificaciones
+
+Esas son piezas separadas de funcionalidad, si esto fuera un sitio de Django, entonces cada trozo de funcionalidad debería ser una app Django distinta, dentro de un único proyecto Django.
+
+El proyecto Django almacena algunas configuraciones que aplican al proyecto como un todo, tales como ajustes del proyecto, URLs, plantillas compartidas y ficheros estáticos. Cada aplicación puede tener su propia base de datos y tiene sus propias funciones para controlar como los datos se muestran, como JavaScript y CSS.
+
+Las apps de Django está estructurada de tal manera que haya una separación de la lógica. Soporta el patrón MVC (Model View Controller), que es la arquitectura en la que la mayoría de los frameworks web están construidos. El principio básico es que en cada aplicación hay tres ficheros separados que manejan las tres partes principales de la lógica de manera independiente.
+
+- Modelo, define la estructura de los datos, suele ser una base de datos y la capa base de la aplicación
+- Vista, muestra toda o parte de la información al usuario con HTML y CSS
+- Controlador, gestiona como interactúan la base de datos y la vista
+
+En Django, la arquitectura es ligeramente distinta, aunque basado en el patrón MVC, Django gestiona él mismo la parte del controlador. No hay necesidad de definir como interactúan las vistas y los modelos, el framework se encarga de ello.
+
+El patrón de diseño que usa Django concretamente se llama MVT (Model View Template). La vista y el template en MVT constituyen la vista en MVC. Todo lo que hay que hacer es añadir algunas URLs de configuración a las cuales mapear las vistas, y Django se encarga del resto.
+
+Un sitio web de Django se inicia con un proyecto, y se va construyendo con varias aplicaciones que cada una maneja una funcionalidad distinta. Cada app sigue el patrón MVT (Model View Template).
+
+## Objetivo
+
+Antes de empezar con el desarrollo en sí, es buena idea establecer un plan de lo que se va a construir. En este caso una aplicación con las siguientes características.
+
+- Un catálogo de coches, se pueden mostrar distintos coches como una galería, con enlaces seleccionables
+
+- Una web de reviews de coches, donde se podrán crear, actualizar y borrar posts. Estos tendrán categorías que podrán ser usadas para ordenarlas, y los usuarios podrán dejar sus comentarios en los posts de dichas reviews
+
+No se van a usar librerías externas, una de las cosas interesantes de Django es que tiene tantas características que no se suele necesitar depender de otras librerías. Sin embargo, se usará [Bootstrap](https://getbootstrap.com/) para añadir estilos a los templates.
+
+## Hello, World
+
+Antes de empezar a construir el objetivo, se va a crear una aplicación de muestra para entender los componentes básicos de Django, para luego pasar a extenderlo.
+
+### Instalación
+
+Para instalar Django la mejor opción es usar el paquete en [PyPI](https://pypi.org/project/Django/) e instalarlo a través de `pip` o `pipenv`.
+
+### Proyecto de Django
+
+Un sitio web de Django está compuesto de un proyecto y sus apps. Para empezar se crea un directorio raíz para el sitio web, y estando dentro de él, se ejecuta el comando `django-admin startproject my_project`, donde el último parámetro es el nombre de la aplicación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> django-admin startproject my_project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_project]: Crear proyecto de un sitio web de Django]
+
+Lo cual crea la siguiente estructura de ficheros y carpetas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+django_app
+└───my_project
+    │   manage.py
+    └───my_project
+            asgi.py
+            settings.py
+            urls.py
+            wsgi.py
+            __init__.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [Django_structure]: Estructura de carpetas de un sitio web de Django]
+
+La mayor parte del trabajo se va a realizar dentro del primer nivel del directorio `my_project`, para ahorrar cambios de directorio y simplificar el trabajo, se recomienda mover todos los ficheros un nivel más arriba.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> mv my_project\manage.py .\
+E:\Dev\VIU\EPPY\django_app> mv my_project\my_project\* my_project
+E:\Dev\VIU\EPPY\django_app> rm -r my_project\my_project\
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [move_things]: Mover ficheros y carpetas a un nivel superior]
+
+Finalmente debería quedar una estructura similar a Figure [final_structure].
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+django_app
+    │   manage.py
+    └───my_project
+            asgi.py
+            settings.py
+            urls.py
+            wsgi.py
+            __init__.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [final_structure]: Estructura final de carpetas de un sitio web de Django]
+
+Una vez que la estructura está fijada, se puede lanzar el servidor y verificar que todo funciona. En la consola se ejecuta el siguiente comando.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py runserver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [launch_server]: Lanzar el servidor web de Django]
+
+Entonces, tal como dice la respuesta en la consola, en el navegador se va a la dirección URL `http://127.0.0.1:8000/` o `http://localhost:8000/`, y se debería poder verificar que el sitio web de prueba funciona y está en marcha.
+
+![Figure [res/202_000]: Sitio web de Django en marcha](res/202_000.png  width="400px")
+
+### Aplicación de Django
+
+Para crear una aplicación dentro de un proyecto de Django, hay que volver a llamar al script `manage.py`, pero estsa vez con el argumento `startapp`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py startapp hello_world
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_app]: Crear aplicación en un proyecto de Django]
+
+Esto creará otro directorio llamado `hello_world` con varios ficheros.
+
+- `__init__.py`, le dice a Python que trate el directorio como un paquete
+- `admin.py`, contiene ajustes para las páginas de administrador
+- `apps.py`, contiene ajustes para la configuración de la aplicación
+- `models.py`, contiene una serie de clases que el ORM de Django convierte a tablas de la base de datos
+- `tests.py`, contiene clases de test
+- `views.py`, contiene funciones y clases que manejan que datos se muestran los templates HTML
+
+Una vez creada la aplicación, hay que instalarla en el proyecto. En el fichero `settings.py` dentro del directorio `my_project` hay que añadirla al final de la lista de `INSTALLED_APPS`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'hello_world',
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [Python]: Python Code]
+
+Esa línea de código significa que el proyecto ahora sabe que la aplicación que acaba de crear existe.
+
+### Vista
+
+Las vistas en Django son una colección de funciones o clases dentro del fichero `view.py` en el directorio de la app. Cada función o clase maneja la lógica que se procesa cada vez que se visita una URL diferente.
+
+En el fichero `views.py` en el directorio ´hello_world´ ya existe una línea de código que importa la función `render` del módulo `django.shortcuts`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.shortcuts import render
+
+def hello_world(request):
+    return render(request, 'hello_world.html', {})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_world_view]: Vista de la app `hello_world`]
+
+Se añade una función de la vista, llamada `hello_world`, cuando se llama a esta función pintará un fichero HTML llamado `hello_world.html`, ese fichero aún no existe. Esta función de vista recibe un argumento `request`, este objeto es un objeto `HttpRequestObject` que se crea cada vez que una página se carga. Contiene información acerca de la petición, y del método HTTP, que puede ser `GET`, `POST`,...
+
+Ahora que se ha creado la función de la vista, hay que crear la plantilla (template) HTML para mostrarla al usuario por el método `render`, este busca los templates HTML en un directorio llamado `templates` dentro del directorio de la app. Hay que crear dicho directorio y un fichero llamado `hello_world.html` dentro.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> mkdir hello_world\templates\
+E:\Dev\VIU\EPPY\django_app> touch hello_world\templates\hello_world.html
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_templates]: Crear directorio templates y el template para `hello world`]
+
+Y se añade una línea al fichero `hello_world.html` que muestre un texto como un header.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<h1>Hello, World!</h1>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_world_html]: Fichero `hello_world.html` mostrando un header]
+
+Ya se ha creado una función para manejar las vistas y templates y mostrarlos al usuario. El paso final es enganchar las URLs, para que se puede visitar la página que se acaba de crear. El proyecto tiene un módulo llamado `urls.py`, en el cual hay que incluir una configuración de URL para la app `hello_world`. En el fichero `urls.py` dentro de la carpeta `my_project` se añade lo siguiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('hello_world.urls')),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [urls.py]: Añadir urls para la app `hello_world`]
+
+Esto busca un módulo llamado `urls.py` dentro de la app `hello_world` y registra cualquier URL definida allí. Cada vez que se visita la raíz de la URL (`localhost:8000`), la URL de la app `hello_world` quedará registrada. El módulo `hello_world.urls` aún no existe.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> touch hello_world/urls.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_urls]: Crear fichero `urls.py` en el directorio `hello world`]
+
+Dentro de este fichero, hay que importar al objeto path, así como las vistas de la app. Entonces se crea una lista de patrones de las URLs que corresponden a las funciones de las vistas. Por ahora solo ha creado una función vista, así que solo hay que crear una URL.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.urls import path
+from hello_world import views
+
+urlpatterns = [
+    path('', views.hello_world, name='hello_world'),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [app_urls.py]: Añadir urls en la app `hello_world`]
+
+Ahora, cuando se vuelve a lanzar el servidor, con `python manage.py runserver`, y se visita en el navegador la dirección `localhost:8000` se puede ver la plantilla HTML que se ha creado.
+
+![Figure [res/202_001]: Plantilla en el navegador](res/202_001.png)
+
+### Bootstrap
+
+Si no se le añade ningún estilo, la aplicación no va a verse bien. En lugar de ir creando y modificando ficheros CSS, se hará a través de Bootstrap. Esto permitirá mejorar la apariencia del sitio web sin mucha dificultad.
+
+Antes de empezar con los estilos de Bootstrap, se crea un template base que se pueda importar luego en cada vista. Este template es donde se añadirán luego todos los imports a los estilos de Bootstrap.
+
+Se crea un directorio `templates`, esta vez dentro del directorio `my_project`, y un fichero `base.html` dentro de dicho directorio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> mkdir my_project\templates\
+E:\Dev\VIU\EPPY\django_app> touch my_project\templates\base.html
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [templates_base]: Crear carpeta `templates` y fichero `base.html`]
+
+Se crea este directorio adicional para almacenar templates de HTML que serán usadas en cada app Django dentro del proyecto. Como se ha visto, cada proyecto de Django consiste de varias apps que manejan lógica de manera independiente, y cada app contiene sus propios templates para almacenar sus HTML relacionados con dicha aplicación.
+
+Esta estructura de aplicación funciona bien para la lógica de backend, pero también se quiere que el sitio entero se vea de manera consistente en el frontend. En lugar de tener que importar estilos de Bootstrap en cada app, se puede crear un template, o conjunto de templates que son compartidos por todas las apps. Mientras que Django sepa donde buscar los templates en este nuevo y compartido directorio, se pueden ahorra muchos estilos repetidos.
+
+Dentro de este nuevo fichero `base.html`, dentro de la carpeta `my_project\templates` se añade lo siguiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% block page_content %}{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [base.html]: Fichero `base.html`]
+
+Ahora en el fichero `hello_world.html` de la carpeta `hello_world\templates` se puede extender este template base.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+
+{% block page_content %}
+<h1>Hello, World!</h1>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_world.html]: Fichero `world.html` extendiendo `base.html`]
+
+Lo que sucede aquí es que cualquier HTML dentro del bloque `page_content` se añade dentro del mismo bloque en `base.html`.
+
+Para instalar Bootstrap dentro de la app, se usa el [CDN de Bootstrap](https://getbootstrap.com/docs/5.2/getting-started/introduction/). Es una manera simple de instalar Bootstrap en solo unas pocas líneas en `base.html`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+{% block page_content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [base.html_bootstrap]: Fichero `base.html` con Bootstrap]
+
+Todos los templates futuros que se creen, extenderán `base.html`, así se pueden incluir los estilos de Bootstrap en cada página sin tener que importar dichos estilos cada vez.
+
+Ahora hay que informar al proyecto Django que existe dicho fichero `base.html`. Los ajustes por defecto, registran los directorios `templates` para cada app, pero no en el directorio del proyecto. En el fichero `settings.py` dentro de la carpeta `my_project` se actualiza la lista `TEMPLATES`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        "DIRS": ["my_project/templates/"],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [templates_settings.py]: Añadir la ruta de templates en `settings.py`]
+
+Ahora, al volver a lanzar el proyecto y navegar a `localhost:8000` se puede observar que la página está formateada con un estilo distinto.
+
+![Figure [res/202_002]: Plantilla en el navegador con Bootstrap](res/202_002.png)
+
+Siempre que se quieran crear templates o scripts de importación que se vayan a usar en todas las apps dentro de un proyecto, se pueden añadir a este directorio a nivel de proyecto, y extenderlos dentro de los templates de cada app.
+
+## Catálogo de Coches
+
+Se va a desarrollar un catálogo de coches. Se crea una aplicación llamada `catalog` que contendrá una serie de coches que se mostrarán al usuario. Dichos usuarios podrán seleccionar estos coches y ver más información acerca de ellos.
+
+Antes de construir la app `catalog`, se borra la aplicación `hello_world`. Todo lo que se necesita es borrar el directorio `hello_world` y eliminar la línea `hello_world` de la lista `INSTALLED_APPS` en el fichero ´settings.py´ de la carpeta `my_project`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [remove_hello_world]: Eliminar `hello_world` de la lista de apps instaladas en `settings.py`]
+
+Y por último eliminar la ruta URL creada en el fichero `urls.py` en la carpeta `my_project`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [remove_hello_world_urls]: Eliminar `hello_world` de la lista de urls en `urls.py`]
+
+Ahora ya se puede crear la app `catalog`, desde el raíz del proyecto `django_app`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py startapp catalog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_catalog_app]: Crear app `catalog`]
+
+Esto, como se esperaba, creará un directorio llamado `catalog`, los ficheros que se han creado son los mismos de antes. Para enlazar la app, hay que añadirla a la lista de `INSTALLED_APPS` en el fichero `settings.py` en `my_project`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'catalog'
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [install_catalog]: Añadir `catalog` a la lista de apps instaladas en `settings.py`]
+
+### Models
+
+Si se quieren almacenar datos para mostrarlos en una página web, se necesita una base de datos. Normalmente, si se quiere crear una base de datos con tablas y columnas en esas tablas, se necesita usar SQL para gestionar la base de datos. Pero cuando se usa Django, no se necesita aprender dicho lenguaje SQL, puesto que tiene un ORM (Object Relational Mapper) incorporado.
+
+Un ORM es un programa que permite crear clases que corresponden a tablas de una base de datos. Los atributos de la clase corresponden a columnas, e instancias de las clases corresponden a filas en la base de datos. Asi pues, en lugar de aprender un nuevo lenguaje ahora para crear la base de datos y sus tablas, se pueden escribir como clases de Python.
+
+Cuando se usa un ORM, las clases que se construyen que representan tablas en la base de datos, se llaman modelos. En Django, viven dentro del módulo `models.py` de cada app.
+
+En esta app para mostrar los coches, solo se necesita una tabla para almacenar los distintos coches que se quieren mostrar al usuario. Esto significa que solo hay que crear un modelo en `models.py`.
+
+El modelo se llamará `Car` y tendrá los siguientes campos:
+
+- name, será una cadena de carácteres corta que tendrá el nombre del coche
+- description, un string más largo con una descripción más detallada
+- brand, otro string, pero sus contenidos estarán limitados a un número de opciones
+- image, será un campo de imagen que tiene una ruta donde está almacenada la imagen
+
+Para crear este modelo, se creará una clase nueva en `models.py` dentro de la carpeta `catalog`, y se añaden los campos deseados.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.db import models
+
+class Car(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    brand = models.CharField(max_length=20)
+    image = models.FilePathField(path="/img")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [model_catalog]: Añadir modelo `Cars` y sus campos a `models.py`]
+
+Los modelos de Django vienen con muchos tipos de [campos integrados](https://docs.djangoproject.com/en/2.1/ref/models/fields/). Solo se han usado 3 en este modelo.
+
+`CharField` se usa para strings cortas y especifica una longitud máxima. `TextField` es similar, pero se puede usar para textos más largos y no tienen un límite de longitud máxima. Por último, `FilePathField` también contiene un string, pero tiene que apuntar a una ruta de un fichero.
+
+Ahora que se ha creado la clase `Car`, se necesita que Django cree la base de datos. Por defecto, el ORM de Django crea las bases de datos en [SQLite](https://www.sqlite.org/index.html), pero se pueden usar otras bases de datos que usen el lenguaje SQL, como PostgreSQL, MySQl,...
+
+Para empezar el proceso de crear la base de datos, hay que crear una migración. Una migration es un fichero que contiene una clase `Migration` con reglas que le dicen a Django que cambios hay que hacer a la base de datos. Para crear la migración, se usa el comando `makemigrations`, desde el directorio ráiz del proyecto, donde se le indica sobre que app se quiere hacer la migración.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py makemigrations catalog
+Migrations for 'catalog':
+  catalog\migrations\0001_initial.py
+    - Create model Car
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_migration]: Crear migración inicial del model `Car`]
+
+Esto crea un fichero `0001_initial.py` dentro de la carpeta `catalog\migrations`, que contiene los cambios que tiene que hacer Django para crear la base de datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    initial = True
+    dependencies = []
+    operations = [
+        migrations.CreateModel(
+            name='Car',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('description', models.TextField()),
+                ('brand', models.CharField(max_length=20)),
+                ('image', models.FilePathField(path='/img')),
+            ],
+        ),
+    ]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [0001_initial.py]: Fichero con la migración inicial `0001_initial.py`]
+
+Ahora que se ha creado un fichero de migración, hay que aplicar estas migraciones y crear una base de datos usando el comando `migrate`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py migrate catalog
+
+Output:
+Operations to perform:
+  Apply all migrations: catalog
+Running migrations:
+  Applying catalog.0001_initial... OK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [apply_migration]: Aplicar migración inicial del model `Car`]
+
+Cuando se lanzan los comandos `makemigrations` y `migrate`, se añade la app `catalog` al comando. Esto le dice a Django que solo busque modelos en la app `catalog`. Django viene con muchos modelos ya creados, si se lanzaran estos comandos en general, se crearían todas las migraciones para todos esos modelos.
+
+Se puede observar que se ha creado un fichero `db.sqlite3` en el directorio raíz del proyecto con la base de datos, que ya está creada y lista para empezar a trabajar. Ya se pueden crear filas en la tabla que sean los proyectos que se quieren mostrar en la web.
+
+Para crear instancias de la clase `Car`, se va a usar el shell de Django. Este es similar al de Python, pero permite acceder a la base de datos y crear elementos. Para acceder al shell de Django, se usa el comando `shell`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py shell
+Python 3.9.5 (tags/v3.9.5:0a7dcbd, May  3 2021, 17:27:52) [MSC v.1928 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [django_shell]: Abrir el shell de Django]
+
+Desde aquí se pueden importar los modelos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+>>> from catalog.models import Car
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [django_shell]: Abrir el shell de Django]
+
+Primero se crea un proyecto nuevo con los siguientes atributos.
+
+- name = Huracan
+- description = Lamborghini Huracán EVO Fluo Capsule
+- brand = Lamborghini
+- image = img/lambo_huracan.jpg
+
+Para hacer esto, se crea una instancia de la clase `Car` en el shell, y se asignan los valores a cada parámetro. Y luego se llama al método `save` del objeto recién creado para guardarlo en la base de datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+>>> p1 = Car(
+...     name = 'Huracan',
+...     description = 'Lamborghini Huracán EVO Fluo Capsule',
+...     brand = 'Lamborghini',
+...     image = 'img/lambo_huracan.jpg'
+... )
+>>> p1.save()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [add_row]: Añadir un elemento a la base de datos]
+
+Esto crea un elemento nuevo en la tabla de `car` y lo guarda en la base de datos. Ya se tiene un proyecto que se puede mostrar en el sitio web. Se pueden crear más elementos de la misma manera.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+>>> p2 = Car(
+...     name = 'Jesko',
+...     description = 'Koenigsegg Jesko 2020',
+...     brand = 'Koenigsegg',
+...     image = 'img/koenigsegg_jesko.jpg'
+... )
+>>> p2.save()
+>>> p3 = Car(
+...     name = 'SF90',
+...     description = 'Ferrari SF90 Stradale',
+...     brand = 'Ferrari',
+...     image = 'img/ferrari_sf90.jpg'
+... )
+>>> p3.save()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [add_rows]: Añadir varios elementos a la base de datos]
+
+### Views
+
+Ya se tiene los coches que hay que mostrar en el sitio web, ahora hay que crear las funciones para las vistas que envíen la información de la base de datos a las plantillas HTML. Para ello en la app `catalog` se crearán dos vistas diferentes, una vista principal que muestre solo información parcial de cada coche, y otra vista más detallada que muestre mucha más información de un coche en particular.
+
+Dentro del fichero `view.py` en la carpeta `catalog`, lo primero es importar la clase `Car` del fichero `models.py` y crear una función `car_index`, que reproduzca un template que se llamará `car_index.html`. En el cuerpo de esta función, se hará una petición al ORM de Django para seleccionar todos los objetos en la tabla `Car`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.shortcuts import render
+from catalog.models import Car
+
+def car_index(request):
+    cars = Car.objects.all()
+    context = {
+        'cars': cars
+    }
+    return render(request, 'car_index.html', context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [views_py]: Función para la vista principal en `views.py`]
+
+Accediendo al método `objects.all` se está realizando una consulta a la base de datos. Una consulta es simplemente un comando que permite crear, obtener, actualizar o borrar objetos (CRUD) o filas en una base de datos. En este caso, se están obteniendo todos los objetos en la tabla `car`.
+
+Una consulta a una base de datos devuelve una colección de todos los objetos que cumplen las condiciones establecidas en la consulta. En este caso, se piden todos los objetos de la tabla, así que devolverá una colección con todos los objetos.
+
+Se define un diccionario `context`, que solo tiene un elemento `cars`, al cual se le asignan los datos obtenidos en la consulta y que contiene todos los proyectos. Este diccionario se usará para enviar información a la plantilla. Cada función de vista que se cree necesitará su propio diccionario de contexto.
+
+Finalmente, este diccionario se añade como argumento al método `render`. Todos los elementos en el diccionario `context` estarán disponibles en el template. Hay que hacer esto en cada función vista.
+
+Se llama a render sobre una plantilla llamada `car_index.html`, que aún no existe.
+
+Ahora hay que crear la otra función de vista, `car_detail`, esta función necesitará un argumento adicional, el identificador del proyecto que se está viendo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def car_detail(request, pk):
+    car = Car.objects.get(pk=pk)
+    context = {
+        'car': car
+    }
+    return render(request, 'car_detail.html', context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [views_detail_py]: Función para la vista de detalle en `views.py`]
+
+Se realiza otra consulta al ORM, esta obtiene el coche con una clave primaria `pk`, que es igual al argumento de la función. Y se le asignan los datos al diccionario `context`, que se pasa al método `render`, y hay otra plantilla `car_detail.html` que habrá que crear.
+
+Una vez las funciones están creadas, hay que enlazarlas a las URLs correspondientes. Se crea un fichero `urls.py` en la carpeta `catalog` para guardar la configuración de las URLs en esta app.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.car_index, name="car_index"),
+    path("<int:pk>/", views.car_detail, name="car_detail"),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [urls_cars]: URLs para el catálogo]
+
+Se enlaza primero la URL raíz de la app a la vista `car_index`. A continuación se enlaza la vista `car_detail`. Para esto, se necesita que la URL acabe en `/1` o `/2`, en función del identificador o `pk` del proyecto.
+
+El valor `pk` en la URL es el mismo `pk` que recibe la función de la vista, así que hay que generar estas URLs de manera dinámica en función del coche que se quiera ver. Para hacer esto se usa la notación `<int:pk>/`, que le dice a Django que el valor pasado en la URL es un entero y el nombre de su variable es `pk`.
+
+Ahora hay que enlazar estas URLs de la app a las URLs del catálogo. En el fichero `urls.py` de la carpeta `my_project` se añade dicho hook.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("catalog/", include("catalog.urls")),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [urls_catalog]: Enlazando las URLs de la app en las del catálogo]
+
+Esta última línea de código incluye todas las URLs de la app `catalog` pero especifica que se tengan que acceder con el prefijo `catalog/`. Ahora hay dos URLs completas que se pueden acceder dentro del proyecto.
+
+- `localhost:8000/catalog`, la página principal con el índice de los coches
+- `localhost:8000/catalog/3`, la vista de detalle para el coche con `pk=3`
+
+Estas URLs aún no funcionan puesto que aún no se han creado las plantillas.
+
+### Templates
+
+Hay que crear dos plantillas, una para `car_index` y otra para `car_detail`.
+
+#### Catalog index
+
+Como se han añadido estilos de Bootstrap a la aplicación, se pueden usar algunos componentes para hacer que las vistas se vean mejor.
+
+Para el template `car_index`, se creará una cuadrícula de [tarjetas de Bootstrap](https://getbootstrap.com/docs/5.2/components/card/), donde cada tarjeta muestre detalles del coche. Por supuesto, no se sabe cuantos coches van a haber, en teoría podrían ser cientos, y no se quieren crear 100 tarjetas a mano y hardcodear toda la información para cada coche. En su lugar, se va a usar una característica del motor de plantillas de Django, los bucles.
+
+Con estos bucles, se puede iterar sobre todos los elementos de la tabla `car` y crear una tarjeta para cada uno. La sintaxis de un bucle en el motor de plantillas de Django es simple.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% for car in cars %}
+{# Do something... #}
+{% endfor %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [template_loop]: Bucle en el motor de plantillas de Django]
+
+Se crea un fichero llamado `car_index.html` en la carpeta `catalog/templates` para albergar la plantilla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+{% load static %}
+{% block page_content %}
+<h1>Cars Catalog</h1>
+<div class="row">
+{% for car in cars %}
+    <div class="col-md-4">
+        <div class="card mb-2">
+            <img class="card-img-top" src="{% static car.image %}">
+            <div class="card-body">
+                <h5 class="card-title">{{ car.name }}</h5>
+                <p class="card-text">{{ car.description }}</p>
+                <a href="{% url 'car_detail' car.pk %}" class="btn btn-primary"> Read More </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [car_index]: Plantilla `car_index.html`]
+
+Hay mucho código HTML de Bootstrap, se puede revisar la documentación de Bootstrap apara aprender todos los detalles del mismo.
+
+En la plantilla, primero se extiende `base.html`, como se hizo en la app `hello_world`, a este fichero ahora se le ha añadido algo más de estilo para incluir una [barra de navegación](https://getbootstrap.com/docs/5.2/components/navbar/) y todo el contenido está ahora dentro de un [contenedor de Bootstrap](https://getbootstrap.com/docs/5.2/forms/layout/).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'car_index' %}">Super Cars Site</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'car_index' %}">Catalog</a>
+            </li>
+          </ul>
+        </div>
+    </div>
+
+</nav>
+
+<div class="container">
+    {% block page_content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [base.html]: Fichero `base.html` con la barra de navegación y el contenedor]
+
+Volviendo a la plantilla `car_index.html`, se incluye una etiqueta `{% load static %}` que incluye ficheros estáticos como imágenes. Al definir el modelo del `Car` uno de sus atributos era la ruta de un fichero de una imagen. Esa ruta es donde se van a guardar las imágenes de cada coche.
+
+Django automáticamente registra los ficheros estáticos que están almacenados en un directorio llamado `static/` en cada aplicación. Los nombres de las rutas de las imágenes tenían la estructura `img/<photo_name>.png`.
+
+Cuando se cargan ficheros estáticos, Django busca en la carpeta `static/` ficheros que correspondan con alguna ruta de algún fichero dentro de `static/`. Asi pues, hay que crear un directorio llamado `static/` dentro de la carpeta `catalog` que tenga otro directorio `img/` dentro. Dentro de `img/` se podrán poner las imágenes de todos los coches que se quieren mostrar en la web.
+
+Luego se pone un texto en el HTML que escriba `Cars Catalog` bajo una etiqueta `h1` de HTML para que se vea como un heading, o encabezado. Luego se usa `div` para crear una sección, donde se itera en el bucle de Django para recorrer todos los `cars` que se han pasado al template desde el diccionario `context` desde la vista.
+
+Dentro de este bucle, se puede acceder a cada coche individual. Para acceder a los atributos de cada coche, se usa la notación de punto, dentro de una doble llave. Por ejemplo, para acceder al nombre del coche, se usa `{{car.name}}`.
+
+Se incluye la imagen del coche, en una etiqueta de HTML `img`, dentro del atributo `src`, se añade el código `{%static car.image%}`. Esto informa a Django que busque dentro de los ficheros estáticos para encontrar una imagen que corresponda con `car.image`.
+
+También se crea el enlace con la etiqueta `a` de HTML para ir a la página `car_detail`. Acceder a las URLs en Django es muy similar al acceso a los ficheros estáticos. El código para una URL tiene la siguiente forma:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% url '<url path name>' <view_function_arguments> %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [url_html]: Acceder a las URLs en las plantillas]
+
+En este caso se accede a una URL llamada `car_detail`, que toma un argumento con un entero que corresponde al número `pk` del proyecto.
+
+ Además se puede incluir un fichero de estilo distinto del que tiene por defecto Bootstrap, por ejemplo, se puede descargar uno de [Bootswatch](https://bootswatch.com/). Para usarlo hay que descargarlo y añadirlo a la carpeta `static/css/`. Y para hacerlo accesible desde el template `base.html`, hay que cargar primero los static y luego acceder a él en lugar del css por defecto. Hay que quitar por tanto la primera linea del fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% load static %}
+<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [base.html2]: Fichero `base.html` con el nuevo estilo en `static/css/bootstrap.min.css`]
+
+Si se lanza el proyecto ahora con `python manage.py runserver` y se accede con el navegador a la app dentro del servidor local `localhost:8000/catalog` se puede ver la página principal con los tres coches en el sitio.
+
+![Figure [res/202_003]: Página principal](res/202_003.png  width="500px")
+
+#### Catalog detail
+
+Ahora hay que crear la plantilla para el detalle de cada coche, para ello se crea el fichero `car_detail.html` dentro de la carpeta `catalog/templates`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_content %}
+<h1>{{ car.name }}</h1>
+<div class="row">
+    <div class="col-md-8">
+        <img src="{% static car.image %}" alt="" width="100%">
+    </div>
+    <div class="col-md-4">
+        <h5>About the car:</h5>
+        <p>{{ car.description }}</p>
+        <br>
+        <h5>VBrand:</h5>
+        <p>{{ car.technology }}</p>
+    </div>
+</div>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [car_detail]: Fichero `car_detail.html`]
+
+El código en esta plantilla tiene la misma funcionalidad que cada tarjeta de un coche en la plantilla `car_index`, la única diferencia es la introducción de algunas columnas de Bootstrap.
+
+Si se lanza el proyecto ahora con `python manage.py runserver` y se accede con el navegador a la app dentro del servidor local `localhost:8000/catalog/1` se puede ver la página para el primer coche.
+
+![Figure [res/202_004]: Página de un coche](res/202_004.png  width="400px")
+
+Todos los botones son navegables y el sitio web está completo.
+
+## Reviews de coches
+
+Además de mostrar un catálogo de coches, la web va a realizar una serie de pruebas a los coches, y se van a publicar las reviews a dichas pruebas, donde se comentan distintos datos sobre como funcionan los coches, sensaciones,... Se va a crear un sitio completamente funcional donde se puedan:
+
+- Crear, actualizar y borrar reviews
+- Mostrar reviews al usuario con una vista global o detallada
+- Asignar categorias a las reviews
+- Permitir a los usuarios comentar en las reviews
+
+También se usará el interfaz de administración de Django, que es donde se crearán, actualizarán y borrarán reviews y categorías cuando sea necesario.
+
+El primer paso es crear una app en Django que se llame `review`. No hace falta borrar la app `catalog`, se quiere tener las dos apps dentro del proyecto de Django.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py startapp review
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_review]: Crear aplicación `review` en el proyecto de Django]
+
+También hay que añadir dicha app a la lista `INSTALLED_APPS` dentro del fichero `settings.py` en la carpeta `my_project`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'catalog',
+    'review',
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [installed_review]: Añadir aplicación `review` a `settings.py`]
+
+### Models
+
+El fichero `review/models.py` de esta app es bastante más complicado que el de la app anterior. Se van a necesitar tres tablas separadas en la base de datos para la web de reviews.
+
+- Review
+- Category
+- Comment
+
+Estas tablas tienen que estar relacionadas, esto es bastante simple puesto que los modelos de Django vienen con campos especiales para este propósito.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.db import models
+
+class Category(models.Model):
+    name = models.CharField(max_length=20)
+
+class Review(models.Model):
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    created_on = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    categories = models.ManyToManyField('Category', related_name='reviews')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [models_review]: Fichero `models.py` para la app `review`]
+
+El modelo para la `Category` es muy simple, solo se necesita un solo `CharField` donde se almacena el nombre de la categoría.
+
+En el modelo `Review`, los campos `title` y `body` tienen los mismos tipos que se usaron en el módelo `Car`. Solo se necesita un `CharField` para el `title` puesto que solo se quiere un texto corto para el título de la review. El `body` necesita un texto más largo, por eso se usa un `TextField`.
+
+Los siguientes dos campos, `created_on` y `last_modified` son campos de fecha, `DateTimeFields`. Estos almacenan objetos `datetime` que contienen la fecha y hora cuando la review fue creado y modificado respectivamente.
+
+El campo `created_on` recoge un parámetro `auto_now_add` con valor a `True`, esto le asigna la fecha y hora actual a este campo cuando la instancia de esta clase sea creada.
+
+El campo `last_modified` recoge un parámetro `auto_now` con valor a `True`, esto le asigna la fecha y hora actual a este campo cuando la instancia de esta clase sea modificada. Esto significa que cada vez que se edita una instancia de esta clase, `last_modified` se actualiza.
+
+El último campo en el modelo `Review` es el más interesante. Se quieren enlazar los modelos de las categorías y las reviews, de manera que muchas categorías se puedan asignar a muchas reviews. Por suerte, Django hace esto fácil proporcionando un campo de tipo `ManyToManyField`. Este campo enlaza los modelos `Review` y `Category` y permite crear una relación entre ambas tablas.
+
+Este `ManyToManyField` recibe dos argumentos. El primero es el modelo con el cual establecer la relación, en este caso `Category`. El segundo permite acceder a la relación desde un objeto `Category`, incluso aunque no se haya creado un campo en ese modelo. Añadiendo `reviews` al parámetro `related_name`, se puede acceder a `category.reviews` para obtener una lista de todas las reviews con esa categoría.
+
+El tercer y último modelo que se necesita es `Comment`. Se usa otro campo relacional similar a `ManyToManyField`. Pero en este caso, se quiere que la relación solo vaya en una dirección, una review podría tener muchos comentarios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+class Comment(models.Model):
+    author = models.CharField(max_length=60)
+    body = models.TextField()
+    created_on = models.DateTimeField(auto_now_add=True)
+    review = models.ForeignKey('Review', on_delete=models.CASCADE)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [models_comment]: Modelo para `Comment`]
+
+Los tres primeros campos son, el `author` para que los usuarios añadan su nombre o alias, un campo `body` para el cuerpo del comentario, y un `created_on`.
+
+Para el campo `review` se usa otro campo relacional, el campo `ForeignKey`. Este es similar a `ManyToManyField`, pero en su lugar define una relación muchos a uno. El razonamiento es que muchos comentarios pueden estar asignados a una sola review. Pero no se puede tener un comentario que corresponda a varios reviews.
+
+El campo `ForeignKey` recibe dos argumentos. El primero es el otro modelo en la relación, en este caso `Review`. El segundo le dice a Django que hacer cuando una review se borra. Si se borra una review, entonces no se quiere que los comentarios que estaban relacionados con dicha review se queden colgados. Por tanto, en ese caso, se quieren borrar también, así que se le pasa en el argumento `on_delete` el valor `models.CASCADE`.
+
+Una vez creados los modelos, se pueden crear los ficheros de migración con el comando `makemigrations`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py makemigrations review
+
+Output:
+Migrations for 'review':
+  review\migrations\0001_initial.py
+    - Create model Category
+    - Create model Review
+    - Create model Comment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [makemigratios]: Crear las migraciones para la aplicación `review`]
+
+El último paso es migrar las tablas. Esta vez, no se añade el flag para la app específica. Más tarde se necesitará el modelo `User` que Django crea por defecto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py migrate
+
+Output:
+Operations to perform:
+  Apply all migrations: admin, auth, catalog, contenttypes, review, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying review.0001_initial... OK
+  Applying sessions.0001_initial... OK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [migrate]: Ejecutar las migraciones]
+
+Una vez se han creado los modelos, se puede empezar a añadir algunas reviews y categorías. Pero no se hará desde la línea de comandos como en el caso anterior, sería muy incómodo, en su lugar se usará Django Admin, que permite crear instancias de las clases de los modelos con un interfaz web.
+
+### Admin
+
+Django Admin es una buena herramienta y uno de las mayores ventajas de usar Django. Puesto que el usuario va a ser el único que pueda escribir reviews en la web y crear categorías, no hace falta crear una interfaz de usuario para ello. Por otro lado, no se quiere escribir estas reviews en la línea de comandos. A través del admin, se pueden crear, actualizar y borrar instancias de las clases de los modelos con un interfaz amigable.
+
+Antes de acceder a dicho admin, hay que añadir al usuario con permisos de `superuser`. Por eso en la sección anterior al aplicar las migraciones se ha hecho sobre todo el proyecto, en lugar de solo para la app. Django viene con unos modelos de usuarios y un sistema de gestión de usuarios que permite acceder al admin.
+
+Para empezar, hay que añadir un `superuser` usando el comando `createsuperuser`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py createsuperuser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [createsuperuser]: Crear `superuser`]
+
+Se pide introducir un nombre de usuario, seguido por una dirección de correo y un password. Una vez hecho esto, el superusuario se ha creado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\django_app> python manage.py createsuperuser
+Username (leave blank to use 'ifuertes'):
+Email address: ivan.fuertes@campusviu.es
+Password:
+Password (again):
+Superuser created successfully.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [createsuperuser2]: Crear `superuser`]
+
+Se lanza el servidor con `python manage.py runserver` y se accede en el navegador a `localhost:8000/admin` y se inicia sesión con las credenciales que se acaban de crear como superuser.
+
+![Figure [res/202_005]: Página principal del admin](res/202_005.png  width="500px")
+
+Deberían aparecer los modelos `User` y `Groups`, pero no hay ninguna referencia a los modelos que se han creado a mano. Esto es porque hay que registrarlos dentro del admin. Hay que hacerlo en el fichero `admin.py`, en la carpeta `review`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.contrib import admin
+from review.models import Review, Category
+
+class ReviewAdmin(admin.ModelAdmin):
+    pass
+
+class CategoryAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Review, ReviewAdmin)
+admin.site.register(Category, CategoryAdmin)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [admin.py]: Registrar modelos en admin]
+
+Se importan los modelos que se quieren registrar, no se añade el modelo para los comentarios, puesto que no se quieren crear o editar desde aquí.
+
+Se definen dos clases vacías, `ReviewAdmin` y `CategoryAdmin`, se suelen usar para personalizar lo que se muestra en las páginas del admin.
+
+Las más importantes son las dos últimas líneas, estas registran los modelos en las clases del admin. Si ahora se visita la url `localhost:8000/admin` ya se pueden ver los dos modelos.
+
+![Figure [res/202_006]: Página principal del admin con los modelos](res/202_006.png  width="500px")
+
+Al pinchar en cualquiera de ellos, se pueden crear instancias de ambos modelos.
+
+### Views
+
+Hay que crear tres funciones para las vistas en el fichero `views.py` en el directorio `review`.
+
+- `review_index`, que mostrará una lista de todos las reviews
+- `review_detail`, que mostrará la review completa con todos los comentarios y un formulario que permita a los usuarios crear nuevos comentarios
+- `review_category`, similar a `review_index`, pero las reviews serán solo de una categoría específica que haya seleccionado el usuario
+
+La función `review_index` es muy similar a `catalog_index` de la app `catalog`. Se hace una consulta al modelo `Review` y se obtienen todos sus objetos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.shortcuts import render
+from review.models import Review, Comment
+
+def review_index(request):
+    reviews = Review.objects.all().order_by('-created_on')
+    context = {
+        "reviews": reviews,
+    }
+    return render(request, "review_index.html", context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_index]: Vista para el índice de las reviews]
+
+Se importan los modelos `Review` y `Comments`, y dentro de la función, se hace una consulta y se obtiene un conjunto de resultados que contiene todas las reviews de la base de datos ordenadas, para eso se usa el método `order_by`, que ordena dicho conjunto por el campo que se le proporciona. El signo menos indica a Django que se quiere empezar a ordenar por los valores más grandes, ya que se quiere que las reviews más recientes salgan antes.
+
+Se define el diccionario `context` y se representa el template `review_index.html`, que se creará más tarde.
+
+La vista para `review_category` cogerá el nombre de una categoría como argumento y hará una consulta a la base de datos de `Review` para conseguir todas las reviews a las que se ha asignado dicha categoría.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def review_category(request, category):
+    reviews = Review.objects.filter(categories__name__contains=category).order_by('-created_on')
+    context = {
+        "category": category,
+        "reviews": reviews
+    }
+    return render(request, "review_category.html", context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_category]: Vista para las reviews por categorías]
+
+En este caso se usa un [filtro](https://docs.djangoproject.com/en/2.1/topics/db/queries/#retrieving-specific-objects-with-filters). El argumento de este filtro le dice a Django que condiciones debe cumplir un objeto para ser recuperado. En este caso, solo se quieren reviews cuya categoría contenga la categoría con el nombre que corresponda al argumento que recibe la función. Y otra vez, usando `order_by` se ordenan las reviews con el mismo criterio.
+
+Se añaden las reviews y la categoría al diccionario `context` y se representa la plantilla `review_category.html`.
+
+La última vista es `review_detail`, esta es más complicada, puesto que se va a incluir un formulario. Antes de añadirlo, se prepara la función de la vista para mostrar una review específica con un comentario asociado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def review_detail(request, pk):
+    review = Review.objects.get(pk=pk)
+    comments = Comment.objects.filter(review=review)
+    context = {
+        "review": review,
+        "comments": comments,
+    }
+
+    return render(request, "review_detail.html", context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_detail]: Vista para el detalle de una review]
+
+Esta función recibe un parámetro `pk` con un valor, y se hace la consulta al modelo sobre ese `pk`. Luego se obtienen todos los comentarios asociados a dicha review, usando los filtros de Django. Y por último, se añaden ambos datos al diccionario `context` y se representa la plantilla `review_detail.html`.
+
+Para añadir un formulario a la página, hay que crear otro fichero en el directorio `review` llamado `forms.py`. Los formularios de Django son muy parecidos a los modelos. Un formulario consiste en una clase donde sus atributos son campos del formulario. Django ya viene con algunos campos de formulario que se pueden usar rápidamente para construir el formulario que sea.
+
+Para este formulario, solo se necesitan los campos `author`, que debería ser un `CharField` y `body`, que también debería ser un `CharField`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django import forms
+
+class CommentForm(forms.Form):
+    author = forms.CharField(
+        max_length=60,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Your Name"})
+    )
+    body = forms.CharField(widget=forms.Textarea(
+        attrs={"class": "form-control","placeholder": "Leave a comment!"})
+    )
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [form]: Formulario en `forms.py`]
+
+Se pasa un `widget` para cada campo. El campo `author` tiene un widget `forms.TextInput`, esto le indica a Django que cargue este campo como un elemento de entrada de texto HTML en las plantillas. El campo `body` usa un widget `forms.TextArea`, para que el campo se pinte como un elemento de area de texto HTML.
+
+Estos widgets reciben un parámetro `attrs`, que es un diccionario que permite especificar algunas clases CSS, que ayudarán con el formateo de la plantilla más tarde. También permite añadir un texto placeholder.
+
+Cuando un formulario se envía, se realiza una petición `POST` al servidor. Así que en la función de la vista, hay que verificar si se ha recibido una petición `POST`. Entonces se puede crear un comentario desde los campos del formulario. Django viene con un método `is_valid` en sus formularios, para verificar que todos los campos han sido introducidos correctamente.
+
+Una vez creados los comentarios en el formulario, hay que guardarlos usando `save` y entonces volver a consultar todos los comentarios asignados a la review.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def review_detail(request, pk):
+    review = Review.objects.get(pk=pk)
+
+    form = CommentForm()
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = Comment(
+                author=form.cleaned_data["author"],
+                body=form.cleaned_data["body"],
+                review=review
+            )
+            comment.save()
+
+    comments = Comment.objects.filter(review=review)
+    context = {
+        "review": review,
+        "comments": comments,
+        "form": form,
+    }
+
+    return render(request, "review_detail.html", context)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_detail]: Vista para el detalle de una review]
+
+Ahora se han añadido algunas cosas. Se crea una instancia de la clase del formulario `CommentForm`, y por tanto hay que importar dicho formulario al inicio del fichero de `views.py`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from review.forms import CommentForm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_form]: Importar formulario de comentarios]
+
+Luego se comprueba si se ha recibido una petición por `POST`, en ese caso, se crea una nueva instancia del formulario, relleno con los datos que se han introducido en el formulario.
+
+El formulario, en ese momento, se valida usando `is_valid`, si es válido, se crea una nueva instancia de `Comment`. Se puede acceder a los datos del formulario usando `form.cleaned_data` que es un diccionario.
+
+Las claves del diccionario corresponden a los campos del formulario, así que se puede acceder al `author` usando `form.cleaned_data['author']`. Y se añade la review actual al comentario cuanddo se crea.
+
+El ciclo de vida para enviar un formulario se resume en:
+
+- Cuando un usuario visita una página que contiene un formulario, envia una petición `GET` al servidor. En este caso, no hay datos introducidos en el formulario, solo hay que dibujar el formulario y mostrarlo.
+
+- Cuando un usuario introduce la información y pulsa el botón `Enviar`, se envía al servidor una petición `POST` que contiene todos los datos incluidos en el formulario. En este punto, los datos deben ser procesados, y pueden pasar dos cosas:
+  - El formulario es válido, y se redirige al usuario a la siguiente página
+  - El formulario no es válido, se muestra el formulario vacío de nuevo, el usuario está de nuevo en el paso anterior y el proceso se repite
+
+Los formularios de Django mostrarán algunos errores, que se pueden [mostrar al usuario](https://docs.djangoproject.com/en/2.1/topics/forms/#rendering-form-error-messages).
+
+Al final se guarda el comentario con `save` y se añade el `form` al diccionario `context` para poder acceder al formulario en la plantilla HTML.
+
+El último paso antes de crear las plantillas y ver todo esto en marcha es enlazar las URLs. Hay que crear un fichero `urls.py` dentro de la carpeta `review` y añadir las tres URLs para las tres vistas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.urls import path
+from review import views
+
+urlpatterns = [
+    path("", views.review_index, name="review_index"),
+    path("<int:pk>/", views.review_detail, name="review_detail"),
+    path("<category>/", views.review_category, name="review_category"),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [urls_review]: URLs para la app `review` de las tres vistas]
+
+Una vez están en su lugar las URLs específicas para la app `review`, hay que añadirlas a las URLs del proyecto en `urls.py` de la carpeta `my_project`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("catalog/", include("catalog.urls")),
+    path("review/", include("review.urls")),
+]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [urls_review_2] URLs para el proyecto incluyendo las de la app `review`]
+
+Con esto, todas las URLs de `review` tendrán el prefijo `review/` y se tendrán las siguientes URLs.
+
+- `localhost:8000/review` índice de las reviews
+- `localhost:8000/review/1` detalle de la review con `pk=1`
+- `localhost:8000/review/electric` vista con todos las reviews de la categoría `electric`
+
+Estas URLs aún no funcionarán puesto que hay que crear las plantillas.
+
+### Templates
+
+La parte final para la aplicación `review` es crear las plantillas. La primera que hay que crear es la del índice de la web de reviews `review_index.html` en la carpeta `review/templates`, que será muy similar a la vista anteriormente para el catálogo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+{% block page_content %}
+<div class="col-md-8 offset-md-2">
+    <h1>Car Reviews Index</h1>
+    <hr>
+    {% for review in reviews %}
+        <h4><a href="{% url 'review_detail' review.pk%}">{{ review.title }}</a></h4>
+        <small>
+            {{ review.created_on.date }} |&nbsp;
+            Categories:&nbsp;
+            {% for category in review.categories.all %}
+            <a href="{% url 'review_category' category.name %}">
+                {{ category.name }}
+            </a>&nbsp;
+            {% endfor %}
+        </small>
+        <p>{{ review.body | slice:":400" }}...</p>
+    {% endfor %}
+</div>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_index] Plantilla para el índice de reviews]
+
+Se usa un bucle para iterar sobre todas las reviews, y para cada review, se mostrará el título y una muestra del cuerpo de la review. Se extiende de la plantilla base `base.html` en `my_project/templates`, que ya contiene la barra de navegación y algún formateado.
+
+Justo tras el bucle se encuentra el título de la review, que es un hipervínculo de HTML, es decir, un enlace navegable. El enlace es un enlace de Django donde se apunta a una URL llamada `review_detail`, que toma un entero como parámetro, y debería corresponder al valor `pk` de la review.
+
+Bajo el título, se muestra el atributo de la review `created_on` y sus categorías. Se usa otro bucle para iterar sobre todas las categorías asignadas a la review.
+
+Al final se usa un filtrado [slice](https://docs.djangoproject.com/en/3.2/ref/templates/builtins/#slice) para recortar el tamaño del cuerpo de la review a 400 carácteres, para que el índice de la página sea más legible.
+
+Si ahora se lanza el servidor con `python manage.py runserver` y se accede en el navegador a la URL para el índice de la página `localhost:8000/review` se puede ver dicha plantilla en acción.
+
+![Figure [res/202_007]: Índice de las reviews](res/202_007.png  width="400px")
+
+Ahora se crea otro fichero HTML `review_category.html` dentro de la carpeta `review/templates`, para la plantilla de las categorías. Debería ser idéntico a la plantilla anterior, excepto por el nombre de la categoría dentro de la etiqueta `h1` en lugar del texto literal `Car Reviews Index`. Para ese nombre se usa otro filtro de Django, en este caso [title](https://docs.djangoproject.com/en/3.2/ref/templates/builtins/#title), que hace que el string tenga la primera palabra empezando por mayúscula.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+{% block page_content %}
+<div class="col-md-8 offset-md-2">
+    <h1>{{ category | title }}</h1>
+    <hr>
+    {% for review in reviews %}
+        <h4><a href="{% url 'review_detail' review.pk%}">{{ review.title }}</a></h4>
+        <small>
+            {{ review.created_on.date }} |&nbsp;
+            Categories:&nbsp;
+            {% for category in review.categories.all %}
+            <a href="{% url 'review_category' category.name %}">
+                {{ category.name }}
+            </a>&nbsp;
+            {% endfor %}
+        </small>
+        <p>{{ review.body | slice:":400" }}...</p>
+    {% endfor %}
+</div>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_category] Plantilla para las reviews por categoría]
+
+Si ahora se lanza el servidor con `python manage.py runserver` y se accede en el navegador a la URL para el índice de las reviews `localhost:8000/review/electric` se puede ver dicha plantilla en acción.
+
+![Figure [res/202_008]: Entradas de las reviews por categoría](res/202_008.png  width="400px")
+
+La última plantilla que falta es la del detalle de cada review, donde se mostrará el título de la review, y todo el cuerpo completo de la misma. Entre el título y el cuerpo se mostrará la fecha en la que la review fue creada y sus categorías. Y debajo de eso, se incluirán un formulario para los comentarios para que los usuarios puedan añadir nuevos comentarios. Y bajo esto, una lista de los comentarios que ya se han dejado.
+
+Se crea otro fichero HTML `review_detail.html` dentro de la carpeta `review/templates`, para la plantilla del detalle de las reviews.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+{% extends "base.html" %}
+{% block page_content %}
+<div class="col-md-8 offset-md-2">
+    <h1>{{ review.title }}</h1>
+    <small>
+        {{ review.created_on.date }} |&nbsp;
+        Categories:&nbsp;
+        {% for category in review.categories.all %}
+        <a href="{% url 'review_category' category.name %}">
+            {{ category.name }}
+        </a>&nbsp;
+        {% endfor %}
+    </small>
+    <p>{{ review.body | linebreaks }}</p>
+    <h3>Leave a comment:</h3>
+    <form action="/review/{{ review.pk }}/" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.author }}
+        </div>
+        <div class="form-group">
+            {{ form.body }}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <h3>Comments:</h3>
+    {% for comment in comments %}
+    <p>
+        On {{comment.created_on.date }}&nbsp;
+        <b>{{ comment.author }}</b> wrote:
+    </p>
+    <p>{{ comment.body }}</p>
+    <hr>
+    {% endfor %}
+</div>
+{% endblock %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [review_detail] Plantilla para el detalle de las reviews de la web]
+
+Las primeras líneas de esta plantilla siguen la misma lógica que las anteriores, donde se muestra el título de la review, la fecha y las categorías. Esta vez, al mostrar el cuerpo de la review, se usa el filtro [linebreaks](https://docs.djangoproject.com/en/3.2/ref/templates/builtins/#linebreaks), esto hace que registre las nuevas líneas como nuevos párrafos, así el cuerpo no parece un bloque largo de texto.
+
+Bajo la review, se muestra el formulario dentro de las etiquetas de HTML `form`. La acción de dicho formulario apunta a la URL de la página a la cual se están enviando la petición de `POST`. En este caso, es la misma que la página que se está visitando. Entonces se añade `csrf_token`, que proporciona seguridad y luego se pintan los campos del formulario para el autor y el contenido del comentario, seguido por un botón para enviarlo.
+
+Para conseguir que los estilos de Bootstrap funcionen en estos campos del formulario, hay que añadir la clase `form-group` a estos campos.
+
+Puesto que Django representa estos campos de entrada cuando se incluye `{{ form.body }}` y `{{ form.author }}`, no se añaden dichas clases a la plantilla. Por eso se añadieron los atributos a los widgets del formulario en la sección anterior.
+
+Bajo el formulario, hay otro bucle que itera sobre todos los comentarios de la review, y se muestran los campos `body`, `author` y `created_on` para cada comentario.
+
+Si ahora se lanza el servidor con `python manage.py runserver` y se accede en el navegador a la URL para el índice de la review 1 `localhost:8000/review/1` se puede ver dicha plantilla en acción.
+
+![Figure [res/202_009]: Detalle de la review con comentarios](res/202_009.png  width="400px")
+
+Por último, solo faltaría añadir el índice de las reviews al fichero `base.html` para tener disponible un enlace a dicho índice dentro de la barra de navegación de la página principal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<li class="nav-item active">
+    <a class="nav-link" href="{% url 'car_index' %}">Catalog</a>
+</li>
+<li class="nav-item active">
+    <a class="nav-link" href="{% url 'review_index' %}">Reviews</a>
+</li>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [base_html_index2] Añadir enlace a `review_index` en `base.html`]
+
+Todos los enlaces en la web deberían funcionar para navegar entre las tres plantillas, pinchando en categorías, reviews,...
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

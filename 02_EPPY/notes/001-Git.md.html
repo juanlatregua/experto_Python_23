@@ -1,0 +1,876 @@
+<meta charset="utf-8">
+**02EPPY - 001 - Git**
+    <small>©2023 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Git
+
+Git es un sistema de control de versiones distribuido. Su objetivo es llevar un registro de los cambios en ficheros de código, incluyendo la coordinación del trabajo que varias personas realizan sobre dichos ficheros compartidos en un repositorio de código.
+
+Para ampliar todo lo expuesto en esta guía se puede recurrir al libro publicado de manera gratuita en la web de Git, [Pro Git 2nd edition](https://git-scm.com/book/es/v2).
+
+## Control de Versiones
+
+Un sistema de control de versiones (Version Control System o VCS) es un conjunto de herramientas que rastrean la historia de un conjunto de ficheros. Esto significa que se le puede decir al VCS, en este caso Git, que guarde el estado de los ficheros en un momento determinado. Luego continuar con su edición y almacenar también ese estado. Almacenar el estado es similar a crear una copia de seguridad del directorio de trabajo. Cuando se usa Git, esto almacenamiento del estado se conoce como hacer un commit.
+
+Cuando se hace un commit en Git, se añade un mensaje para ese commit que explica a alto nivel que cambios se han hecho en dicho commit. Git puede mostrar la historia de todos los commits y sus mensajes asociados. Esto produce una historia muy util del trabajo que se ha realizado y puede ayudar a encontrar algún bug en el desarrollo de un sistema.
+
+Además de mostrar el registro de cambios que se han hecho, Git también permite comparar ficheros entre distintos commits, y devolver un fichero, o conjunto de ficheros, a un estado anterior de otro commit con muy poco esfuerzo.
+
+Otros sistemas de control de versiones muy usados son SubVersion o [SVN](https://subversion.apache.org/), [Mercurial](https://www.mercurial-scm.org/), [Perforce](https://www.perforce.com/), [CVs](https://www.nongnu.org/cvs/).
+
+## Control de Versiones Distribuida
+
+Los primeros sistemas de control trabajaban almacenando esos commits de manera local en el disco duro. Esta colección de commits se llamaba un repositorio. Esto solucionaba el que se pudiera volver al estado anterior del trabajo, pero no escalaba bien para el trabajo en equipo en la misma base de código.
+
+Cuando equipos de trabajo más grandes empezaron a usar estos sistemas (y las redes empezaron a ser más comunes), los VCS cambiaron el almacenamiento del repositorio a un servidor central que fuera compartido por muchos desarrolladores. Esto solucionó muchos problemas, pero creó otros nuevos, como el bloqueo de ficheros compartidos.
+
+Tras varios otros VCS que se crearon, apareció Git, que rompió dicho modelo. Git no tiene un servidor central que contenga la versión definitiva del repositorio. Todos los usuarios tienen una copia completa del repositorio. Esto significa que hacer que todos los desarrolladores estén en la misma página puede ser complicado, pero también significa que estos desarrolladores pueden trabajar offline la mayor parte del tiempo, conectándose a otros repositorios cuando necesitan compartir el trabajo.
+
+Esto puede resultar un poco confuso, puesto que muchos desarrolladores usan GitHub como un repositorio central desde el que todo el mundo debe obtener los datos, o hacer un pull. Esto es cierto, pero Git no impone esto. En ciertas circunstancias, es cómodo tener un sitio central para compartir el código. Pero el repositorio completo aún se almacena en todos los repositorios locales cuando se usa GitHub.
+
+# Instalación
+
+En muchos equipos, sobre todo en máquinas Posix, Git viene ya preinstalado con el sistema operativo. En esos sistemas operativos, si fuera necesario, se puede usar el instalador de paquetes *apt* para instalar Git. En máquinas Windows se puede hacer fácilmente a través del instalador que se facilita en la página [web oficial](https://git-scm.com/).
+
+## Línea de Comandos vs Clientes
+
+Se puede verificar si Git está instalado correctamente en el sistema llamando desde la línea de comandos a *git* con el parámetro *--version*. Si la instalación es correcta entonces mostrará el número de versión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> git --version
+
+Output:
+git version 2.33.1.windows.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [check_git]: Verificar versión de Git]
+
+Git se suele usar de manera habitual desde la línea de comandos. Esto quiere decir que se tienen que conocer todos los comandos y sus parámetros asociados. Lo cual no suele ser cómodo, sobre todo al principio. Así que se suelen usar clientes de Git que ofrezcan alguna interfaz visual. Algunos de los más usados son [Fork](https://git-fork.com/), [Sourcetree](https://www.sourcetreeapp.com/) o [Kraken](https://www.gitkraken.com/). En esta guia se van a manejar de manera simultanea todos los ejemplos tanto en línea de comando como con el cliente Fork.
+
+# Uso Básico
+
+Para empezar se va a trabajar con Git en la máquina local, para luego pasar a trabajar con GitHub como remoto.
+
+## Crear un Nuevo Repositorio
+
+Para trabajar con Git, el primer paso es decirle quien es el usuario, se puede determinar el nombre de usuario a través del comando *config*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> git config --global user.name "Izuku Midoriya"
+E:\Dev\VIU\EPPY> git config --global user.email "deku@ua.jp"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_config]: Configurar usuario y correo en Git]
+
+En *Fork* esto se puede hacer en la ventana de *Preferences* desde el menu *File*, en la pestaña *Git*.
+
+![Figure [res/001_000]: Preferences en *Fork*](res/001_000.png  width="400px")
+
+Una vez configurado, se necesita un repositorio con el cual trabajar. Crear un repositorio es muy simple, se usa el comando *init* de Git sobre un directorio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> mkdir git_repo
+E:\Dev\VIU\EPPY> cd git_repo
+E:\Dev\VIU\EPPY\git_repo> git init
+
+Output:
+Initialized empty Git repository in E:/Dev/VIU/EPPY/git_repo/.git/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_init]: Crear un repositotio en Git]
+
+Para crear e inicializar un repositorio desde *Fork*, se usar la opción *Init New Repository* desde el menu *File*. Al hacer esto se abrirá una ventana para seleccionar la carpeta donde se quiere realizar dicha operación, eso además de inicializar el repositorio vacío, también añadirá dicho repositorio como una pestaña nueva en el interfaz gráfico de *Fork*, obviamente con toda su historia vacía.
+
+![Figure [res/001_001]: Repositorio nuevo vacío en *Fork*](res/001_001.png  width="400px")
+
+Una vez se tiene un repositorio creado, se puede preguntar a Git acerca de su estado, uno de los comandos que más se suelen usar es *status*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+
+No commits yet
+
+nothing to commit (create/copy files and use "git add" to track)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status]: Preguntar por el estado de un repositotio en Git]
+
+Esto muestra cierta información acerca del repositorio, en que rama está situado (en este caso *master*), y que no hay nada para hacer *commit*. Esta última parte significa que aún no hay ficheros en este directorio que Git no conozca. Esto es bueno, puesto que solo se ha creado el directorio.
+
+En *Fork* este estado se muestra de manera visual en cada momento de manera automática a través de los diferentes apartados de su interfaz gráfica.
+
+## Añadir un Fichero Nuevo
+
+Ahora se crea un nuevo fichero del cual Git desconozca su existencia. Por ejemplo, un script de Python, *hello.py*, que simplemente haga un *print*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print("Hello Git!!!")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_git]: Fichero con un script Python]
+
+Si ahora se ejecuta el comando *status* en el repositorio, el resultado será un poco diferente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        hello.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status1]: Preguntar por el estado de un repositotio en Git con un fichero nuevo]
+
+Ahora Git ve el nuevo fichero, e informa que su estado es *untracked*. Es la manera de Git de decir que ese fichero no es parte del repositorio y no está bajo el control de versiones. Se puede arreglar esto añadiendolo a Git, usando el comando *add* para ello.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git add hello.py
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   hello.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_add]: Añadir un fichero al repositorio]
+
+Ahora Git conoce el fichero *hello.py* y lo muestra bajo la lista de *changes to be committed*, cambios a commitear. Añadir un fichero a Git lo mueve al area de *stage*, y significa que se puede remitir (*commit*) al repositorio.
+
+Este proceso en *Fork* se realiza de manera similar. Una vez creado el fichero *hello.py* dentro del repositorio, en el interfaz gráfico se puede observar en la información del repositorio, que en la sección de *Local Changes*, ahora hay 1 cambio nuevo, indicado en el propio texto. Y si se selecciona dicha etiqueta, se abre la pantalla para verificar los cambios. En esta ventana en la sección *Unstaged* se puede ver que aparece el nuevo fichero, marcado con un icono verde, para indicar que es un fichero nuevo, del cual git no tiene conocimiento, su estado es *untracked*.
+
+![Figure [res/001_002]: Repositorio con un cambio local](res/001_002.png  width="600px")
+
+Para añadir dicho fichero al control de versiones hay que pulsar sobre el botón *Stage*, y en ese momento el fichero ya estará dentro de *git*, y se podrá ver en la sección *Staged*.
+
+![Figure [res/001_003]: Repositorio con el fichero ya versionado en la sección *staged*](res/001_003.png  width="600px")
+
+En esta misma ventana, en la parte derecha, se pueden observar los cambios realizados a los ficheros que están en este proceso. En rojo se marcan las líneas que se han eliminado, y en verde las líneas que se han añadido. En este caso, como el fichero es nuevo, todas las líneas son verdes.
+
+## Commiteando Cambios
+
+Cuando se hace un *commit* de los cambios, se le está diciendo a Git que realice una fotografía (snapshot) del estado del repositorio en ese momento. Para ello se usa el comando *commit*. Con la opción *-m*, se le dice a Git que use el mensaje que se le pasa a continuación para describir esa operación de *commit*. Si no se usa la opción *-m*, Git abrirá un editor para que el usuario cree un mensaje. En general, se usan estos mensajes para reflejar lo que ha cambiado en ese *commit*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git commit -m "My first commit!!!"
+
+Output:
+[master (root-commit) 9e04272] My first commit!!!
+ 1 file changed, 1 insertion(+)
+ create mode 100644 hello.py
+
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+nothing to commit, working tree clean
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_commit]: Hacer un *commit*]
+
+El comando *commit* devuelve cierta información, la mayor parte no es especialmente útil, pero informa que se ha cambiado solo un fichero (tiene sentido, puesto que solo se ha añadido uno). También informa del *SHA* del *commit* (9e04272).
+
+Ejecutar el comando *status* otra vez, muestra que se tiene de nuevo un directorio de trabajo limpio, es decir, se ha hecho *commit* de todos los cambios.
+
+Desde *Fork* esto se realiza en la ventana de *Local Changes*, abajo a la derecha hay un área donde se puede poner el comentario para el *commit* y luego una descripción más detallada del mismo. A continuación se pulsa en el botón *Commit* para realizar dicha operación y aceptar todos los cambios que están en el área *Staged*.
+
+![Figure [res/001_004]: Preparar un *commit*](res/001_004.png  width="600px")
+
+Una vez realizado esto, el área *Staged* se queda limpia, y si se pulsa en la sección *All Commits* en la parte superior izquierda del repositorio, se puede acceder al historial de *commits* del repositorio, donde ya se puede ver el primero que se acaba de realizar, junto con el autor del mismo, el *SHA* y la fecha. En la parte inferior se pueden observar más detalles del mismo.
+
+![Figure [res/001_005]: Historial tras el primer *commit*](res/001_005.png  width="600px")
+
+Si se pulsa sobre la sección *Changes*, se pueden observar los cambios introducidos en dicho *commit*. Para cada fichero se ven las líneas verdes/rojas indicando dichos cambios. En la sección *File Tree* se puede observar como estaba la estructura de ficheros en dicho momento del *commit*.
+
+![Figure [res/001_006]: Cambios del primer *commit*](res/001_006.png  width="600px")
+
+# El Área de Stage
+
+Al contrario de muchos otros sistemas de control de versiones, Git tiene un área de *stage*, a veces llamado *index*. Este área es como Git hace el seguimiento de los cambios que tienen que estar en el siguiente *commit*. Cuando se ejecutó el comando *add* anteriormente, se le informó a Git que se queria mover el nuevo fichero *hello.py* al area de *stage*. Este cambio se vio reflejado con el comando *status*, el fichero se movió de la sección de *untracked* (no registrados) a la sección de *to be committed* (pendientes de commitear). En *Fork* esto se refleja en las dos ventanas de *Unstaged* y *Staged*.
+
+El área de *stage* refleja en cada momento los contenidos exactos del fichero cuando se ejecutó el comando *add*. Si se vuelve a modificar dicho fichero, este aparecerá simultaneamente en las dos áreas *staged* y *unstaged*.
+
+En cualquier momento del uso de un fichero en Git (asumiendo que al menos se ha hecho un *commit* una vez), pueden haber hasta tres versiones del fichero con el que se puede trabajar:
+
+- La versión en el disco duro local, en el directorio de trabajo, que se está editando
+- Una versión distinta que Git ha almacenado en el área de *stage*
+- La última versión registrada en el repositorio
+
+Estas tres pueden ser versiones distintas del fichero. Mover los cambios al área de *stage* y haciendo un *commit* de estos cambios, vuelve a poner a todas estas versiones sincronizadas.
+
+Este sistema puede parecer un poco confuso al principio, pero pronto se encuentran situaciones donde esta funcionalidad resulta muy útil.
+
+![Figure [res/001_007]: Área de *stage*](res/001_007.png  width="400px")
+
+# Ignorar Ficheros
+
+El comando *status* es muy útil, y se usa muy a menudo. Pero a veces muestra un montón de ficheros en la sección *untracked* y que no se quiere que Git vea. En *Fork* estos ficheros se verían en la sección *Unstaged*. Son ficheros que no se quiere que acaben en el repositorio y que el control de versiones haga un seguimiento sobre ellos. Para evitar este problema se usa el fichero *.gitignore*.
+
+Se crea un nuevo fichero Python en el mismo directorio llamado *helper.py*, que publica una función para obtener una cadena de texto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def get_str():
+  return "Foo"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [get_str]: Fichero *helper.py*]
+
+Y se modifica el fichero *hello.py* para incluir el fichero *helper.py* y llamar a su función.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import helper
+
+string = helper.get_str()
+print(f"Hello {string}!!!")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_py2]: Fichero *hello.py*]
+
+Cuando se importa un módulo local, Python lo compila a *bytecode* y deja ese fichero en el sistema de ficheros del sistema. Se crea un directorio `__pycache__` y dentro un fichero *.pyc* con dicho bytecode.
+
+Si ahora se ejecuta el comando *status*, se verá dicho directorio `__pycache__` en la sección *untracked* de ficheros a los cuales no se les hace el seguimiento, así como el nuevo fichero *helper.py*. También aparece el fichero *hello.py* en una nueva sección llamada *"Changes not staged for commit"*, es decir, indicando que se han hecho cambios a dicho fichero que aún no han sido añadidos al área de *stage*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   hello.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        __pycache__/
+        helper.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_ignore_status]: Estado del repositorio]
+
+En *Fork* todos estos cambios se observan en la ventana de *Local Changes*, el fichero nuevo *helper.py* se muestra con una marca verde indicando que no estaba versionado, mientras que el fichero *hello.py* sale con un icono amarillo puesto que ya estaba versionado y ahora ha recibido alguna modificación. Dicha modificación se puede observar en la ventana de cambios, con líneas rojas y verdes. También se puede ver que el fichero dentro de `__pycache__` aparece como fichero nuevo.
+
+![Figure [res/001_008]: Nuevos cambios](res/001_008.png  width="600px")
+
+Lo lógico en este punto sería añadir al área de *stage* a los dos ficheros *hello.py* y *helper.py*, para guardar sus cambios. Usando el comando *add* como anteriormente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git add hello.py helper.py
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   hello.py
+        new file:   helper.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        __pycache__/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_ignore_add]: Estado del repositorio tras añadir los dos ficheros]
+
+Y ahora se puede hacer un *commit* para que introduzca esos cambios en el repositorio local. Y al hacer un *status* justo después se puede observar como solo queda el directorio `__pycache__` en la sección de ficheros sin seguimiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git commit -m "Second Commit!!!"
+
+Output:
+[master ce10bb9] Second Commit!!!
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+ create mode 100644 helper.py
+
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        __pycache__/
+
+nothing added to commit but untracked files present (use "git add" to track)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_ignore_commit]: Estado del repositorio tras commmittear los dos ficheros]
+
+En *Fork* se hace un *commit* de ambos ficheros y se deja el fichero temporal en el área *Unstaged*.
+
+![Figure [res/001_009]: *Commit* de los nuevos cambios](res/001_009.png  width="600px")
+
+Esos ficheros, que suelen binarios compilados, temporales,... no se suelen repositar, es decir, no se quiere que acaben en el repositorio, puesto que son ficheros que se generan automáticamente por las herramientas de desarrollo. Habitualmente tienen propiedades, rutas,... que las enlazan directamente al ordenador o usuario del que las está ejecutando, así que no es buena idea compartirlas subiendolas al repositorio.
+
+Para conseguir que todos los directorios `__pycache__` y sus contenidos sean ignorados por git, hay que añadir un fichero *.gitignore* al repositorio. Se crea un fichero con dicho nombre y se edita el texto para añadir dicho nombre `__pycache__` a ignorar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+__pycache__
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [.gitignore]: Fichero *.gitignore*]
+
+Ahora cuando se vuelve a ejecutar el comando *status*, ya no se ve la carpeta `__pycache__` en git. Pero, aparece el nuevo fichero *.gitignore* en la sección de ficheros sin seguimiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .gitignore
+
+nothing added to commit but untracked files present (use "git add" to track)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_ignore_gitignore]: Estado del repositorio tras crear el fichero *.gitignore*]
+
+Este fichero es un fichero de texto normal y corriente que puede ser añadido al repositorio como cualquier otro.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git add .gitignore
+E:\Dev\VIU\EPPY\git_repo> git commit -m "Added ignore file"
+
+Output:
+[master e325b71] Added ignore file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 .gitignore
+
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch master
+nothing to commit, working tree clean
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_ignore_commit_gitignore]: Estado del repositorio tras committear el fichero *.gitignore*]
+
+En *Fork* también se aprecia este cambio una vez creado el fichero *.gitignore*, en el área *Unstaged* ya no aparecen los ficheros bajo la carpeta `__pycache__` y en cambio se puede ver dicho fichero *.gitignore*. El cual se debería pasar al área de *Staged* y posteriormente hacer un *commit* para incluirlo en el repositorio.
+
+![Figure [res/001_010]: Fichero *.gitignore*](res/001_010.png  width="600px")
+
+Otras entradas comunes en dichos ficheros en repositorios que contienen código de Python, son el directorio *.venv* donde se almacena el entorno virtual, u otras carpetas o ficheros locales o temporales que no haya que subir al repositorio.
+
+También es posible tener un fichero *.gitignore*' global almacenado en el directorio del usuario del sistema, que puede actuar como fichero de primer nivel para ignorar ciertos patrones habituales.
+
+Un fichero *.gitignore* habitual para un repositorio de Python puede ser el siguiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+__pycache__
+build
+eggs
+lib
+wheels
+.venv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [.gitignore_tipico]: Fichero *.gitignore* típico para proyectos Python]
+
+Para un fichero *.gitgnore* de Python más completo se puede consultar [este](https://github.com/github/gitignore/blob/main/Python.gitignore), que es el que se usa en GitHub como fichero por defecto para repositorios de Python.
+
+## Que Cosas No Añadir a un Repositorio Git
+
+Cuando se empieza a trabajar con cualquier herramienta de control de versiones, es muy fácil caer en la tentación de poner todo en el repositorio, y esto es un error común. Hay limitaciones de Git, y también problemas de seguridad que hacen que haya que limitar que tipo de información se añade a un repositorio.
+
+La regla básica general para todos los sistemas de control de versiones es, poner solo ficheros de código fuente en el control de versiones, nunca ficheros generados.
+
+En este contexto, un fichero de código fuente es cualquier fichero que el usuario haya creado, normalmente escribiendo en un editor de texto/IDE. Un fichero generado es aquel que el ordenador crea, normalmente procesando un fichero de código fuente. Por ejemplo, el fichero *hello.py* es un fichero de código fuente, mientras que el fichero *hello.pyc* dentro de la carpeta `__pycache__` sería un fichero generado.
+
+Hay dos razones para no incluir dichos ficheros en el repositorio. El primero es que hacerlo sería un desperdicio de espacio y tiempo. Los ficheros generados se pueden recrear en cualquier momento y puede necesitarse crearlos en una forma ligeramente distinta. Por ejemplo, si se usa un interprete distinto, estos ficheros *.pyc* serán sustancialmente diferentes. Subir alguno de ellos al repositorio podría causar un conflicto.
+
+La segunda razón para no almacenar dichos ficheros generados es que estos suelen ser normalmente más grandes que los ficheros fuentes originales. Subirlos al repositorio significa que todo el mundo ahora tiene que bajarse y almacenar dichos ficheros generados, incluso si no están usándolos.
+
+Este segundo punto lleva a otra regla general sobre los repositorios de Git, hay que tener mucho cuidado al hacer *commit* sobre ficheros binarios y evitar de todas las maneras incluir ficheros grandes. Esta regla tiene mucho que ver con la forma en que Git trabaja.
+
+Git no almacena una copia completa de cada versión de cada fichero en el repositorio. En su lugar, usa un algoritmo muy complicado basado en las diferencias entre subsiguientes versiones de un fichero, para reducir en gran medida la cantidad de almacenamiento que necesita. Los ficheros binarios (jpg, mp3,...) no suelen tener buenas herramientas de diferencias entre versiones, así que Git normalmente suele almacenar los ficheros enteros de estos binarios cada vez que se hace un *commit* de ellos. Existe un sistema para soportar esto como una extensión de *Git*, que es [*Git LFS*](https://git-lfs.github.com/), siglas de *Large File Storage* o almacenamiento de ficheros grandes.
+
+Cuando se trabaja con Git, y especialmente al trabajar con GitHub, nunca se debe poner información confidencial en un repositorio, especialmente uno que se pueda publicar públicamente. Ni contraseñas, ni claves de API, o elementos similares.
+
+# SHA
+
+Cuando Git almacena cosas (ficheros, directorios, commits,...) en un repositorio, los almacena de una forma complicada que involucra una función de hash. Sin entrar en muchos detalles, una función hash es aquella que recibe un elemento y produce un identificador único para ese elemento que es mucho más corto (en este caso 20bytes). A este identificador se le llama *SHA* en Git. No está garantizado que sea único, pero a efectos prácticos lo es.
+
+Git usa un algoritmo de hash para indexar todo en un repositorio. Cada fichero tiene un identificador *SHA* que refleja los contenidos del fichero. Cada directorio, en su momento, también. Si un fichero en un directorio cambia, entonces el identificador *SHA* del directorio también lo hace.
+
+Cada *commit* contiene el identificador *SHA* del directorio de primer nivel del repositorio además de alguna otra información. Así es como un solo número de 20 bytes describe el estado completo del repositorio.
+
+Algunas veces Git usa la versión completa del identificador *SHA* de 20 bytes para mostrar por ejemplo el estado de un commit.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+commit e325b71ec5233e52a5aa1077b9864ef8f6df1064
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [commit_sha]: Identificador *SHA* de un *commit*]
+
+Pero algunas veces Git muestra una versión más corta.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+[master (root-commit) e325b71] Added Ignore file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [commit_sha2]: Identificador *SHA* corto de un *commit*]
+
+Habitualmente, mostrará la cadena completa, pero no siempre hay que usarla. La regla de Git es que solo ofrecerá los caracteres suficientes para asegurar que dicho identificador *SHA* es único en el repositorio. Normalmente con 7 caracteres suele ser suficiente.
+
+Cada vez que un *commit* cambia el repositorio, Git crea un nuevo identificador *SHA* que describe dicho estado.
+
+# Log
+
+Otro comando que se usa muy frecuentemente es *log*, que muestra la historia de los *commits* que se han hecho hasta ese momento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git log
+
+Output:
+commit e325b71ec5233e52a5aa1077b9864ef8f6df1064 (HEAD -> master)
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 12:34:46 2022 +0200
+
+    Added Ignore file
+
+commit ce10bb9ddb1868775a391ce7c7bc8b60cfffd2f8
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 11:54:31 2022 +0200
+
+    Second Commit!!!
+
+    Added chanes to hello and new helper
+
+commit 9e04272d14640e2d4ec79084dd25be81d7cc06b0
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 11:33:32 2022 +0200
+
+    My first commit!!!
+
+    This is the first commit to this repository....
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_log]: Historia del repositorio]
+
+Como se puede observar, todos los mensajes de *commit* del repositorio se muestran en orden cronológico. El inicio de cada *commit* esta marcado por dicha palabra seguida del identificador *SHA* de dicho *commit*. Se puede consultar la historia de cada *commit* usando dicho *SHA* en el comando *log*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git log 9e04272
+
+Output:
+commit 9e04272d14640e2d4ec79084dd25be81d7cc06b0
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 11:33:32 2022 +0200
+
+    My first commit!!!
+
+    This is the first commit to this repository....
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_log_commit]: Historia del repositorio de un *commit*]
+
+Esto en *Fork* se puede encontrar en la ventana de la sección *All Commits*. Donde aparece la historia de todos los *commits* realizados, autores, fechas,... E incluso para cada *commit* en la parte inferior se puede observar los cambios de cada fichero, el estado de la estructura de ficheros,...
+
+![Figure [res/001_011]: Sección *All Commits*](res/001_011.png  width="600px")
+
+# CheckOut
+
+Puesto que Git recuerda cada *commit* que se ha hecho en el repositorio con su identificador *SHA*, se le puede decir a Git que vaya a uno de esos *commits* y ver el repositorio tal como se encontraba en aquel momento.
+
+![Figure [res/001_012]: Estado de un repositorio](res/001_012.png  width="300px")
+
+Para cambiar donde se encuentra el espacio de trabajo dentro de la historia del repositorio, se usa el comando *checkout*, para decirle a Git a que identificador *SHA* tiene que mirar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git checkout ce10bb9
+
+Output:
+Note: checking out 'ce10bb9'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -b with the checkout command again. Example:
+
+  git checkout -b <new-branch-name>
+
+HEAD is now at ce10bb9 Added files hello and helper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_checkout]: Comando *checkout* para ir a un *commit* anterior]
+
+Hay mucha información en este punto y es interesante definir algunos de los términos que aparecen en esa salida.
+
+*HEAD* es el nombre que Git le pone a cualquier *SHA* que se pueda estar mirando en un momento determinado. No significa lo que esté en el sistema de ficheros o lo que está en el area de *stage*. Significa lo que Git piensa que se ha establecido, o hecho un *checkout*. Así pues, si se ha editado un fichero, la versión en el sistema de ficheros es distinta de la versión que esté en *HEAD*^.
+
+Lo siguiente es *branch*. La forma más fácil de entender un *branch* es que es una etiqueta sobre un identificador *SHA*. Tiene otras propiedades útiles, pero por ahora es suficiente con entenderlo como una etiqueta *SHA*.
+
+Cuando se junta toda esta información, se puede observar que *detached HEAD* (HEAD desconectada) simplemente significa que el *HEAD* está apuntando a un *SHA* que no tiene un *branch* (etiqueta) asociado. Git explica como arreglar dicha situación. Hay veces en las cuales se querrá arreglar, pero habrá otras en las que se puede trabajar perfectamente bien en ese estado desconectado.
+
+Si se mira al estado del sistema ahora, se puede observar que el fichero *.gitignore* no está presente en el sistema de ficheros. Se ha vuelto al pasado, a un estado del sistema antes de realizar dichos cambios.
+
+![Figure [res/001_013]: Estado de un repositorio con *HEAD* desconectada](res/001_013.png  width="300px")
+
+Se puede observar que en el estado actual, *HEAD* apunta a un *commit*, mientras que el *branch* *master* apunta a otro con un *SHA* distinto.
+
+Ahora, como se vuelve a donde se estaba inicialmente. Hay dos maneras, una ya se conoce, hacer un *checkout* al *commit* anterior, *git checkout e325b71*. Esto devolverá todo al estado del *SHA* donde se empezó a mover todo.
+
+La otra manera de volver es la más usada, hacer un *checkout* sobre el *branch* en el que se estaba. Git siempre empieza con una rama llamada *master* o *main*. Simplemente se puede hacer *git checkout master*. Esto devolverá el estado del repositorio al último *commit* que se ha hecho en el *branch* *master*, en este caso el commit con el mensaje en el que se ha creado el *.gitignore*. Explicado de otra manera, *git checkout master* le dice a Git que apunte *HEAD* al *SHA* marcado con la etiqueta o *branch* *master*.
+
+Hay muchas maneras distintas de especificar un *commit* en concreto. El identificador *SHA* es probablemente el más sencillo de entender. Los otros métodos usan distintos símbolos y nombres para especificar como obtener un *commit* determinado desde un lugar conocido, como *HEAD*^.
+
+Para hacer un *checkout* dentro de *Fork* simplemente hay que hacer doble click en uno de los *commits* de la historia, o bien seleccionar uno de dichos *commits* y en el menú contextual seleccionar *Checkout Commit...*. Se abre una ventana informando de la operación que se quiere realizar y confirmarlo.
+
+![Figure [res/001_014]: Checkout](res/001_014.png  width="400px")
+
+Después de esto, se puede observar que el estado del repositorio está en un *commit* distinto del más avanzado, o *HEAD*, porque dicho *commit* aparece en negrita en la lista del historial de *commits*. Incluso en la pestaña del repositorio con su nombre arriba, se indica con la descripción *detached HEAD*.
+
+![Figure [res/001_015]: Checkout](res/001_015.png  width="600px")
+
+# Ramas
+
+Las ramas *branches*, ofrecen una manera sencilla de mantener diferentes flujos de desarrollo separados. Y aunque esto pueda ser útil al trabajar solo, es esencial al trabajar en un equipo de desarrollo.
+
+Por ejemplo, se está trabajando en un equipo pequeño y hay que añadir una funcionalidad nueva al proyecto. Mientras que un desarrollador está trabajando en dicha mejora, no se deben subir los cambios a la rama *master*, puesto que aún no está funcionando correctamente y podría estropear el trabajo del resto del equipo.
+
+Dicho desarrollador se podría esperar a hacer un *commit* de sus cambios hasta haber finalizado correctamente su parte, pero esto no es muy seguro, y muchas veces no es muy práctico. Así que, en lugar de trabajar sobre *master*, se puede crear una nueva rama.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git checkout -b my_new_feature
+
+Output:
+Switched to a new branch 'my_new_feature'
+
+E:\Dev\VIU\EPPY\git_repo> git status
+
+Output:
+On branch my_new_feature
+nothing to commit, working tree clean
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_checkout_branch]: Crear una rama]
+
+Se usa la opción *-b* del comando *checkout* para decirle a Git que se quiere crear una nueva rama, y además posicionarse sobre ella. Como se puede observar al ejecutar el comando *status*, que el nombre de la rama ahora ha cambiado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git log
+
+Output:
+commit e325b71ec5233e52a5aa1077b9864ef8f6df1064 (HEAD -> my_new_feature, master)
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 12:34:46 2022 +0200
+
+    Added Ignore file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_branch]: Estado del repositorio tras crear una rama]
+
+El *log* es idéntico, como era de esperar. Al crear una rama, esta nueva rama empieza en la misma localización donde se estaba anteriormente. En este caso, se estaba en la parte superior de la rama *master*, en el *SHA* *e325b71*, así que es ahí donde comienza la nueva rama. Se puede observar también a la derecha de dicho *SHA* que *HEAD* está ahora apuntando a las ramas *my_new_feature* y *master*.
+
+En *Fork* crear una rama se hace desde el menú contextual en el histórico del repositorio, pinchando sobre el *commit* a partir del cual se quiere hacer dicha rama, en este caso sobre el último *commit* con *SHA* *e325b71*. Esto abrirá una nueva ventana donde se pide el nombre de la nueva rama, y se indica a partir de que *commit* se va a realizar.
+
+![Figure [res/001_016]: Crear rama](res/001_016.png  width="600px")
+
+A partir de ese momento se puede observar que ese *commit* ahora tiene dos ramas asociadas, y en la parte de la izquierda, en el apartado de *Branches* aparecen las dos ramas actuales que tiene el repositorio.
+
+![Figure [res/001_017]: Nueva rama *my_new_feature* en el repositorio](res/001_017.png  width="600px")
+
+Ahora se empieza a trabajar en la mejora del código, la nueva feature. Se hace un cambio al fichero *hello.py*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import helper
+
+string = helper.get_str()
+print(f"Hello again {string}!!!")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hello_branch]: Fichero *hello.py* modificado]
+
+Y se hace el *commit* correspondiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git add hello.py
+E:\Dev\VIU\EPPY\git_repo> git commit -m "Added code for new feature"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_branch_commit]: *commit* de los cambios de código]
+
+Si ahora se vuelve a ejecutar el comando *log*, se puede ver que el nuevo *commit* está presente, en este caso con el *SHA* *93c095b*. Pero se puede observar que el penúltimo *commit* sigue en la rama *master*, mientras que el último esta en la rama *my_new_feature*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git log
+
+Output:
+commit 93c095b098f9ef717f41480524b5f1a14fbddf59 (HEAD -> my_new_feature)
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 15:07:58 2022 +0200
+
+    Added code for new feature
+
+commit e325b71ec5233e52a5aa1077b9864ef8f6df1064 (master)
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 12:34:46 2022 +0200
+
+    Added Ignore file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_branch_feature]: Estado del repositorio tras crear una rama y hace run *commit*]
+
+El proceso en *Fork* es similar una vez creada la rama, como se ha visto antes, se hace el *Stage* del fichero con la nueva modificación, y luego el *commit* correspondiente. Como se estaba en la rama *my_new_feature* ese *commit* se realiza sobre esa rama. Y eso se puede verificar revisando la ventana con la historia del repositorio.
+
+![Figure [res/001_018]: Nueva *commit* sobre la rama *my_new_feature*](res/001_018.png  width="600px")
+
+Si ahora se vuelve a la rama *master* y se hace un *log*, se puede observar que el último *commit* no aparece, puesto que se hizo sobre la rama *my_new_feature*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git checkout master
+
+Output:
+Switched to branch 'master'
+
+E:\VIU\EPPY\git_repo> git log
+
+Output:
+commit e325b71ec5233e52a5aa1077b9864ef8f6df1064 (HEAD -> master)
+Author: Izuku Midoriya <deku@ua.jp>
+Date:   Wed Jun 8 12:34:46 2022 +0200
+
+    Added Ignore file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_status_branch_master]: Estado del repositorio en la rama *master*]
+
+Para proseguir con el ejemplo, se han hecho varios *commits* en ambas ramas para darle un poco de complejidad al caso de prueba.
+
+![Figure [res/001_019]: Repositorio con varios *commits* en ambas ramas](res/001_019.png  width="600px")
+
+Se puede observar como ahora las ramas toman un camino distinto en paralelo, donde los *commits* hechos en cada una de ellas desde que se separaron son propios de cada rama. Es decir, el *commit* *d859d6a* hecho en la rama *master* no es visible desde la rama *my_new_feature*. De hecho, este es el factor importante para trabajar con ramas, crear entornos de trabajo aislados donde el código que se va desarrollando en una rama no molesta al desarrollo de otras ramas.
+
+Pero llega un momento que la nueva funcionalidad se considera finalizada y hay que distribuirla al resto del equipo. Y hay tres métodos para hacer eso, *merge*, *rebase* y *cherry-picking*.
+
+Para poder probar todas estas técnicas de ramas y sus procesos se recomienda el recurso [Learn Git Branching](https://learngitbranching.js.org/), donde a través de unos ejercicios gráficos se pueden probar todos ellos.
+
+## Merge
+
+El proceso de *merge* o fusionar dos ramas es el método más simple y habitual. Cuando se realiza un *merge*, git crea un nuevo *commit* que combina los dos últimos *commits* de dos ramas. Si todos los *commits* en la otra rama están delante o se basan en el último *commit* de la rama actual, entonces simplemente hace un *fast-forward*, o avance rápido, y pone esos *commits* en esa rama.
+
+En el estado anterior se quiere que el *commit* *314de19* de la rama *my_new_feature* se integre dentro de la rama *master*. Se hace un *checkout* a la rama *master* para colocar el estado del repositorio en el punto desde el cual se quiere hacer la integración, y luego se ejecuta el comando *merge* sobre la rama de la cual se quieren obtener las integraciones nuevas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git checkout master
+
+Output:
+Switched to branch 'master'
+
+E:\VIU\EPPY\git_repo> git merge my_new_feature
+
+Output:
+Merge made by the 'recursive' strategy.
+ hello.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_merge]: Realizar un *merge* de la rama *my_new_feature* sobre la rama *master*]
+
+Pues que el estado del repositorio estaba en la rama *master*, al realizar el *merge* los cambios que estaban en la rama *my_new_feature* han sido volcados sobre la rama *master*.
+
+En *Fork* el proceso es similar, primero hay que hace *checkout* sobre la rama *master*, para ello basta con hacer doble click en el último *commit* de dicha rama, o pulsar sobre la opción *checkout* en el menú contextual sobre el *commit* deseado. Una vez hecho dicho *checkout* sobre la rama *master*, se pulsa sobre el *commit* del cual se quieren integrar los cambios, en este caso el último *commit* de la rama *my_new_feature*, y en el menú contextual se selecciona la opción *Merge into master*, para realizar el *merge* en la dirección correcta.
+
+![Figure [res/001_020]: *Merge* de *my_new_feature* sobre *maser*](res/001_020.png  width="600px")
+
+Esto abre una ventana nueva para confirmar dicho *merge*, informa del método a seguir (habitualmente *fast-forward if possible*) y si hay algún conflicto entre ambas ramas a la hora de realizar la fusión.
+
+![Figure [res/001_021]: Ventana de *Merge*](res/001_021.png  width="400px")
+
+Se puede observar como git ha creado un nuevo *commit* con un nuevo *SHA* que es el resultado de la fusión o *merge* de ambas ramas. Las indicaciones visuales sirven de guía para ver el camino que llevaban ambas ramas y como se han fusionado en *master* después.
+
+![Figure [res/001_022]: Resultado de *Merge*](res/001_022.png  width="600px")
+
+Git interpreta correctamente los ancestros comunes de diferentes ramas y es capaz de fusionar los cambios automáticamente. Si se diera el caso que alguna sección de algún fichero del código hubiera sido modificado en ambas ramas, en ese caso Git no puede deducir que hacer, y no puede realizar la fusión de los cambios de manera automática. Si eso sucede, se detiene el proceso de *merge* y se abre la opción para resolver conflictos de manera manual, para que el desarrollador sea capaz de decidir como resolverlos.
+
+## Rebase
+
+Este proceso es similar al *merge*. En el caso anterior, si ambas ramas tenían cambios se creaba un nuevo *commit* con la fusión. Cuando se realiza un *rebase*, Git coge todos los *commits* de una rama y los repite, uno a uno, sobre el último *commit* de la otra rama.
+
+## Cherry-Picking
+
+Este es un método para mover *commits* de una rama a otra. A diferencia de los métodos anteriores, con este método de *cherryu-picking* se especifican exactamente que *commits* se quieren fusionar. La manera más simple es especificar el *SHA* del *commit* seleccionado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\git_repo> git cherry-pick 314de198cf62375e9512c17975b79cf2db34c7b2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_cherry-pick]: Realizar un *cherry-pick* del *commit* *314de19*]
+
+Con esto se le dice a git que coja los cambios del *commit* *314de19* y los aplique sobre la rama actual. Esta funcionalidad es muy útil cuando se quiere un cambio específico, pero no la rama entera donde se ha realizado dicho cambio.
+
+Para realizar un *cherry-pick* en Fork, solo hay que acceder al menú contextual del *commit* desde el cual se quieren coger los cambios y ejecutar la acción *Cherry-pick Commit..* que realizará dicha acción sobre la rama en la cual esté el *checkout* actualmente.
+
+# Trabajo con Repositorios Remotos
+
+Hasta ahora solo se ha trabajado sobre un repositorio local, no ha habido ninguna comunicación con un servidor a través de la red. Para ello hay cuatro comandos básicos para comunicarse con los repositorios remotos.
+
+## Clone
+
+Este es el comando que se usa cuando se tiene la dirección de un repositorio conocido y se quiere realizar una copia local. En esta caso se parte del repositorio remoto de la asignatura que está alojado en *GitHub* en esta dirección, `https://github.com/vany-viu/02EPPY_OCT22`. En esta página existe un botón verde *Code* que al pulsarlo despliega una ventana con la opción para descargarse dicho repositorio como un fichero *zip*, pero también tiene la opción de ver el enlace para realizar el clonado a través del protocolo *https* o *SSH*. Se copia la URL para el método *https* y se usa el comando *clone* para realizar dicha copia en local.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> mkdir 02EPPY_OCT22
+E:\Dev\VIU\EPPY> cd 02EPPY_OCT22
+E:\Dev\VIU\EPPY\02EPPY_OCT22> git clone https://github.com/vany-viu/02EPPY_OCT22.git
+
+Output:
+Cloning into '02EPPY_OCT22'...
+remote: Enumerating objects: 227, done.
+remote: Counting objects: 100% (227/227), done.
+remote: Compressing objects: 100% (197/197), done.
+remote: Total 227 (delta 19), reused 219 (delta 16), pack-reused 0R
+Receiving objects: 100% (227/227), 27.09 MiB | 9.80 MiB/s, done.
+Resolving deltas: 100% (19/19), done.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_clone]: Realizar la copia local de un repositorio remoto]
+
+Ahora se tiene un repositorio completo de ese proyecto en la maquina local. Esto incluye todos los *commits*, toda la historia, todas las ramas,...
+
+En *Fork* existe la opción *Clone..* dentro del menú *File*, el cual abre una nueva ventana donde se indica la ruta url del repositorio remoto, se puede probar la conexión a dicho repositorio, la carpeta y el nombre donde queremos copiarlo en la maquina local.
+
+![Figure [res/001_023]: *Clone* de un repositorio remoto](res/001_023.png  width="500px")
+
+Esto aparte de copiar el repositorio en la maquina local, hará que aparezca este repositorio dentro de *Fork* como una nueva pestaña donde se puede ver todo su historial y se puede empezar a trabajar con él de manera normal.
+
+## Fetch
+
+Cuando se realiza un *clone* de un nuevo repositorio, Git no copia solo una versión de los ficheros de ese proyecto. Copia el repositorio entero y usa eso para crear un nuevo repositorio completo en la maquina local. Git no crea ramas locales de manera automática excepto por la rama *master*. Sin embargo, mantiene un registro de las ramas que estaban en el servidor. Para hacer esto, Gir crea un conjunto de ramas con el nombre que empieza por `remotes/origin/<nombre_de_rama>`. Raramente se hace un *checkout* sobre una de esas ramas, pero hay que saber que están ahí, y por cada rama que exista en el repositorio remoto, al clonar el repositorio se ha creado una rama en *remotes/origin* en el repositorio local.
+
+Dichas ramas remotas se pueden observar en *Fork* en la parte izquierda del repositorio, bajo la sección *Remotes*.
+
+Cuando se crea una nueva rama y el nombre encaja con una rama existente en el servidor, entonces Git marcará la rama local como una rama de seguimiento que está asociada con una rama remota.
+
+El comando *fetch* simplemente actualiza dichas ramas *remotes/origin*, es decir, se traerá los cambios de dichas ramas remotas al repositorio local. Solo modificará estas ramas, y no hará nada con las ramas locales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\02EPPY_ABR22> git fetch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_fetch]: Realizar un *fetch* del repositorio remoto]
+
+En *Fork* esta acción se realiza con el botón *Fetch* en la barra de herramientas superior.
+
+## Pull
+
+Este comando es simplemente la combinación de otros dos comandos. Primero realiza un *fetch* para actualizar las ramas *remotes/origin*, luego, si la rama en la que se está actualmente (sobre la que se ha hecho *checkout*) está siguiendo a una rama remota (tiene el mismo nombre), entonces hace un *merge* de la rama correspondiente *remote/origin* sobre la rama actual. De esta manera fusiona los cambios que se hubieran realizado sobre la rama remota, con los posibles cambios realizados en la rama local.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\02EPPY_OCT22> git pull
+
+Output:
+Updating a2beefd..64de465
+Fast-forward
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_pull]: Realizar un *pull* del repositorio remoto]
+
+Por ejemplo, si se está trabajando sobre la rama *my_new_feature*, y un compañero ha añadido algo de código en el servidor. Si se realiza un *pull*, Git actualizará todas las ramas *remotes/origin*, y entonces hará un *merge* de la rama *remotes/origin/my_new_feature*, que creará un nuevo *commit* sobre la rama actual, fusionando los cambios del compañero sobre los nuestros.
+
+Hay ciertas limitaciones, como por ejemplo, que Git no deja realizar un *pull* si hay cambios locales o ficheros modificados sin haber hecho un *commit* sobre ellos.
+
+Si se han realizado *commits* en la rama local, y el remoto también tiene nuevos *commits* (las ramas han divergido), entonces la parte *merge* del *pull* creará un *commit* con la fusión de ambas.
+
+También se puede indicar a *pull* que haga un *rebase* en lugar de un *merge* con la opción *-r*.
+
+En *Fork* esta acción se realiza con el botón *Pull* en la barra de herramientas superior.
+
+## Push
+
+El método *push* es exactamente el opuesto de *pull*. Manda la información sobre la rama en la que se está trabajando al remoto, y le pregunta al remoto si quiere actualizar su versión con los de la rama que encajan con el nombre de la local.
+
+Habitualmente, esto supone mandar los nuevos cambios al servidor, para que otros desarrolladores tengan acceso a ellos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\02EPPY_OCT22> git push
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_push]: Realizar un *push* del repositorio local al remoto]
+
+En *Fork* esta acción se realiza con el botón *Push* en la barra de herramientas superior.
+
+# Flujo de Trabajo
+
+El flujo de trabajo habitual en Git es el siguiente. Asumiendo que se está trabajando en un repositorio local y que se tiene un repositorio remoto sobre el cual se suben los cambios, y que ya se ha clonado, puede ser [GitHub](https://github.com/), [BitBucket](https://bitbucket.org/product/), [GitLab](https://about.gitlab.com/) o cualquier otro servidor.
+
+- *git status*, para revisar que el área actual está limpia
+- *git pull*, para traer los últimos cambios del repositorio remoto
+- Se trabaja sobre los ficheros locales y se realizan cambios
+- *git status*, encontrar los ficheros que se han cambiado, o que son nuevos
+- *git add [files]*, se añaden los ficheros cambiados al área de *stage*
+- *git commit -m "message"*, se realiza un nuevo *commit*
+- *git push*, se suben los cambios al repositorio remoto
+
+![Figure [res/001_024]: Flujo de trabajo habitual](res/001_024.png  width="600px")
+
+# Git Flow
+
+Esta es una metodología de trabajo communmente usada en proyectos en Git, que define un modelo estricto de ramificación diseñado alrededor de los lanzamientos de un proyecto. Permite la paralelización del desarrollo mediante ramas independientes para la preparación, mantenimientoy publicación de versiones del proyecto, así como soporta la reparación de errores en cualquier momento.
+
+![Figure [res/001_025]: Git Flow](res/001_025.png  width="600px")
+
+La rama *master* contiene cada una de las versiones estables del proyecto, cualquier *commit* sobre esta rama, debe estar preparado para ser incluido en producción. La rama *develop* contiene el código de desarrollo de la siguiente versión planificada del proyecto, incluyendo cada una de las nuevas funcionalidades que se desarollen. Estas dos ramas existirán siempre.
+
+En cambio las ramas de soporte se eliminarán una vez que sean integradas en sus ramas principales. Estas de soporte son las de *feature*, *release* y *hotfizx*. Las ramas *feature* surgen de la rama *develop* y almacenan el código donde se desarrollan las nuevas funcionalidades, una vez acabada cada nueva funcionalidad, se incorporan a la rama *develop* y se eliminan, de esta manera la rama *develop* siempre tendrá la última versión estable del código en desarrollo. Las ramas *release* surgen también de la rama *develop*, y contienen el código de la versión que se va a liberar, es un paso previo de preparación antes de la versión definitiva, aquí se incluye todo el código de *develop* necesario, se prueba dicho código, se hacen los arreglos oportunos, y si todo está bien se integra tanto en *develop* como en *master* y se elimina. Las ramas *hotfix* surgen de la rama *master*, y contienen código de producción con algún error que debe corregirse, una vez arreglado, estas ramas se integran en *master* y *develop* para subsanar dicho error y se elimnan.
+
+# Fork
+
+Aparte de ser el nombre del cliente de Git recomendado, también es una metodología de trabajo con Git para repositorios remotos, donde se realiza una copia de un repositorio remoto en otro repositorio remoto, y permite experimentar haciendo cambios en un repositorio remoto sin afectar al proyecto original. Se suelen usar para proponer cambios al proyecto de otro desarrollador sobre el cual no se tiene permisos de escritura, o usar ese proyecto ajeno como punto de partida para un nuevo proyecto.
+
+El proyecto base es el repositorio de la asignatura, y el objetivo es tener una copia de dicho repositorio en otra cuenta distinta. De esta manera, el alumno puede tener dicho repositorio copiado y tener acceso completo a él, sin que sus cambios afecten al repositorio central de la asignatura. Y a la vez, se pueda actualizar desde dicho repositorio central a su copia.
+
+En esta caso se parte del repositorio remoto de la asignatura que está alojado en *GitHub* en esta dirección, `https://github.com/vany-viu/02EPPY_OCT22`.
+
+El primer paso es realizar un *Fork* del repositorio para tener una copia en la cuenta local del alumno y poder trabajar sobre él de manera individual sin afectar a los cambios en el repositorio general, pero aún así poder tener las actualizaciones del mismo en el repositorio local.
+
+Una vez dentro de *GitHub* con la cuenta del alumno se busca el repositorio general, o se usa la *URL* provista del mismo. En la página principal del repositorio en la parte superior derecha hay un botón con la opción *Fork*.
+
+![Figure [res/001_026]: Botón Fork en la página *GitHub* del repositorio](res/001_026.png  width="600px")
+
+Se pulsa dicho botón para iniciar el proceso de *Fork* desde el repositorio general hacia uno local en la cuenta *GitHub* del alumno. Una vez ese proceso finaliza, se habrá copiado el repositorio a la cuenta local. El encabezado de la copia local ahora indica que es un repositorio copiado que proviene del general.
+
+![Figure [res/001_027]: Encabezado del repositorio copiado](res/001_027.png)
+
+## Clonar el repositorio copiado
+
+El siguiente paso es clonar el repositorio copiado para poder trabajar con él en la maquina local, es decir, bajarse todo el código del mismo. Para ello se pueden usar los métodos habituales para clonar vistos anteriormente, ahora habrá que clonar este nuevo repositorio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\02EPPY_OCT22_fork> git clone https://github.com/viu-test/02EPPY_OCT22.git
+
+
+Output:
+Cloning into '02EPPY_OCT22'...
+remote: Enumerating objects: 227, done.
+remote: Counting objects: 100% (227/227), done.
+remote: Compressing objects: 100% (197/197), done.
+remote: Total 227 (delta 19), reused 219 (delta 16), pack-reused 0R
+Receiving objects: 100% (227/227), 27.09 MiB | 9.80 MiB/s, done.
+Resolving deltas: 100% (19/19), done.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [git_clone]: Realizar un *clone* del repositorio remoto forkeado]
+
+## Configurar Ubicación Remota
+
+Es importante mantener actualizado el repositorio local que se ha copiado (*forked*) para obtener los cambios y actualizaciones que se realicen en el repositorio global por el responsable del mismo (en este caso, el profesor). Por ejemplo, para ir incorporando el código generado durante las clases. Para eso hay que añadir una ubicación remota al repositorio copiado (*forked*). Pulsando con el botón derecho sobre la barra izquierda sobre la etiqueta *Remotes* en el programa *Fork*, se selecciona la opción *Add New Remote*.
+
+![Figure [res/001_028]: Add New Remote](res/001_028.png)
+
+En el diálogo que se abre, se nombra al remote con el nombre de *UpStream* (por convención se suelen llamar así a los repositorios principales), y en la *url* se pone la del repositorio principal (se puede obtener la ruta yendo al repositorio principal en GitHub y pulsando el botón *Code*). Importante, el original del cual hemos hecho el *fork*, no nuestro repositorio local. Y se pulsa el botón *Add New Remote*.
+
+![Figure [res/001_029]: Diálogo para añadir el nuevo remoto](res/001_029.png)
+
+De esta manera en la barra izquierda, en la sección de *remotes*, aparte de *origin*, que es el repositorio remoto donde se guardan los cambios de nuestro trabajo, ahora aparece *upstream*, que es el repositorio remoto del proyecto principal. Asimismo se muestran las diferentes ramas de ambos remotos.
+
+![Figure [res/001_030]: Remoto origin y upstream](res/001_030.png)
+
+Ahora ya se puede acceder desde el repositorio copiado (*forked*) a las ramas y *commits* del repositorio principal, y hacer *fetch*, *pull* y *merge* desde el mismo hacia el repositorio copiado para incluir las actualizaciones del mismo.
+
+Para ello el primer paso es hacer un *fetch* sobre la rama *main* del repositorio principal en *upstream*, para actualizar el repositorio local con los cambios remotos en dicho *upstream*.
+
+![Figure [res/001_031]: Repositorio upstream actualizado desde el repositorio copiado (forked)](res/001_031.png)
+
+Entonces hay que hacer un *pull* para integrar los cambios dentro de nuestro repositorio copiado (*forked*) y actualizar el código en nuestro espacio de trabajo de nuestra maquina local. Para ello se hace *pull* sobre el *remote* de *upstream*.
+
+![Figure [res/001_032]: Pull desde upstream hacia la rama develop del repositorio copiado (forked)](res/001_032.png)
+
+De esta manera se han incorporado los cambios realizados en el repositorio principal en *upstream* a nuestro repositorio copiado (*forked*) y por tanto a nuestro espacio de trabajo y ya se puede trabajar con todo el código actualizado.
+
+## Flujo de Trabajo
+
+El flujo de trabajo habitual suele ser, primero clonar el repositorio, hacer un *checkout* de la rama de *master* y definir el repositorio principal como *upstream* para incorporar cambios desde él, como se ha explicado en los puntos anteriores.
+
+Cuando se está trabajando se hacen modificaciones sobre los ficheros en el directorio de trabajo, cuando se quieren confirmar esos cambios, se hace *stage* y *commit* para guardarlos en el repositorio local. Cuando esos cambios se quieren actualizar en el repositorio remoto se hace *push*.
+
+Si se usa la rama *master* como única rama de trabajo, entonces para incorporar cambios del repositorio remoto hay que hacer un *pull* desde el repositorio remoto, y para incorporar cambios desde el repositorio principal en *upstream* hay que hacer un *pull* desde ese repositorio.
+
+![Figure [res/001_033]: Flujo de comandos en Git](res/001_033.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

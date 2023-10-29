@@ -1,0 +1,1102 @@
+<meta charset="utf-8">
+**03EPPY - 07 - SQLite**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+    ![](res/07/sqlt_sqlite.jpg =100x)
+
+# Introducción
+
+Todos los programas procesan datos de una forma u otra, y muchos necesitan poder guardar y recuperar esos datos. 
+
+Puede utilizarse un servidor de base datos para gestionar estas funciones pero también se pueden lograr resultados similares utilizando archivos planos en cualquier cantidad de formatos, incluidos CSV, JSON, XML e incluso formatos personalizados.
+
+De esta manera, Python, SQLite y SQLAlchemy brindan la funcionalidad de base de datos, almacenando los datos en un solo archivo sin la necesidad de un servidor de base de datos.
+
+## Uso de Ficheros Plano (Flat File)
+
+Una base de datos de archivos planos es un base de datos que almacena datos en un archivo de texto sin formato. Cada línea del archivo de texto contiene un registro, con campos separados por delimitadores, como comas o tabulaciones. Si bien utiliza una estructura simple, una base de datos de archivos planos no puede contener varias tablas como una base de datos relacional. 
+
+Los archivos planos contienen caracteres legibles por humanos y son muy útiles para crear y leer datos. Debido a que no tienen que usar anchos de campo fijos, los archivos planos a menudo usan otras estructuras para que un programa pueda analizar el texto.
+
+Por ejemplo, los ficheros CSV, del inglés "Comma Separated Values" (Fichero separado por comas) contienen lineas de texto plano, donde cada linea de texto representa una fila de datos y cada valor separado por el caracter coma representa un campo dentro de esa fila.                
+
+![](res/07/sqlt_csv.png)
+
+Python funciona mediante la lectura y escritura de ficheros de datos. El archivo de datos debe tener una estructura que la aplicación pueda leer y analizar el texto del archivo.
+
+<!-- El siguiente enlace contiene el ejemplo de un sencillo programa de Python trabajando con un fichero plano.
+
+    https://realpython.com/python-sqlite-sqlalchemy/
+-->
+
+### Ventajas de los Ficheros Planos
+
+- Son manejables y fáciles de implementar. 
+
+- Tener los datos en un formato legible por humanos es útil para crear el archivo de datos con un editor de texto y examinar los datos y buscar inconsistencias o problemas.
+
+- Diferentes aplicaciones pueden exportar e importar ficheros planos. Por ejemplo, Excel puede importar o exportar un archivo CSV hacia y desde una hoja de cálculo. Son  autónomos y transferibles si se desea compartir los datos.
+
+- Casi todos los lenguajes de programación tienen herramientas y bibliotecas que facilitan el trabajo con archivos CSV. 
+
+### Desventajas de los Ficheros Planos
+
+- Si la cantidad de datos es muy grande los archivos siguen siendo legibles por humanos, pero editarlos para crear o buscar se vuelve una tarea más difícil. 
+
+- Se ha de controlar explícitamente cualquier relación entre los datos y el programa de aplicación dentro de la sintaxis del archivo. 
+
+     Por ejemplo, en un fichero que guarda accesos de usuarios a urls, nada indica que relaciones hay entre los datos. En este ejemplo hemos de fijarnos en los datos para ver que un usuario puede acceder a más de una url y una url puede ser accedida por más de un usuario:
+    <!-- Las relaciones no están creadas en el fichero plano como en una base de datos relacional, tendremos que fijarnos donde están estás relaciones. En un fichero grande es muy dificil. -->
+
+        ~~~~~~~~~~~~~~~~~~~~
+            Susana, url1
+            Clara, url2
+            Luis, url2
+            Manuel, url3
+            Clara, url1
+        ~~~~~~~~~~~~~~~~~~~~
+
+- No existen transacciones, por lo que se complica su uso cuando los ficheros son compartidos en procesos multiusuario y multitarea.
+
+## Ficheros Planos y SQLite
+
+Cuando la información contenida en un fichero plano crece de cualquiera de las maneras posibles (número de registros, nuevos campos, nuevas relaciones, ...) crece también la dificultad de controlar la redundancia y consistencia de los datos. Retomando el  ejemplo en csv mostrado más arriba.
+
+![](res/07/sqlt_csv.png)
+
+Supongamos que este csv guarda los socios de un gimnasio. 
+
+¿Qué ocurre si queremos añadir las actividades a las que está apuntado cada socio? Tendremos que copiar los registros de aquellos socios que estén apuntados a varias actividades tantas veces como actividades realicen.
+
+![](res/07/sqlt_csv_acts.png)
+
+Y ahora, ¿qué ocurre si queremos añadir los teléfonos de contacto de cada socio teniendo en cuenta que puede ser más de uno? Para solucionarlo podemos añadir tantos campos como teléfonos posibles existan y tratarlos como campos sin relación entre sí o crear un solo campo y duplicar cada registro con cada nuevo teléfono que tenga el socio.
+
+![](res/07/sqlt_csv_tlfs.png) ![](res/07/sqlt_csv_tlfs2.png)
+
+Y así puede seguir creciendo el fichero según las necesidades que puedan ir surgiendo, por lo que van creciendo simultaneamente los problemas de control de redundancia e integridad de datos, ya que se está duplicando información y puede ocurrir que se comentan errores a la hora de insertar los datos.
+
+Este problema es una de las razones por las que existen relaciones en los sistemas de bases de datos y la normalización de estas, que es el proceso de dividir los datos para reducir la redundancia y aumentar la integridad. Cuando la estructura de una base de datos se amplía con nuevos tipos de datos, normalizarla de antemano reduce al mínimo los cambios en la estructura existente.
+
+Aquí entra en juego SQLite, que ofrece un sistema gestor de base de datos relacional (RDBMS) con todas las funciones y trabaja con un solo archivo. Además, tiene la ventaja de que no necesita un servidor de base de datos separado para funcionar. El formato de archivo de la base de datos es multiplataforma y accesible para cualquier lenguaje de programación que admita SQLite.
+
+# Origen de SQLite
+
+El uso de las bases de datos ya se ha extendido de los servidores hacia los dispositivos móviles. El desarrollo constante de la tecnología conjuntamente con los nuevos requerimientos de las empresas ha llevado a crear diversos métodos de almacenamiento de información en dispositivos móviles *embebidos*.
+
+La demanda de bases de datos para dispositivos móviles como PDAs y teléfonos móviles ha crecido exponencialmente en los últimos años debido a la necesidad de las empresas de tener la información al instante de lo que sucede y así responder más rápidamente ante la competencia. Esta necesidad ha provocado que el almacenamiento de los datos en estos dispositivos haya mejorado tanto en capacidad como en herramientas. Gracias a esto, actualmente contamos con diversas opciones de gestores de bases de datos para móviles, y una de las más populares es SQLite.
+
+# ¿Qué es SQLite?
+
+SQLite es una herramienta de **software libre**, que permite almacenar información en dispositivos *empotrados* de una forma sencilla, eficaz, potente, rápida y en equipos con pocas capacidades de hardware, como puede ser una PDA o un teléfono móvil. Esto permite que SQLite soporte desde las consultas más básicas hasta las más complejas del lenguaje SQL, y lo más importante es que se puede usar **tanto en dispositivos móviles como en sistemas de escritorio**, sin necesidad de realizar procesos complejos de importación y exportación de datos, ya que existe compatibilidad al 100% entre las diversas plataformas disponibles, haciendo que la portabilidad entre dispositivos y plataformas sea transparente.
+
+![](res/07/sqlt_dispos.png =100x)
+
+SQLite tiene la función de formar parte de la misma aplicación, que cuando la descargamos ya viene incluida internamente la base de datos. Por ejemplo, en aplicaciones de Android o iOS para guardar contactos o datos de las app, o en navegadores como Chrome, Firefox, Opera, ... donde se almacena el historial, los sitios favoritos o las cookies.
+
+SQLite es una biblioteca de C que provee una base de datos ligera basada en disco que **no requiere un proceso de servidor separado** y permite acceder a la base de datos lenguaje de consulta SQL. También es posible prototipar una aplicación usando SQLite y luego transferir el código a una base de datos más grande como PostgreSQL u Oracle.
+
+# Historia
+
+SQLite apareció en mayo del año 2000 de la mano de su creador D. Richard Hipp, quién ha liberado las diferentes versiones de SQLite en base a la *licencia GPL* por lo que su código es de dominio público y puede ser modificado por cualquier persona. Gracias a esto, SQLite ha sido mejorada por un gran número de colaboradores y también ha sido migrada a diversas plataformas.
+
+![Richard Hipp](res/07/sqlt_hipp.jpg =100x)
+
+# Características
+
+Estas son algunas de las características principales de SQLite:
+
+- No tiene estructura cliente-servidor.
+- La base de datos completa se encuentra en un solo archivo.
+- Puede funcionar enteramente en memoria, lo que la hace muy rápida.
+- Es totalmente autocontenida (sin dependencias externas).
+- Cuenta con librerías de acceso para muchos lenguajes de programación.
+- Soporta funciones SQL definidas por el usuario (UDF).
+- El código fuente es de dominio público y se encuentra muy bien documentado.
+
+# Aplicaciones de SQLite
+
+SQLite es una excelente opción en diversos casos tales como:
+
+- Cuando se requiere una base de datos integrada dentro de una aplicación, mientras esta no sea demasiado grande. SQLite es una excelente opción por su facilidad de configuración. 
+
+- Para realizar demostración de aplicaciones que utilizan un gestor de base de datos cliente-servidor. Evita tener que instalar todo el sistema para realizar solo una demo de una aplicación. 
+
+- Como caché local de un gestor de base de datos empresarial. Esto acelera el tiempo de respuesta y reduce la carga sobre la base de datos central.
+
+- Para aplicaciones en dispositivos móviles que manejan una base de datos local que se sincroniza por batch con una base de datos remota.
+
+- Almacenamiento persistente de objetos, configuraciones y preferencias de usuario. Permite fácilmente crear una estructura para almacenar configuraciones de la aplicación.
+
+# Entorno de trabajo
+
+Tenemos dos posibilidades para trabajar con SQLite, en modo consola o con interfaz gráfica. Ambas formas tienen las mismas funcionalidades pero por la comodidad a la hora de trabajar veremos más a fondo la forma de interfaz gráfica.
+
+En el anexo 3 del temario ([A3_InstalacionSQLite](A3_InstalacionSQLite.md.html)) se explica como instalar la herramienta de software necesaria para trabajar con SQLite en modo gráfico en esta asignatura, DB Browser. 
+
+*Nota: Aunque no se va a trabajar, también se explica en el anexo la instalación del modo consola.*
+
+## Características de DB Browser para SQLite
+
+- Permite crear archivos de bases de datos y compactar archivos ya creados con SQLite.
+- Permite crear, definir y eliminar tablas.
+- Permite crear, definir y eliminar índices.
+- Permite buscar, editar, añadir o eliminar entradas.
+- Cuenta con un potente buscador de entradas.
+- Importa y exporta entradas en modo texto.
+- Importa y exporta tablas en ficheros CSV.
+- Importa y exporta bases de datos en volcados SQL.
+- Nos permite examinar los logs SQL.
+
+# Sintaxis
+
+    - **No es case sensitive**. SQLite no distingue entre mayúsculas y minúsculas. Ej: SELECT y select tienen el mismo significado.
+
+    - **Comentarios**. Los comentarios son notas, se añaden al código de SQLite para aumentar su legibilidad y pueden aparecer en cualquier lugar.
+        - Pueden aparecer espacios en blanco, incluidas expresiones internas y en medio de otras declaraciones SQL, pero no se pueden anidar.
+        - Comienzan con "- -" y se extienden hasta el final de la línea.
+        - Se puede comentar varias lineas, comenzando con /* y se extienden hasta el siguiente par de caracteres */. 
+
+    - Todas las declaraciones de SQLite comienzan con cualquiera de las palabras clave (SELECT, INSERT, UPDATE, DELETE, ALTER, ...) y terminan con un punto y coma (;). Ej: SELECT COUNT(column_name) FROM table_name WHERE CONDITION;
+
+# Tipos de datos 
+
+    El tipo de datos de SQLite es un atributo que especifica el tipo de datos de cualquier objeto. Cada columna, variable y expresión tiene un tipo de datos relacionado en SQLite.
+
+    SQLite proporciona cinco tipos de datos primarios que se mencionan a continuación:
+
+        - **INTEGER**: números enteros.
+        - **REAL**: números con decimales separados por punto (.).
+        - **TEXT**: cadena de caracteres de longitud variable entre comillas simples.
+        - **BLOB**: es un grupo de datos que se almacena exactamente como se ingresó. Se suele usar para valores en formato binario (imágenes, sonidos, ...)
+        - **NUMERIC**: representan otros tipos de números, tales como Booleano, Fecha, Hora, Decimales precisos, ...
+
+    Antes de crear una tabla debemos pensar en sus campos y optar por el tipo de dato adecuado para cada uno de ellos. 
+
+    - Valor **NULL**. Indica que no existe un valor. Por defecto, una base de datos puede contener valores nulos pero es aconsejable evitarlos en la medida de lo posible.
+
+    - Valor **Booleano**. SQLite no tiene tipo booleano. En su lugar, los valores booleanos se almacenan como números enteros 0 (falso) y 1 (verdadero).
+         
+        - SQLite reconoce las palabras clave "VERDADERO" y "FALSO", a partir de la versión 3.23.0, pero esas palabras clave son en realidad solo ortografías alternativas para los enteros 1 y 0 respectivamente.
+
+    - Valor **Fecha** y **Hora**. SQLite no tiene tipo para fechas y/u horas. En cambio, las funciones integradas de fecha y hora de SQLite son capaces de almacenar fechas y horas como valores de TEXTO, REAL o ENTERO.
+
+        - https://www.sqlite.org/lang_datefunc.html
+
+        - Las cadenas de texto deben cumplir con los siguientes formatos de valor tiempo para ser tomados como fechas o tiempo por las funciones:
+
+           | D: dia M:mes Y:año H:hora M:minuto S:segundo|
+           |------------|
+           | YYYY-MM-DD |
+           | YYYY-MM-DD HH:MM|
+           | YYYY-MM-DD HH:MM:SS|
+           | YYYY-MM-DD HH:MM:SS.SSS|
+           | HH:MM|
+           | HH:MM:SS|
+           | HH:MM:SS.SSS|
+           | now - fecha y hora actual|
+           | DDDDDDDDDD - dia juliano|
+           
+## Afinidad de SQLite
+
+SQLite admite el concepto de **afinidad de tipos** en las **columnas**. Cualquier columna puede almacenar cualquier tipo de datos, independientemente del tipo de datos declarado de la columna.
+
+Cuando se proporcionan nombres de tipos de datos, pueden ser casi cualquier texto. SQLite intenta deducir el tipo de datos preferido para la columna basándose en el nombre del tipo de datos en la definición de la columna. El tipo de datos preferido se llama "afinidad de la columna".
+
+Al transformar los datos entrantes en el tipo de datos preferido de la columna, si esta transformación no tiene éxito, en lugar de emitir un error, SQLite simplemente almacena el contenido utilizando su tipo de datos original.
+
+La siguiente tabla enumera varios nombres de tipos de datos que se pueden usar al crear tablas SQLite3 con la afinidad aplicada correspondiente.
+
+|      INTEGER       |	  TEXT               | NONE |REAL|NUMERIC|
+|--------------------|-----------------------|-|-|-|
+|INT                 | CHARACTER(20)|BLOB|REAL|NUMERIC|
+|INTEGER             | VARCHAR(255)| Tipo de dato no especificado|DOUBLE|DECIMAL(10,5)|
+|TINYINT             | VARYING CHARACTER(255)||DOUBLE PRECISION|BOOLEAN|
+|SMALLINT            | NCHAR(55)||FLOAT|DATE|
+|MEDIUMINT           | NATIVE CHARACTER(70)|||DATETIME|
+|BIGINT              | NVARCHAR(100)||||
+|UNSIGNED BIG INT    | CHAR(20)|||                   |
+|INT2                | TEXT |||                  |
+|INT8                | CLOB |||                  |
+
+# Operadores
+
+Son palabra reservadas o carácteres que se usan principalmente en la cláusula WHERE de una instrucción SQLite para realizar operaciones, como comparaciones y operaciones aritméticas.
+
+Los operadores se utilizan para especificar condiciones y para unir para varias condiciones en una sentencia.
+
+    - Operadores aritméticos
+
+    ~~~~~~~~~~~~~~~~
+         + -> suma
+         - -> resta
+         * -> multiplicación
+         / -> división
+         % -> módulo
+    ~~~~~~~~~~~~~~~~
+
+    - Operadores de comparación
+
+    ~~~~~~~~~~~~~~~~
+        == o = -> igualdad
+        != o <> -> diferencia
+        > -> mayor que
+        < -> menor que
+        >= -> mayor o igual que
+        <= -> menor o igual que
+        !< -> no es menor
+        !> -> no es mayor
+    ~~~~~~~~~~~~~~~
+
+# Crear o abrir base de datos en modo consola
+
+Abrir una ventana de comandos y abrir la ubicación de la base de datos, tanto si es nueva como si ya existe.
+
+![](res/07/sqlt_creadb_con.png)
+
+- Paso 1. Insertar el comando ***sqlite3 nombre_base_datos.db***
+- Paso 2. Insertar el comando ***.databases***
+
+Si se está creando una nueva base de datos tras el paso 1 no veremos el fichero en la carpeta, esto es porque hasta que no se utiliza la base de datos de alguna manera no se visualiza, para esto se usa el comando del paso 2, pero este paso puede sustituirse por cualquier otra forma de acceder a la base de datos, como por ejemplo crear una tabla.
+
+A partir de aquí todas las sentencias SQL se pueden ejecutar desde en la consola, finalizándolas con un punto y coma.
+
+~~~~~~~~~~~~~~~~~~
+sqlite> select * from pedidos;
+~~~~~~~~~~~~~~~~~~
+
+# Crear o abrir una base de datos desde la interfaz gráfica
+
+Como ya sabemos, las bases de datos relacionales proporcionan una forma de almacenar datos estructurados en tablas y establecer relaciones entre esas tablas. Por lo general, utilizan el Lenguaje de Consulta Estructurado (SQL) como la forma principal de interactuar con los datos. 
+
+Un archivo de base de datos SQLite no solo contiene los datos, sino que también tiene una forma estandarizada de interactuar con los datos. Este soporte está incrustado en el archivo, lo que significa que cualquier lenguaje de programación que pueda usar un archivo SQLite también puede usar SQL para trabajar con él.
+
+<!-- Se va a utilizar el siguiente modelo relacional como ejemplo para poner en práctica los conocimientos teóricos que veremos a continuación.
+
+![](res/sqlt_.png =100x)
+-->
+
+## Crear o abrir base de datos
+
+Para crear una base de datos desde el entorno gráfico utilizar el botón *Nueva base de datos...* desde el menú *Archivo* o desde el acceso directo en la ventana principal. Si lo que se necesita es abrir una base de datos ya existente, utilizar el botón *Abrir base de datos...* de la misma forma.
+
+![](res/07/sqlt_dbb_ndb.png =100x)
+![](res/07/sqlt_dbb_odb.png =100x)
+![](res/07/sqlt_dbb_nodb.png =100x)
+
+## Eliminar base de datos
+
+No existe comando en SQLite para eliminar una base de datos. Para hacerlo se elimina el fichero que guarda la base de datos.
+
+## Ejecutar sentencias SQL
+
+Desde la pestaña **Ejecutar SQL** pueden lanzarse las sentencias SQL.
+
+![](res/07/sqlt_dbb_exesql.png)
+
+## Gestión de tablas
+
+En la pestaña **Estructura** aparecen diferentes funcionalidades para trabajar con tablas:
+
+- Crear tabla
+- Crear índice
+- Modificar tabla
+- Borrar tabla
+
+![](res/07/sqlt_dbb_estrcsql.png)
+
+Estas mismas funcionalidades aparecen pinchando el botón derecho sobre el nombre de la tabla, además de las funcionalidades:
+
+- **Copiar sentencia CREATE**. Copia la sentencia con la estructura de la tabla al portapapeles.
+- **Exportar como archivo CSV**. Exporta los datos contenidos en la tabla a un fichero .csv
+
+![](res/07/sqlt_estruc_der.png)
+ 
+
+  <!--  Eliminar restricciones
+
+    https://www.sqlshack.com/es/restricciones-en-sql-server-sql-not-null-unique-y-sql-primary-key/ 
+    
+  -->
+
+# Sentencias SQLite
+
+## DDL
+
+    - **Crear Tabla**
+
+        - Sin restricciones.
+
+            ~~~~~~~~~~~~sql
+            CREATE TABLE [IF NOT EXISTS] nombre_tabla (
+                columna1 tipo_dato,
+                columna2 tipo_dato, 
+                ...
+            );
+            ~~~~~~~~~~~~
+
+        - Autoincremento (solo se puede usar con el tipo de dato integer)
+
+            ~~~~~~~~~~~~sql
+            CREATE TABLE nombre_tabla (
+                columna1 INTEGER AUTOINCREMENT,
+                columna2 tipo_dato, 
+                ...
+            );
+            ~~~~~~~~~~~~
+
+        - Restricción **PRIMARY KEY**
+
+            ~~~~~~~~~~sql
+            Una columna:        
+            CREATE TABLE table_name (
+                column1 datatype PRIMARY KEY [AUTOINCREMENT]
+            );
+
+            Más de una columna:
+            CREATE TABLE table_name (
+                column1 datatype,
+                column2 datatype,
+                CONSTRAINT PK_name PRIMARY KEY (col1,col2, ...)
+            );
+            ~~~~~~~~~~
+
+        - Restricción **FOREIGN KEY**
+
+            ~~~~~~~~~~sql
+                CREATE TABLE table_name (
+                    column datatype,
+                    FOREIGN KEY (column) REFERENCES table_name_parent(column_parent),
+                );
+            ~~~~~~~~~~
+
+        - Restricción **NOT NULL**
+
+            ~~~~~~~~~~~~
+            CREATE TABLE table_name (
+                column datatype NOT NULL            
+            );
+            ~~~~~~~~~~~~
+
+        - Restricción **UNIQUE**
+
+            ~~~~~~~~~~~~
+            Una columna:
+            CREATE TABLE table_name (
+                column datatype UNIQUE            
+            );
+
+            Más de una columna:
+            CREATE TABLE table_name (
+                column1 datatype,
+                column2 datatype,
+                UNIQUE(column1,column2)           
+            );
+            ~~~~~~~~~~~~
+
+        - Restricción **CHECK**
+
+            ~~~~~~~~~~~~
+            CREATE TABLE table_name (
+                column datatype CHECK (sentence),
+            );
+            ~~~~~~~~~~~~
+            
+        - Restricción **DEFAULT**
+
+            ~~~~~~~~~~~~
+            CREATE TABLE table_name (
+                column datatype DEFAULT value/function
+            );
+            ~~~~~~~~~~~~
+
+    - **Añadir columna**
+
+        ~~~~~~~~~~~~sql
+        ALTER TABLE nombre_tabla ADD COLUMN nombre_col tipo_dato;
+        ~~~~~~~~~~~~
+
+    - **Eliminar columna**
+
+        ~~~~~~~~~~~~sql
+        ALTER TABLE nombre_tabla DROP COLUMN nombre_col;
+        ~~~~~~~~~~~~
+
+    - **Renombrar tabla**
+
+        ~~~~~~~~~~~~sql
+        ALTER TABLE nombre_tabla RENAME TO nuevo_nombre;
+        ~~~~~~~~~~~
+
+    - **Eliminar tabla**
+
+        ~~~~~~~~~~~~sql
+        DROP TABLE nombre_tabla;
+        ~~~~~~~~~~~~
+
+    - **Insertar filas**
+
+        ~~~~~~~~~~~~sql
+        INSERT INTO TABLE_NAME [(column1, column2, ...)]  
+        VALUES (value1, value2, ...);
+
+        INSERT INTO first_table_name [(column1, column2, ... )] 
+            SELECT column1, column2, ... 
+            FROM second_table_name
+            [WHERE condition];    
+        ~~~~~~~~~~~~
+
+## DML
+
+- **Seleccionar filas**
+
+    ~~~~~~~~~~~~sql
+    Columnas seleccionadas:
+    SELECT column1, column2, ... 
+    FROM table_name;
+
+    Todas las columnas:
+    SELECT * 
+    FROM table_name;
+    ~~~~~~~~~~~~
+
+    - *: selecciona todas las columnas.
+
+    - Palabra clave **DISTINCT**
+
+        ~~~~~~~~~~~~
+        SELECT DISTINCT column1, column2, ... 
+        FROM table_name
+        WHERE [condition]
+        ~~~~~~~~~~~~
+
+        - Elimina registros duplicados.
+
+- Cláusula **WHERE**
+
+    ~~~~~~~~~~~~sql
+    SELECT column1, column2, columnN 
+    FROM table_name
+    WHERE [condition]
+    ~~~~~~~~~~~~
+
+    - Se usa para establecer condiciones y filtrar registros.
+    - WHERE no solo se usa en la instrucción SELECT, también en UPDATE y DELETE.
+
+        - **AND**, **OR** y **NOT**
+
+            ~~~~~~~~~~~~sql
+            SELECT column1, column2, ...
+            FROM table_name
+            WHERE [condition1] AND [condition2] AND ...;
+
+            SELECT column1, column2, ...
+            FROM table_name
+            WHERE [condition1] OR [condition2] OR ...;
+
+            SELECT columna1, columna2, ... 
+            FROM nombre_tabla 
+            WHERE NOT condición;
+            ~~~~~~~~~~~~
+
+            - **AND**: para seleccionar los registros que cumplan **todas** las condiciones.
+            - **OR**: para seleccionar los registros que cumplan una condición **O** alguna otra condición.
+            - **NOT**: para seleccionar registros que **NO** cumplan una condición.
+            - Ambos pueden combinarse para construir la condición.
+            - Los operadores AND, OR y NOT se pueden combinar, por ejemplo:
+                ~~~~~~~~~~~~
+                SELECT * 
+                FROM Clientes
+                WHERE Pais='Italia' AND (Ciudad='Roma' OR Ciudad='Milán');
+                ~~~~~~~~~~~~
+
+        - **IN y NOT IN**
+
+            Permite especificar valores múltiples.
+
+            ~~~~~~~~~~~~~
+            SELECT nombre_columna(s)
+            FROM nombre_tabla
+            WHERE nombre_columna IN (valor1, valor2, ...);
+
+            SELECT nombre_columna(s)
+            FROM nombre_tabla
+            WHERE nombre_columna NOT IN (valor1, valor2, ...);
+
+            SELECT nombre_columna(s)
+            FROM nombre_tabla
+            WHERE nombre_columna IN/NOT IN (SELECT ...);
+            ~~~~~~~~~~~
+
+        - **LIKE**
+
+            ~~~~~~~~~~~~
+            SELECT FROM table_name
+            WHERE column LIKE 'XXXX%'
+            or 
+            SELECT FROM table_name
+            WHERE column LIKE '%XXXX%'
+            or
+            SELECT FROM table_name
+            WHERE column LIKE 'XXXX_'
+            or
+            SELECT FROM table_name
+            WHERE column LIKE '_XXXX'
+            or
+            SELECT FROM table_name
+            WHERE column LIKE '_XXXX_'
+            ~~~~~~~~~~~~
+
+            - Se usa en condiciones que comparan texto.
+            - No distingue entre mayúsculas y minúsculas.
+            - **%** : representa cero, uno o varios caracteres.
+            - **_** : representa a un carácter.
+            - Se puede utilizar LIKE conjuntamente con NOT: **NOT LIKE** 'a%';
+
+            - Ejemplos: LIKE 'a%' o '%a' o '%a%' o '_a%' o 'a_%_%' o 'a%o';
+
+        - **GLOB**
+
+            ~~~~~~~~~~~~
+            SELECT FROM table_name
+            WHERE column GLOB 'XXXX*'
+            or 
+            SELECT FROM table_name
+            WHERE column GLOB '*XXXX*'
+            or
+            SELECT FROM table_name
+            WHERE column GLOB 'XXXX?'
+            or
+            SELECT FROM table_name
+            WHERE column GLOB '?XXXX'
+            or
+            SELECT FROM table_name
+            WHERE column GLOB '?XXXX?'
+            or
+            SELECT FROM table_name
+            WHERE column GLOB '????'
+            ~~~~~~~~~~~~
+
+            - Se usa en condiciones que comparan texto.
+            - Distingue entre mayúsculas y minúsculas.
+            - * : representa cero, uno o varios caracteres.
+            - ? : representa a un carácter.
+
+- Cláusulas **LIMIT - OFFSET**
+
+    ~~~~~~~~~~~~sql
+    SELECT column1, column2, ... 
+    FROM table_name
+    [WHERE]
+    LIMIT [num_filas]
+
+    SELECT column1, column2, ... 
+    FROM table_name
+    [WHERE]
+    LIMIT [num_filas] OFFSET [num_fila_desde]
+    ~~~~~~~~~~~~
+
+    - Limita la cantidad de datos devueltos por la instrucción SELECT.
+    - OFFSET: devolverá las filas a partir de la siguiente fila del valor de OFFSET dado.
+
+- Cláusula **ORDER BY**
+
+    ~~~~~~~~~~~~
+    SELECT column1, column2, ...
+    FROM table_name 
+    [WHERE condition] 
+    ORDER BY column1, column2, ... [ASC | DESC];
+    ~~~~~~~~~~~~
+
+    - ASC: orden ascendente
+    - DESC: orden descendente
+
+- Cláusula **GROUP BY**
+
+    ~~~~~~~~~~~~
+    SELECT column1, column2, ..., function
+    FROM table_name 
+    [WHERE condition] 
+    GROUP BY column1, column2, ...
+    ORDER BY column1, column2, ...  [ASC | DESC];
+    ~~~~~~~~~~~~
+
+- Cláusula **HAVING**
+
+    ~~~~~~~~~~~~
+    SELECT column1, column2, ..., function
+    FROM table_name 
+    [WHERE condition] 
+    GROUP BY column1, column2, ...
+    HAVING [conditions]
+    ORDER BY column1, column2, ...  [ASC | DESC];
+    ~~~~~~~~~~~~
+
+    - Especifica condiciones que filtran **resultados de grupo**.
+    - Siempre sigue a la cláusula GROUPY BY.
+    - Siempre precede a la cláusula ORDER BY.
+
+- **Actualizar filas**
+
+    ~~~~~~~~~~~~
+    UPDATE table_name
+    SET column1 = value1, column2 = value2, ...,  
+    [WHERE condition];
+    ~~~~~~~~~~~~
+
+- **Eliminar filas**
+
+    ~~~~~~~~~~~~
+    DELETE FROM table_name
+    [WHERE condition];
+    ~~~~~~~~~~~~
+
+## Funciones
+
+    - **Fecha y Hora**
+
+        ~~~~~~~~~~~~
+        DATE|TIME|DATETIME|JULIANDAY|STRFTIME (timestring, modifiers);
+
+        STRFTIME ('%x',timestring, modifiers);
+        ~~~~~~~~~~~~
+
+        - **date**: Devuelve la fecha en formato YYYY-MM-DD
+        - **time**: Devuelve la hora como HH:MM:SS
+        - **datetime**: Devuelve AAAA-MM-DD HH:MM:SS
+        - **julianday**: Devuelve el número de días desde el mediodía en Greenwich el 24 de noviembre de 4714 a.C.
+        - **strftime**: Devuelve la fecha formateada de acuerdo con la cadena de formato especificada en el primer argumento ('%x'), que puede tener los valores:
+
+            - **%d**	Día del mes, 01-31
+            - **%F**	Fracciones de segundo, SS.SSS
+            - **%H**	Hora, 00-23
+            - **%j**	Día del año, 001-366
+            - **%J**	Número de día juliano, DDDD.DDDD
+            - **%m**	Mes, 00-12
+            - **%M**	Minuto, 00-59
+            - **%s**	Segundos desde 1970-01-01
+            - **%S**	Segundos, 00-59
+            - **%v**	Día de la semana, 0-6 (0 es domingo)
+            - **%W**	Semana del año, 01-53
+            - **%Y**	Año, AAAA
+            - **%%**	% símbolo
+
+        El parámetro **timestring** puede tener los siguientes valores:
+
+            - YYYY-MM-DD 
+            - YYYY-MM-DD HH:MM
+            - YYYY-MM-DD HH:MM:SS
+            - YYYY-MM-DD HH:MM:SS.SSS
+            - HH:MM
+            - HH:MM:SS
+            - HH:MM:SS.SSS
+            - now - fecha y hora actual
+            - DDDDDDDDDD - dia juliano
+
+        Y los modificadores que alterarán la fecha y/o la hora devuelta, y que se aplican de izquierda a derecha:
+
+        - NNN days
+        - NNN hours
+        - NNN minutes
+        - NNN.NNNN seconds
+        - NNN months
+        - NNN years
+        - start of month
+        - start of year
+        - start of day
+        - weekday N
+        - unixepoch
+        - localtime
+        - utc
+
+    - **Procesamiento de cadenas o datos numéricos**
+    
+        - **COUNT**: cuenta el número de filas. 
+        - **MAX**: permite seleccionar el valor más alto (máximo) para una determinada columna. 
+        - **MIN**: permite seleccionar el valor más bajo (mínimo) para una determinada columna. 
+        - **AVG**: selecciona el valor promedio para una determinada columna de la tabla. 
+        - **SUM**: permite seleccionar el total para una columna numérica. 
+        - **UPPER**: convierte una cadena en letras mayúsculas. 
+        - **LOWER**: convierte una cadena en letras minúsculas.
+        - **LENGTH**: devuelve la longitud de una cadena. 
+
+            ~~~~~~
+            SELECT COUNT|MAX|MIN|AVG|SUM|UPPER|LOWER|LENGTH(columna) FROM tabla;
+            ~~~~~~
+
+    - **RANDOM**: devuelve un número entero pseudoaleatorio entre -9223372036854775808 y +9223372036854775807. 
+        ~~~~~~
+        SELECT random();
+        ~~~~~~
+
+    - **ABS**: devuelve el valor absoluto del argumento numérico. 
+        ~~~~~~
+        SELECT ABS(valor);
+        ~~~~~~
+    
+    - **sqlite_version**: devuelve la versión de la biblioteca SQLite. 
+        ~~~~~~
+        SELECT sqlite_version()
+        ~~~~~~
+
+# Sentencias SQLite Avanzado
+
+- Cláusula **JOIN**
+
+    - Se usa para combinar registros de dos o más tablas, combinando campos de dos tablas usando valores comunes a cada uno.
+
+    - **CROSS JOIN**: hace coincidir cada fila de la primera tabla con cada fila de la segunda tabla.
+
+        ~~~~~~~~~~~~
+        SELECT ... FROM tabla1 CROSS JOIN tabla2 ...
+        ~~~~~~~~~~~~
+
+        - Si las tablas de entrada tienen filas x e y, respectivamente, la tabla resultante tendrá filas x*y.
+
+    - **INNER JOIN**: combina valores de columna de dos tablas en función de la condición de unión.
+
+        ~~~~~~~~~~~~
+        SELECT ... FROM tabla1 [INNER] JOIN tabla2 ON condición 
+        ~~~~~~~~~~~~
+
+    - **OUTER JOIN**: combina valores de columna de dos tablas en función de la condición de unión.
+
+        ~~~~~~~~~~~~
+        SELECT ... FROM tabla1 LEFT OUTER JOIN tabla2 ON condición 
+        ~~~~~~~~~~~~
+
+        - OUTER JOIN es una extensión de INNER JOIN. Aunque el estándar SQL define tres tipos de OUTER JOIN: LEFT, RIGHT y FULL, SQLite solo admite **LEFT OUTER JOIN**.
+
+        - La tabla de resultados inicial se calcula de la misma manera que INNER JOIN pero, una vez que se calcula el JOIN principal, un OUTER JOIN tomará las filas no unidas de una o ambas tablas, las rellenará con NULL y las agregará a la tabla resultante.
+
+- Cláusula **UNION** y **UNION ALL**
+
+    - **UNION**: se usa para combinar los resultados de dos o más declaraciones SELECT **sin devolver filas duplicadas**.
+    - **UNION ALL**: se usa para combinar los resultados de dos o más declaraciones SELECT **incluyendo filas duplicadas**.
+
+        ~~~~~~~~~~~~
+            SELECT columna1 [, columna2 ]
+            FROM tabla1 [, table2 ]
+            [WHERE condicion]
+            
+            UNION/UNION ALL
+            
+            SELECT columna1 [, columna2 ]
+            FROM tabla1 [, table2 ]
+            [WHERE condicion]
+        ~~~~~~~~~~~~
+
+- Valor **NULL**
+
+    - **Actualizar valores a NULL**
+
+        ~~~~~~~~~~~~
+        UPDATE tabla SET campo1 = NULL, campo2 = NULL WHERE [condicion];
+        ~~~~~~~~~~~~
+    
+    - **Operador NULL/NOT NULL**
+    
+        ~~~~~~~~~~~~
+        SELECT  columna1, columna2, ...
+        FROM tabla
+        WHERE columna IS NULL/NOT NULL;
+        ~~~~~~~~~~~~
+    
+- Sintáxis **ALIAS**
+
+        ~~~~~~~~~~~~
+        SELECT columna1, columna2....
+        FROM table_name AS alias_name
+        WHERE [condition];
+
+        SELECT column_name AS alias_name
+        FROM table_name
+        WHERE [condition];
+        ~~~~~~~~~~~~
+
+        - Cambia el nombre de una tabla/columna temporalmente dándole otro nombre.
+        - Se cambia en una declaración SQLite particular. 
+        - Es un cambio temporal y el nombre real de la tabla/columna no cambia en la base de datos.
+
+# Subconsultas
+
+    Es una consulta dentro de otra consulta SQLite e incrustada dentro de la cláusula WHERE. Se utiliza para devolver datos que se utilizarán en la consulta principal como condición.
+
+    Las subconsultas se pueden usar con las declaraciones **SELECT, INSERT, UPDATE y DELETE ** junto con operadores como =, <, >, >=, <=, *IN*, *BETWEEN*, etc.
+
+    - Hay algunas reglas que deben seguir las subconsultas:
+
+        - Deben estar entre paréntesis.
+
+        - Solo puede tener una columna en la cláusula SELECT, a menos que haya varias columnas en la consulta principal para que la subconsulta compare sus columnas seleccionadas.
+
+        - No se puede usar ORDER BY en una subconsulta, se puede usar GROUP BY. 
+
+        - Las subconsultas que devuelven más de una fila solo se pueden usar con operadores de valores múltiples, como el operador IN.
+
+        - El operador BETWEEN no se puede utilizar con una subconsulta pero sí dentro de la subconsulta.
+
+    - **Subconsulta con SELECT**
+
+        ~~~~~~~~~~~~~~~~
+        SELECT column_name [, column_name ]
+        FROM table1 [, table2 ]
+        WHERE column_name OPERATOR
+        (SELECT column_name [, column_name ]
+            FROM table1 [, table2 ]
+            [WHERE])
+        ~~~~~~~~~~~~~~~~
+
+    - **Subconsulta con INSERT**
+
+        ~~~~~~~~~~~~~~~~
+        INSERT INTO table_name [ (column1 [, column2 ]) ]
+        SELECT [ *|column1 [, column2 ]
+        FROM table1 [, table2 ]
+        [ WHERE VALUE OPERATOR ]
+        ~~~~~~~~~~~~~~~~
+
+    - **Subconsulta con UPDATE**
+
+        ~~~~~~~~~~~~~~~~
+        UPDATE table
+        SET column_name = new_value
+        [ WHERE OPERATOR [ VALUE ]
+        (SELECT COLUMN_NAME
+            FROM TABLE_NAME)
+        [ WHERE) ]
+        ~~~~~~~~~~~~~~~~
+
+    - **Subconsulta con DELETE**
+
+        ~~~~~~~~~~~~~~~~
+        DELETE FROM TABLE_NAME
+        [ WHERE OPERATOR [ VALUE ]
+        (SELECT COLUMN_NAME
+            FROM TABLE_NAME)
+        [ WHERE) ]
+        ~~~~~~~~~~~~~~~~
+
+## Operador EXISTS/NOT EXISTS
+
+    Es un operador lógico que comprueba si una subconsulta devuelve alguna fila. 
+
+    ~~~~~~~~~~~~~~~~
+    SELECT column1, column2, columnN 
+    FROM table_name
+    WHERE [condition] AND 
+            [NOT] EXISTS(subquery)
+    ~~~~~~~~~~~~~~
+
+    La subconsulta es una instrucción *SELECT* insertada como una condición dentro del *WHERE*, y que devuelve cero o más filas.
+
+    Si la subconsulta devuelve:
+
+    - Una o más filas: EXISTS tiene valor *verdadero*. 
+    - Cero filas: EXISTS tiene valor **falso**.
+
+    Hay que tener en cuenta que NULL es un valor válido, por lo que si el resultado de la subconsulta devuelve una linea con valor *NULL* el resultado de *EXISTS* sigue siendo *verdadero* porque el conjunto de resultados contiene una fila con NULL.
+
+    **NOT EXISTS** se utiliza para negar el EXISTS.
+
+# Vistas
+
+    Es una composición de una tabla en forma de consulta SQLite predefinida. Puede contener todas las filas de una tabla o filas seleccionadas de una o más tablas. Se puede crear una vista a partir de una o varias tablas, creando consulta.
+
+    Permiten estructurar los datos de forma que se vean naturales o intuitivos, restrinjir el acceso a los datos de modo que se vean limitados en lugar de una tabla completa y resumir los datos de varias tablas, que se pueden utilizar para generar informes.
+
+    Son de solo lectura no se puede ejecutar una instrucción DELETE, INSERT o UPDATE en una vista. Pero si se puede crear un disparador en una vista que se active al intentar ELIMINAR, INSERTAR o ACTUALIZAR una vista y hacer lo que necesite en el cuerpo del disparador.
+
+    - **Crear una vista**
+
+        ~~~~~~~~~~~~
+        CREATE VIEW view_name AS
+        SELECT column1, column2.....
+        FROM table_name
+        WHERE [condition];
+        ~~~~~~~~~~~~
+
+    - **Eliminar una vista**
+
+        ~~~~~~~~~~~~
+        DROP VIEW view_name;
+        ~~~~~~~~~~~~
+
+# Disparadores
+
+    Son funciones de la base de datos, que se ejecutan/invocan automáticamente cuando ocurre un evento específico de la base de datos.
+
+    Sus características más importantes son las siguientes:
+
+        - Eventos que los disparan:
+                    - **DELETE**
+                    - **INSERT** 
+                    - **UPDATE** en una tabla o columna/s.
+
+        - Para acceder a los elementos de la fila que se está insertando, eliminando o actualizando:
+            - **NEW.columna** 
+            - **OLD.columna** 
+
+        - Si se proporciona una cláusula WHEN, las sentencias de SQL especificadas solo se ejecutan para las filas en las que la cláusula WHEN es verdadera. Si no se proporciona una cláusula WHEN, las sentencias SQL se ejecutan para todas las filas.
+
+        - La palabra clave *BEFORE* o *AFTER* determina cuándo se ejecutarán las acciones desencadenantes en relación con la inserción, modificación o eliminación de la fila asociada.
+
+        - Los disparadores se descartan automáticamente cuando se elimina la tabla a la que están asociados.
+        - Se usa la función SQL especial **RAISE()** dentro de un programa desencadenante para generar una excepción. 
+
+    - **Crear disparadores**
+
+        ~~~~~~~~~~~~
+        CREATE TRIGGER trigger_name [BEFORE|AFTER] [INSERT|UPDATE|DELETE] 
+        ON table_name
+        BEGIN
+        -- Código del trigger ...
+        END;
+
+        CREATE TRIGGER trigger_name [BEFORE|AFTER] UPDATE OF column_name 
+        ON table_name
+        BEGIN
+        -- Código del trigger ...
+        END;
+        ~~~~~~~~~~~~        
+
+    - **Eliminar disparadores**
+    
+        ~~~~~~~~~~~~
+        DROP TRIGGER trigger_name;
+        ~~~~~~~~~~~~
+
+
+# Indices
+
+    Los índices son una estructura de datos que contiene punteros a los contenidos de una tabla organizada en un orden específico, para ayudar a la base de datos a optimizar las consultas. Son similares al índice del libro, donde las páginas (filas de la tabla) se indexan por su número de página.
+    
+    Cuando existe un índice en las columnas utilizadas en la cláusula WHERE, JOIN u ORDER BY, puede mejorar sustancialmente el rendimiento de la consulta, ya que son una forma de acelerar las consultas de lectura ordenando las filas de una tabla según una columna. 
+    
+    El efecto de un índice no es notable para bases de datos pequeñas, pero si hay un gran número de filas, puede mejorar considerablemente el rendimiento. En lugar de revisar cada fila de la tabla, el servidor puede hacer una búsqueda binaria en el índice.
+    
+    Los índices pueden contener una o varias columnas:
+    
+    ~~~~~~~~~~~~~~~~sql
+        CREATE INDEX idx_name ON table_name (columna);
+        CREATE INDEX idx_name ON table_name (columna1,columna2);
+    ~~~~~~~~~~~~~~
+    
+    Un índice sería útil para consultas que soliciten ordenar o seleccionar por todas las columnas incluidas, si el conjunto de condiciones se ordena de la misma manera. Eso significa que al recuperar los datos, puede encontrar las filas para recuperar usando el índice, en lugar de mirar a través de la tabla completa.
+    
+    Por ejemplo, el siguiente caso utilizaría el segundo índice:
+    
+    ~~~~~~~~~~~~~~~~sql
+        CREATE INDEX idx_indice1 ON USUARIOS (Nombre);
+        CREATE INDEX idx_indice2 ON USUARIOS (Id,Nombre);
+
+        SELECT * FROM USUARIOS WHERE Id = 1 Order by Nombre
+    ~~~~~~~~~~~~~~~~
+    
+    Sin embargo, si el orden difiere, el índice no tiene las mismas ventajas:
+    
+    ~~~~~~~~~~~~~~~~sql
+        SELECT * FROM USUARIOS WHERE Nombre='usuario1' Order by Id 
+    ~~~~~~~~~~~~~~~~
+    
+    El índice no es tan útil porque la base de datos debe recuperar el índice completo, en todos los valores de Id, para encontrar qué elementos tienen *Nombre='usuario1'*.    
+
+    Para crear un índice hay que tener en cuenta la compensación entre velocidad de escritura y tamaño de la base de datos. El almacenamiento del índice ocupa espacio. Además, cada vez que se realiza un INSERT o se actualiza la columna, el índice debe actualizarse. Esta no es una operación tan costosa como escanear la tabla completa en una consulta SELECT, pero aún es algo a tener en cuenta.
+
+    - ¿Cuándo se deben evitar los índices?
+        - Tablas pequeñas.
+        - Tablas que tienen operaciones frecuentes de actualización o inserción de lotes grandes.
+        - Columnas que contienen una gran cantidad de valores NULL.
+
+    - **Indexado por cláusula**
+
+        ~~~~~~~~~~~~~~~~sql
+        SELECT|DELETE|UPDATE column1, column2...
+        INDEXED BY (index_name)
+        FROM table_name
+        WHERE (CONDITION);
+        ~~~~~~~~~~~~~~~~
+
+    - **Eliminar Indice**
+
+        ~~~~~~~~~~~~~~~~sql
+        DROP INDEX index_name;
+        ~~~~~~~~~~~~~~~~
+
+
+# Transacciones
+
+    Las transacciones son unidades o secuencias de trabajo realizadas en un orden lógico, ya sea de forma manual por un usuario o automáticamente por algún tipo de programa de base de datos, cumpliendo las propiedades establecidas por el término ACID.
+
+    Es importante controlar las transacciones para garantizar la integridad de los datos y manejar los errores de la base de datos. En la práctica, agrupará muchas consultas de SQLite en un grupo y las ejecutará todas juntas como parte de una transacción.
+
+    Los comandos utilizados para controlar las transacciones:
+
+        - **BEGIN**: para iniciar una transacción.
+
+        - **COMMIT**: para guardar los cambios.
+
+        - **ROLLBACK**: para revertir los cambios.
+
+    Los comandos de control transaccional solo se usan con los comandos **INSERT**, **UPDATE** y **DELETE**. No se usan al crear o eliminar tablas porque estas operaciones se confirman automáticamente en la base de datos.
+
+    - **Comenzar transacción**    
+
+        ~~~~~~~~~~~~~~~~
+        BEGIN;
+        or 
+        BEGIN TRANSACTION;
+        ~~~~~~~~~~~~~~~~
+
+        - Tras comenzar una transacción esta persiste hasta que se encuentra el siguiente comando COMMIT o ROLLBACK. También será ROLLBACK si la base de datos está cerrada o si ocurre un error. 
+
+    - **Comando COMMIT**
+        
+        ~~~~~~~~~~~~~~~~
+        COMMIT;
+        or
+        END TRANSACTION;
+        ~~~~~~~~~~~~~~~~
+    
+    A continuación se muestra la sintaxis del comando COMMIT.
+
+    - **Comando ROLLBACK**
+
+        ~~~~~~~~~~~~~~~~
+        ROLLBACK;
+        ~~~~~~~~~~~~~~~~
+
+# Limitaciones de SQLite
+
+Hay algunas características no admitidas de SQL en SQLite que se enumeran a continuación:
+
+1. **RIGHT OUTER JOIN** 
+2. **FULL OUTER JOIN** 
+        Solo se implementa LEFT OUTER JOIN.
+3. **ALTER TABLE**
+        - Se admiten las variantes:
+            - RENAME TABLE  
+            - ADD COLUMN 
+        - No se admiten:
+            - DROP COLUMN 
+            - ALTER COLUMN 
+            - ADD CONSTRAINT
+4. **STORED PROCEDURE**
+
+5. **VIEWS**
+        - Son de solo lectura. 
+        -No puede ejecutar una instrucción **DELETE**, **INSERT** o **UPDATE** en una vista.
+6. **GRANT** y **REVOKE**	
+        - Los únicos permisos de acceso que se pueden aplicar son los permisos de acceso a archivos normales del sistema operativo subyacente.
+7. **TRUNCATE**
+    - No se puede vaciar los datos de una tabla mediante este comando, en su lugar se utiliza *DELETE*.
+    - Se recomienda utilizar el comando VACUUM para borrar el espacio no utilizado.
+
+        ~~~~~~~~~~~~~~~~sql
+        DELETE FROM nombre_tabla;
+        VACUUM;
+        ~~~~~~~~~~~~~~~~
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

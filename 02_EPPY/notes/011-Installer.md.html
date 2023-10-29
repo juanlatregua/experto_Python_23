@@ -1,0 +1,209 @@
+<meta charset="utf-8">
+**02EPPY - 011 - Installer**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Installer
+
+Instalar un proyecto de Python puede ser frustante, especialmente para usuarios que no son desarrolladores. A menudo, esta instalación empieza abriendo un terminal, que es algo complicado para la mayoría de potenciales usuarios. Esto bloquea a los usuarios incluso antes de que la instalación llegue a cosas más complicadas como versiones de Python, entornos virtuales, dependencias,...
+
+Preparar una máquina para desarrollar en Python supone:
+
+- Descargar e instalar una versión específica de Python
+- Instalar `pip`
+- Montar un entorno virtual
+- Conseguir una copia del código
+- Instalar todas las dependencias
+
+La mayor parte de estos pasos no tienen ningún sentido para un usuario corriente, incluso para un desarrollador sin conocimientos específicos de Python.
+
+## PyInstaller
+
+[PyInstaller](https://pyinstaller.readthedocs.io/en/stable/) abstrae al usuario de todos esos detalles resolviendo y juntando todas las dependencias. Los usuarios se alejan de todo conocimiento de la construcción de la aplicación, ni siquiera saben que el propio intérprete de Python está empaquetado dentro de la aplicación.
+
+Esta librería realiza todo este trabajo realizando una introspección en el código de Python, detectando y empaquetando las dependencias en el formato apropiado para el sistema operativo de destino. Puede crear ejecutables para Windows, Linux o macOS.
+
+## Preparando el proyecto
+
+PyInstaller requiere que la aplicación sobre la cual crear el instalador cumpla una estructura mínima, básicamente que tenga un script para lanzar la aplicación. A menudo, esto significa crear un pequeño script fuera del paquete Python que simplemente importe el paquete y ejecute `main`.
+
+El script de punto de entrada es un script de Python que es el código que arranca la aplicación, técnicamente se puede hacer cualquier cosa en este script, pero se debería evitar usar imports relativos explícitos. Se pueden usar en el resto de la aplicación si se desea.
+
+El primer paso para crear una versión ejecutable de un proyecto es añadir dicho script de punto de entrada. Para ello, se crea un fichero `shm_up.py` fuera del paquete.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from shmup.__main__ import main
+
+if __name__ == '__main__':
+    main()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [shm_up]: Fichero `shm_up.py`]
+
+Este fichero simplemente llamará a la función `main` contenida dentro del módulo `__main__` del paquete.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── ShMUp
+    ├── docs
+    ├── README.md
+    ├── shm_up.py
+    ├── setup.py
+    └── shmup
+        ├── game.py
+        ├── __init__.py
+        └── __main__.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [project_folder]: Estructura de Ficheros del Proyecto]
+
+No hay ningún cambio en el código del proyecto original, solo se ha añadido un fichero `shm_up.py`, que si el paquete está bien definido y construido es la única modificación que se suele necesitar para usar PyInstaller.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> python shm_up.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [launch]: Lanzar el proyecto con el nuevo punto de entrada]
+
+## Usar PyInstaller
+
+Hay que instalar [PyInstaller](https://pypi.org/project/pyinstaller/) desde PyPI, usando los métodos habituales con `pip` o `pipenv`. Esto instalará tanto el paquete y sus dependencias, como un nuevo comando, `pyinstaller`.
+
+PyInstaller soporta la mayoría de paquetes populares de Python sin ningún trabajo extra, se puede consultar la [lista de paquetes](https://github.com/pyinstaller/pyinstaller/wiki/Supported-Packages) soportados. Y pese a que no estén en esa lista, la mayoría de los paquetes funcionarán bien.
+
+Para crear el ejecutable con todos los valores por defecto, se le da a PyInstaller el nombre del script de punto de entrada de la aplicación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [launch_pyinstaller]: Lanzar PyInstaller con el punto de entrada]
+
+## Artefactos de PyInstaller
+
+PyInstaller es bastante complicado por debajo, y creará un montón de datos de salida. Por eso es importante saber donde mirar primero, sobre todo el ejecutable que se puede distribuir a los usuarios y también información de depuración. Por defecto, el comando `pyinstaller` crea varias cosas interesantes.
+
+### Fichero `Spec`
+
+Este fichero se llamará de igual manera que el script de punto de entrada por defecto, y se creará de manera automática la primera vez que se llame al comando `pyinstaller`. Este fichero se puede modificar a mano y reusar para crear ejecutables.
+
+### Carpeta `build`
+
+En esta carpeta es donde PyInstaller pone todos los metadatos y ficheros intermedios que usa para construir el ejecutable. Puede ser util para depurar, pero esta carpeta puede ser ignorada la mayoría de las veces.
+
+### Carpeta `dist`
+
+Esta carpeta tendrá los artefactos binarios que se tienen que distribuir a los usuarios de la aplicación. Dentro de esta carpeta hay otra con el mismo nombre que el script de punto de entrada. Esta última carpeta contiene todas las dependencias y el ejecutable de la aplicación. Hay muchos ficheros con librerías dinámicas, ficheros de Python,...
+
+## Personalizando la instalación
+
+### --name
+
+Cambia el nombre del ejecutable final, con esto se evita que el nombre del script punto de entrada acabe siendo el nombre del ejecutable.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py --name my_game
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [name]: Cambiar el nombre del ejecutable]
+
+### --onefile, -F
+
+Empaqueta la aplicación dentro de un solo fichero ejecutable. La opción por defecto crea una carpeta con las dependencias y un ejecutable, esta opción facilita la distribución juntando todo en un solo fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py -F
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [onefile]: Instalación en un solo fichero]
+
+### --hidden-import
+
+Añade imports a la instalación que PyInstaller no ha sido capaz de detectar automáticamente. Esto sucede cuando se hace uso de `import` dentro de una función, a través de `__import__()` o usando el paquete `importlib` para embeber recursos. Esta opción requiere el nombre de los paquetes que se quieren incluir en el ejecutable. Se puede especificar varias veces, una para cada import oculto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py --hidden-import=shmup.assets.images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hidden_imports]: Añadir imports ocultos]
+
+### --add-data y --add-binary
+
+Informa a PyInstaller que inserte ficheros adicionales a la instalación, como por ejemplo, ficheros de configuración, imágenes,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py --add-data="shmup\assets\config.json;shmup\assets"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [add_data]: Añadir ficheros de datos]
+
+En este caso, en el argumento `add-data`, se añaden pares de valores, el primero el nombre y ruta del fichero original en el proyecto, y segundo el nombre de la carpeta donde irá dicho fichero en el instalable.
+
+### --exclude-module
+
+Excluir algún módulo de ser incluido en el instalable, como por ejemplo, librerías de desarrollo que se usan exclusivamente por el programador para depurar o hacer testing.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py --exclude-module=pytest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [exclude_module]: Excluir módulo]
+
+### -w
+
+Evitar abrir automáticamente una ventana de consola para mostrar la salida de texto. Esto solo es útil si se está construyendo una aplicación con GUI.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.py -w
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [w]: No abrir ventana de consola]
+
+### fichero .spec
+
+Se puede reusar un fichero `.spec` para personalizar la instalación. Este fichero es un script de Python que se puede  modificar con algún editor de texto, y luego volver a lanzar la instalación sobre este fichero modificado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.spec
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [spec]: Usar un fichero `spec`]
+
+## Probar el nuevo ejecutable
+
+La mejor manera de probar el nuevo ejecutable es en una nueva máquina, que idealmente debería ser lo más parecida a la máquina en la que se ha creado la instalación. En cualquier caso, aunque se use la máquina de desarrollo, la clave está en ejecutar el ejecutable sin tener activado el entorno virtual de desarrollo. Esto significa hacerlo sin `virtualenv`, `conda`, `pipenv`, o cualquier otro entorno que pueda acceder a la instalación de Python.
+
+Si se intenta ejecutar el juego `shmup` creado con las opciones por defecto de PyInstaller saldrán varios problemas. Por un lado se importan algunos paquetes a través de `importlib resources`, que PyInstaller no puede reconocer automáticamente, y por otro falta añadir todos los binarios con todos los assets que `shmup` usa.
+
+Se pueden usar los comandos `hidden_import` y `add_data`, para añadirlos uno a uno. Pero resulta más práctico y cómodo editar el fichero `*.spec`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+hiddenimports=['shmup.assets', 'shmup.assets.images', 'shmup.assets.sfx', 'shmup.assets.fonts']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [spec_hidden]: `hiddenimports` en el fichero `shm_up.spec`]
+
+Se añaden los tres módulos que se usan dentro de `shmup`, para acceder a imágenes, fuentes y sfx, al fichero `shm_up.spec`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+datas=[('shmup\\assets\\config.json', 'shmup\\assets'),
+    ('shmup\\assets\\images\\entities.json', 'shmup\\assets\\images'),]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [spec_datas]: `datas` en el fichero `shm_up.spec`]
+
+A continuación los ficheros de datos `json`, que se usan en el juego para la configuración y la definición del spritesheet de gráficos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+binaries=[('shmup\\assets\\images\\entities.png', 'shmup\\assets\\images'),
+        ('shmup\\assets\\images\\explosion.png', 'shmup\\assets\\images'),
+        ('shmup\\assets\\sfx\\allied_gunfire.wav', 'shmup\\assets\\sfx'),
+        ('shmup\\assets\\fonts\\Sansation.ttf', 'shmup\\assets\\fonts'),]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [spec_binaries]: `binaries` en el fichero `shm_up.spec`]
+
+Y por último los ficheros binarios en su apartado correspondiente, definiendo las imágenes, fuentes y sonidos que se usan. En todos ellos se incluye la ruta original incluyendo el nombre del fichero en la primera parte de la tupla y la ruta destino dentro del ejecutable final.
+
+Una vez modificado el fichero `.spec` se puede volver a lanzar la instalación usando este fichero.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\shmup> pyinstaller shm_up.spec -F
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [spec]: Usar un fichero `spec`]
+
+Esto creará un fichero `shm_up.exe` dentro de la carpeta `dist` que debería ejecutar correctamente el juego.
+
+## Limitaciones
+
+Pese a su potencia, esta librería tiene sus limitaciones. Crea ejecutables para Windows, Linux y macOS, pero no puede hacer compilación cruzada. Así pues, no se puede crear un ejecutable en una plataforma para otra plataforma distinta. Para distribuir ejecutables para varios sistemas operativos se necesita una máquina para cada sistema operativo que se quiera soportar.
+
+PyInstaller técnicamente no empaqueta absolutamente todo lo que se necesita. El ejecutable que se crea es dependiente de la librería standard de C, `glibc`.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,177 @@
+<meta charset="utf-8">
+**02EPPY - 107 - Sprites**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Sprites
+
+Las primeras máquinas de videojuegos no eran capaces por si mismas de pintar y borrar gráficos normales a la velocidad suficiente para que funcionarán como juegos. Así que tenían un hardware específico
+para pintar objetos de juego que necesitaban ser animados muy rápidamente. A estos objetos animados por hardware se les llamaba *sprites* y tenían una serie de limitaciones, pero se podían pintar y actualizar a gran velocidad. Por lo general, existían unos buffers de superposición especiales en la memoria de video. Hoy en dia, los ordenadores son lo suficientemente potentes y rápidos para manejar objetos como dichos *sprites* sin necesitar un hardware dedicado. Pero el término *sprite* aún se usa para representar todo aquel objeto 2D en un juego que necesite ser animado.
+
+Un *sprite* es una representación 2D de algo en la pantalla, esencialmente, es una imagen, la clase *Sprite* de PyGame está diseñada para alojar una o varias representaciones gráficas de cualquier objeto de juego que se quiera pintar en pantalla.
+
+## Clase Sprite
+
+En PyGame existe el módulo *sprite* para lidiar con dichos objetos, dentro de dicho módulo se encuentra la clase *Sprite* que está diseñada como una clase base de la cual heredar todos los objetos del juego que tengan representación gráfica. No se puede usar dicha clase en sí misma, puesto que solo tiene métodos para ayudar en el trabajo en los distintos grupos a los que puede pertenecer, y por tanto, lleva un control de eso. El constructor de clase, método `__init__`, recibe como argumento un grupo (o lista de grupos) al cual la instancia del *sprite* pertenece. Se puede cambiar su pertenencia a dichos grupos a través de los métodos *add* y *remove*, también existe un método *groups*, que devuelve la lista de los grupos a los que pertenece.
+
+Cuando se elimina la instancia del *sprite* de todos los grupos posibles PyGame limpiará y eliminará el *sprite*, a menos que se mantenga una referencia del *sprite* en algún otro sitio. El método *kill* lo elimina de todos los grupos donde esté registrado. El método *alive* devuelve *True* si el *sprite* aún pertenece a algún grupo.
+
+## Clase Group
+
+Esta clase es simplemente un contenedor, de manera similar al *sprite*, tiene un método *add* y *remove* que puede cambiar que *sprites* pertenecen al grupo. Se puede pasar un *sprite* o una lista de ellos al constructor del grupo para crear una instancia de *Group* que contenga algunos *sprites* inicialmente.
+
+Esta clase tiene otros métodos como *empty* para eliminar todos los *sprites* del grupo, *copy* que devuelve una copia del grupo con los mismos miembros, o el método *has* que rápidamente verifica si el grupo contiene a un *sprite* o una lista de ellos.
+
+Otro método usado muy frecuentemente es *sprites*, este devuelve un objeto que puede ser iterado para acceder a todos los *sprites* que contiene un grupo.  Un grupo también tiene un método *update*, que llamará al método *update* de cada *sprite* en su grupo, pasando los mismos argumentos a todos ellos. Normalmente, en un juego se suele necesitar una manera de actualizar el estado de todos los objetos de juego. Se podría llamar a cualquier método de los objetos de juego a través del método *sprites*, pero usar el método *update* es tan habitual que se ha convertido en parte de la clase. La clase base *Sprite* tiene un método *dummy* llamado *update* que recibe cualquier cosa como argumento y no hace nada.
+
+Por último, la clase *Group* tiene más métodos que permiten usarla con la función de Python *len*, para conseguir el número de *sprites* que contiene, el operador booleano que permite verificar si un grupo tiene algún *sprite*,...
+
+## Sprites y Groups
+
+En este punto, las dos clases parecen bastante simples, no hacen mucho más de lo que se podría hacer con una lista básica y unas clases personalizadas para los objetos de juego. Pero hay algunas ventajas importantes de usar este sistema conjunto de *Sprite* y *Group*. Un *sprite* puede pertenecer a tantos grupos como sea necesario, pero en cuanto deje de pertenecer a ningún grupo se eliminará de memoria a menos que se mantenga una referencia al mismo fuera del sistema de grupos.
+
+Hay que categorizar los *sprites*, en el juego de ejemplo, en grupos separados para el jugador, los enemigos, los proyectiles amigos, los proyectiles enemigos, powerups,... Cuando el jugador dispara un proyectil se crea y añade un proyectil al grupo correspondiente, y así con todos los casos de la lógica de juego. Esto es mucho más rápido que tener una lista con todos los objetos de juego e iterar sobre todos ellos para verificar el tipo de objeto y hacer alguna acción sobre él.
+
+Añadir o eliminar grupos y *sprites*, unos de otros, es una operación muy rápida, mucho más eficiente que usar listas para guardar todo. Los grupos incluso pueden usarse para funcionar como atributos simples para cada objeto de juego. En lugar de llevar un registro de un atributo como *cerca_del_jugador* para un montón de objetos enemigos, se les puede añadir a un grupo separado, y cuando se necesita acceder a todos los enemigos alrededor del jugador, ya se tiene una lista de ellos en lugar de iterar sobre una lista con todos los enemigos, buscando el flag *cerca_del_jugador*. Si más tarde se añaden múltiples jugadores, en lugar de añadir más atributos *cerca_del_jugador_2*, se pueden añadir a diferentes grupos para cada jugador.
+
+Otro beneficio añadido de usar este sistema es que los grupos gestionan el borrado o eliminación de los objetos de juego. En un juego, donde muchos objetos acaban referenciando a otros objetos, muchas veces, es complicado eliminar efectivamente un objeto del juego, puesto que no se puede eliminar definitivamente hasta que no está referenciado por nadie. Si se tiene un objeto que persigue a otro, el perseguidor puede tener un grupo que referencia a los objetos que esta persiguiendo, si el objeto siendo perseguido se destruye, no hay que preocuparse de notificar al perseguidor para que deje de perseguir, él mismo puede ver que su grupo está ahora vacío y puede dedicarse a buscar un nuevo objetivo.
+
+Es importante tener en cuenta que añadir y eliminar *sprites* de grupos es una operación muy rápida y barata. Es buena estrategia crear muchos grupos para contener y organizar los objetos de juego, incluso muchos de esos grupos pueden estar vacíos la mayor parte del juego, sin incurrir en ninguna penalización por gestionar el juego de esta manera.
+
+## Tipos de Grupos
+
+Una ventaja añadida de usar los grupos es que hay varios tipos de ellos, con diferentes propósitos. Estos funcionan como un grupo normal, pero tienen funcionalidad añadida (o ligeramente modificada).
+
+- *Group*, es el grupo standard, la mayoría del resto de grupos derivan de este.
+
+- *GroupSingle*, funciona como el grupo standar *Group*, pero solo contiene al *sprite* añadido más recientemente. Con lo cual, cuando se añade un *sprite* a este grupo, se olvida de cualquier *sprite* que contuviera anteriormente. Solo contiene uno o ningún *sprite*.
+
+- *RenderPlain*, es un grupo standard, tiene un método *draw* que se encargar de pintar todos los *sprites* que contiene a la pantalla (o cualquier *surface*). Para esto, requiere que todos los *sprites* que contenga tengan un atributo *image* y otro *rect*, los cuales usa para saber el origen del *blit* y dónde hacerlo.
+
+- *RenderClear*, derivado del grupo *RenderPlain*, añade un método *clear*, que borrará la posición anterior de todos los *sprites* pintados. Usa una imagen de fondo para rellenar las áreas donde estuvieran los *sprites*. Es lo suficientemente inteligente para gestionar los *sprites* borrados y borrarlos de la pantalla cuando se llama al método *clear*.
+
+- *RenderUpdates*, deriva de *RenderClear*, pero cambia el método *draw*, que devuelve una lista de objetos *Rect* de PyGame que representan las áreas de la pantalla que han cambiado.
+
+Estos son los grupos disponibles, pero se pueden crear grupos personalizados si se necesita. Se puede heredar de alguno de estos grupos y añadir o cambiar lo que se necesite.
+
+## Grupos de Pintado
+
+Existen tres grupos diferentes para el pintado, se podría usar siempre el más completo de todos, *RenderUpdates*, pero añade un sobre coste que muchas veces no es necesario para un juego simple.
+
+Para un juego con scroll, donde el fondo está cambiando continuamente en cada frame, no hay necesidad de preocuparse de la actualización de los rectángulos al llamar a *update* del módulo *display* para actualizar la pantalla, así que se deberían usar grupos de tipo *RenderPlain* para gestionar el pintado.
+
+Para juegos con un fondo más estático, no se necesita que PyGame esté actualizando continuamente toda la pantalla. Este tipo de juego, normalmente supone borrar la posición anterior de cada objeto y volver a pintarlo en un nuevo sitio en cada frame. De esta manera, se está cambiando solo lo estrictamente necesario. En este caso, los grupos *RenderUpdates* tienen sentido, puesto que solo se quieren pasar esta lista de cambios a la función *update* de *display* al actualizar la pantalla.
+
+La clase *RenderUpdates* también funciona bien minimizando la superposición de áreas en la lista de rectángulos que se han actualizado. Si la posición anterior y la actual de un objeto se solapan, las mezclará en un solo rectángulo. Esto, combinado con el hecho de que gestiona correctamente los objetos borrados, hace que éste sea el grupo más potente.
+
+Se pueden mezclar estos grupos dentro del juego, de hecho se deberían usar grupos de pintado múltiples cuando se quieren pintar los *sprites* por capas. Y si la pantalla se divide en varias secciones, tiene sentido que cada sección tenga su propio grupo de pintado.
+
+## Detección de Colisiones
+
+El módulo *sprite* también viene con un par de funciones genéricas para detección de colisiones, que pueden funcionar para juegos simples.
+
+La función *spritecollide* comprueba las colisiones que se puedan efectuar entre un único *sprite* y un grupo de *sprites*. Necesita que todos los *sprites* tengan un atributo *rect* que defina el rectángulo de colisión del *sprite*. Devuelve una lista de todos los *sprites* que se solapan con el primer *sprite* y por tanto colisionan con él. Como parámetros, recibe en primer lugar el *sprite* a verificar, como segundo el grupo contra el que puede colisionar el *sprite* y un tercer parámetro *dokill*, que es de tipo booleano. Si este último parámetro es *True*, la función llamará al método *kill* para todos los *sprites* que hayan colisionado, esto significa, que probablemente la última referencia a cada *sprite* es probablemente la lista devuelta, y una vez se pierde la referencia de dicha lista, lo hacen los *sprites* que están en ella.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+for projectile in pygame.sprite.spritecollide(hero, projectile_group, True):
+    explosion_sound.play()
+    create_explosion(projectile.get_position(), 0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [collide_sprite_group]: Colisión entre un *Sprite* y un *Group*]
+
+Este código busca todos los *sprites* en el grupo de proyectiles que colisionan con el jugador, y puesto que se ha marcado el *dokill* como *True*, se eliminan todos los proyectiles que han colisionado. Para cada uno de esos proyectiles, se lanza un sonido de explosión, y se crea un nuevo objeto para pintar la explosión donde estaba el proyectil anteriormente.
+
+La otra función usada para gestionar las colisiones es *groupcollide*, que comprueba las colisiones entre todos los *sprites* de un grupo contra todos los *sprites* de otro grupo. Como primer parámetro recibe el primer grupo, y como segundo el segundo grupo a verificar. Asimismo, también recibe dos parámetros individuales *dokill* que afectarán a cada grupo. Cuando el parámetro *dokill1* está activado, los *sprites* en el grupo 1 que colisionan se eliminan llamando a su función *kill*, y sucede de manera análoga para el parámetro *dokill2*.
+
+Esta función devuelve un diccionario, donde cada clave es un *sprite* del grupo 1 que ha sufrido una colisión, y el valor para dicha clave es una lista de *sprites* con los que ha colisionado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+for enemy in pygame.sprite.groupcollide(enemies_group, projectile_group, True, True).keys():
+    explosion_sound.play()
+    create_explosion(enemy.get_position(), 0)
+    kills +=1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [collide_group_group]: Colisión entre un *Group* y otro *Group*]
+
+En este ejemplo, se comprueban las colisiones entre los proyectiles del jugador y todos los enemigos contra los que pueden intersectar. Luego, solo se itera sobre las claves del diccionario, pero se podría hacer también sobre los valores *values* o ambos con *îtems*, si se quisiera hacer algo con los proyectiles específicos que han colisionado con los enemigos. Si se iterara sobre los valores *values* se haría a través de listas que contendrían *sprites*. El mismo *sprite* podría incluso aparecer más de una vez en las listas en ese bucle, puesto que un mismo proyectil podría haber colisionado con varios enemigos a la vez.
+
+Estos dos métodos muestran un sistema de colisiones muy básico, pero debería ser sencillo desarrollar sistemas más complejos usando algo más que el atributo *rect*. O quizás tratar de afinar un poco más, y en lugar de construir una lista de objetos que han colisionado, afectar a los objetos de alguna manera. El código en la detección de colisiones de *sprites* está muy optimizado, pero se puede mejorar si se elimina cierta funcionalidad que no se usa.
+
+## Extender las Clases
+
+Por motivos de rendimiento, las clases *Group* intentan hacer solo lo que necesitan, y no manejan situaciones generales. Si se necesitan características extra, quizás sea interesante crear nuevas clases para nuevos grupos.
+
+Las clases *Group* y *Sprite* están diseñadas para ser extendidas, así que es sencillo crear clases propias a partir de ellas para hacer cosas específicas. Simplemente mirando a la implementación de dichas clases se puede observar como trabajan y como extenderlas.
+
+Los objetos *Sprite* solo necesitan dos métodos, *add_internal* y *remove_internal*, estos serán llamados por las clases de grupos cuando están eliminando *sprites* de sí mismas. Estas dos funciones tienen un único parámetro, que es un grupo. El *sprite* también debería tener alguna manera de llevar un registro de todos los grupos a los que pertenece. Habría que intentar imitar el resto de métodos y argumentos de la clase real *Sprite*, pero si no se van a usar algunos, es casi seguro que no se necesita implementarlos.
+
+Para crear un grupo personalizado todo esto aplica, de hecho, si se mira el código de PyGame, *GroupSingle* no deriva de la clase *Group*, simplemente implementa los mismos métodos. Se necesitan unos métodos *add_internal* y *remove_internal* que serán llamados por los *sprites* cuando quieren añadirse o borrarse del grupo, y toman un solo parámetro, que es el *sprite* en cuestión. El otro requisito para las clases *Group* es que tienen un atributo *`_spritegroup`*, no importa mucho el valor que tenga, siempre que esté presente. Las clases *Sprite* pueden buscar a este atributo para determinar la diferencia entre un grupo y un contenedor ordinario de Python.
+
+## RenderGroup
+
+Usando dicha característica, se puede implementar un nuevo grupo de sprites que herede de la clase base *Group* y que solo sea responsable de llamar al método render de todos los objetos que contiene cuando se deban pintar en pantalla y les pase la *surface* de destino donde hacerlo. De esta manera, se sigue teniendo el control del pintado de dichos objetos, pero no se pierde la potencia y flexibilidad del uso de los *sprites* y sus respectivos grupos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class RenderGroup(pygame.sprite.Group):
+
+    def draw(self, surface):
+        for sprite in self.sprites():
+            sprite.render(surface)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rendergroup]: Clase *RenderGroup*]
+
+Esta nueva clase hereda de la clase base de PyGame para los grupos de *sprites*, y puesto que la clase base ya se encarga de llamar al método *update* de sus *sprites* miembros, solo reimplementa al método *draw*, donde se encarga de iterar sobre su lista de *sprites* y llamar a su método render.
+
+## Game Objects
+
+Una abstracción habitual en casi todos los motores de videojuegos es tener una clase base para todos los objetos de juego que requieran una representación visual. Esta clase base a menudo suele ser una interfaz pura, que simplemente define los métodos que luego cada objeto debe implementar, pero también suele contener cierta funcionalidad común a todos los objetos de juego.
+
+En este caso, al usar PyGame y sus *sprites* tiene sentido que esta clase base herede de la clase *Sprite* y establezca una interfaz mínima que deben cumplir todos los objetos de juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class GameObject(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.position = pygame.math.Vector2(0.0, 0.0)
+
+    def handle_input(self, key, is_pressed):
+        pass
+
+    def update(self, delta_time):
+        pass
+
+    def render(self, surface):
+        pass
+
+    def release(self):
+        pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [gameobject]: Clase *GameObject*]
+
+El constructor lo primero que hace es llamar al constructor de la clase de la que hereda, en este caso, la clase *Sprite*. Y por ahora, al menos mantiene un vector 2d con la posición de dicho objeto de juego en la pantalla, que se inicia en la posición (0,0).
+
+Luego se definen los 4 métodos que se han visto anteriormente que deben cumplir todos los objetos que pueden tener vida en un juego, *handle_input*, *update*, *render* y *release*. De esta manera, cuando se quiera definir una entidad en el juego que tenga representación visual (no es imprescindible), esta entidad, puede heredar directamente de esta clase *GameObject*, y a la vez cumplir con ser parte del sistema de *sprites* y grupos de PyGame y cumplir con la implementación del sistema de *game loop* que se ha desarrollado anteriormente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Hero(GameObject):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hero_gameobject]: Clase *Hero* como un *GameObject*]
+
+Así de esta manera la entidad para el jugador se puede añadir a un grupo de jugadores que se puede controlar de manera global, sin que el objeto que los maneje necesite acceder a sus detalles.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __init__(self):
+    self.__players = RenderGroup()
+    self.__players.add(Hero(self))
+
+def update(self, delta_time):
+    self.__players.update(delta_time)
+
+def render(self, surface):
+    self.__players.draw(surface)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hero_groupst]: Grupo de jugadores]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

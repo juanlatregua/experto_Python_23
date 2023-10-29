@@ -1,0 +1,378 @@
+<meta charset="utf-8">
+**02EPPY - 003 - Namespaces y Ámbitos**
+    <small>©2023 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Namespaces
+
+Un *namespace* o espacio de nombres, es una colección de nombres simbólicos definidos, junto con información acerca del objeto al que cada nombre referencia. Se puede hacer una equivalencia a un diccionario, en el cual las claves son los nombres de los objetos y los valores son los objetos en sí mismos. Cada par clave-valor aplica un nombre a su objeto correspondiente.
+
+Python usa los espacios de nombres de manera extensiva, y en cualquier programa hay cuatro tipos de ellos.
+
+- Built-In
+- Globales
+- Enclosing
+- Locales
+
+Cada uno tiene un tiempo de vida distinto, y cuando Python ejecuta un programa, los crea cuando es necesario, y los borra cuando no son necesarios. En general, muchos espacios de nombres existirán en un momento determinado.
+
+## Built-In
+
+El espacio de nombres *built-in* contiene todos los nombres de los objetos integrados en Python. Estos están disponibles en todo momento cuando Python está en ejecución. Con la función *dir* se pueden ver los objetos en este espacio de nombres.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> dir(__builtins__)
+['ArithmeticError', 'AssertionError', 'AttributeError', 'BaseException', 'BlockingIOError', 'BrokenPipeError', 'BufferError', 'BytesWarning', 'ChildProcessError', 'ConnectionAbortedError', 'ConnectionError', 'ConnectionRefusedError', ...]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dir_builtin]: Nombres en el espacio *builtin*]
+
+Aparecen objetos, como `None`, algunas funciones integradas en el lenguaje, como `print` o `len`, y algunos tipos de objeto, como `int` o `str`.
+
+El intérprete de Python crea este espacio de nombres cuando arranca, y existe hasta que se cierra el intérprete.
+
+## Global
+
+Este espacio contiene todos los nombres definidos al nivel del programa principal. Python crea el espacio *global* cuando se arranca el programa principal, y sigue existiendo hasta que se cierra el intérprete.
+
+De manera estricta, este quizás no sea el único espacio de nombres global que exista. El intérprete también crea un espacio de nombres *global* para cada módulo que el programa cargue a través de la sentencia `import`.
+
+## Local y Enclosing
+
+El intérprete de Python crea un nuevo espacio de nombres cada vez que se ejecuta una función, este espacio es local a la función y existe hasta que la función acaba su ejecución.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    print('Foo Starts')
+
+    def bar():
+        print('Bar Starts')
+        print('Bar Ends')
+        return
+
+    bar()
+    print('Foo Ends')
+    return
+
+>>> foo()
+Foo Starts
+Bar Starts
+Bar Ends
+Foo Ends
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [enclosing_namespace]: Namespace *enclosing* y *enclosed*]
+
+En este ejemplo, la función `bar` está definida dentro del cuerpo de la función `foo`. Cuando el programa principal llama a `foo()`, Python crea un espacio de nombres para `foo`, y de manera similar, cuando `foo` llama a `bar()`, entonces `bar` obtiene su propio espacio de nombres separado. El espacio de nombres creado para `bar` es el espacio *local*, y el creado para `foo` es el *enclosing*. El que envuelve o abarca, y el envuelto o abarcado.
+
+Cada uno de estos espacios de nombres existe hasta que termine la correspondiente función. Python quizás no reclame inmediatamente la memoria reservada para estos espacios de nombres cuando acaban las funciones, pero las referencias a los objetos que contienen dejan de ser validas.
+
+# Ámbitos de las variables
+
+La existencia de múltiples y distintos espacios de nombres significa que varias y distintas instancias de un nombre particular pueden existir simultáneamente mientras se ejecuta un programa Python. Mientras cada instancia esté en un espacio de nombres diferentes, se mantendrán separadas y no interferirán unas con otras.
+
+Pero, si un nombre determinado `x` existe en varios espacios de nombres, como sabe Python a cual de ellos se refiere dicho nombre en un momento dado cuando se invoca?
+
+La respuesta está en el concepto *scope*, o ámbito. El ámbito de un nombre es la región de un programa en la cual ese nombre tiene significado. El intérprete determina esto en tiempo de ejecución basándose en donde ocurre la definición del nombre y donde se está referenciando.
+
+Si el código referencia a un nombre `x`, entonces Python busca `x` en los siguientes espacios de nombres en orden:
+
+- Local, si se refiere a `x` dentro de una función, entonces el intérprete primero busca en el ámbito más interno que es local a dicha función.
+
+- Enclosing, si `x` no está en el ámbito local pero aparece en una función que está definida dentro de otra función, entonces el intérprete busca en el ámbito de la función que la rodea, *enclosing*.
+
+- Global, si ninguna de las búsquedas anteriores funciona, entonces el intérprete busca en el ámbito global.
+
+- Built-in, si no puede encontrar `x` en ningún sitio, entonces intenta encontrarlo en el ámbito *built-in*.
+
+Esto se conoce como la regla *LEGB*, el intérprete busca los nombres desde dentro hacia afuera, buscando en los ámbitos **L** ocal, **E** nclosing, **G** lobal y finalmente en **B** uilt-in.
+
+![Figure [res/003_000]: Regla *LEGB* para resolver ámbitos](res/003_000.png)
+
+Si el interpréte no encuentra el nombre en ninguno de esos ámbitos, entonces se lanza una excepción de tipo `NamError`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x= 'Global'
+
+def foo():
+    x = 'Enclosing'
+
+    def bar():
+        x = 'Local'
+        print(x)
+        return
+
+    bar()
+    return
+
+>>> foo()
+>>> Local
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [triple_definition]: Definición de variable en tres ámbitos]
+
+En esta situación, `x` está definida en tres sitios distintos, una definición está fuera de la función `foo`, y por tanto en el ámbito *global*, otra está dentro de `foo` pero fuera de `bar`, por tanto en ámbito *enclosing*, y por último dentro de `bar`, en el ámbito local a `bar`.
+
+Cuando se intenta imprimir la variable `x`, Python tiene que distinguir entre estas tres distintas posibilidades, `x` en el ámbito *global*, *enclosing* o *local*. La regla *LEGB* dice que primero tiene que ver su valor definido localmente, con lo cual, se imprime dicho valor.
+
+# Diccionarios de espacios de nombres
+
+Los espacios de nombres local y global están implementados usando diccionarios. El espacio *built-in* está implementado como un módulo.
+
+Y existen las funciones integradas en el lenguaje `globals` y `locals` que permiten acceder a los diccionarios locales y globales.
+
+## La función `globals`
+
+Esta función integrada devuelve una referencia al diccionario de espacio de nombres global actualmente en uso. Se puede usar para acceder a los objetos en dicho espacio de nombres.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> type(globals())
+<class 'dict'>
+>>> x = 'foo'
+>>> globals()
+{'__name__': '__main__', '__doc__': None, '__package__': None, '__loader__': <class '_frozen_importlib.BuiltinImporter'>, '__spec__': None, '__annotations__': {}, '__builtins__': <module 'builtins' (built-in)>, 'x': 'foo'}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [globals]: Nombres en el espacio *global*]
+
+El intérprete ya pone muchas entradas en el espacio de nombres global, depende de la versión de Python y el sistema operativo, estas pueden ser ligeramente distintas.
+
+Se está definiendo una variable `x` en el espacio global, y se puede observar como aparece en dicho diccionario global. La clave de dicho diccionario es el nombre del objeto, y el valor es el valor del objeto.
+
+Se suele acceder a dicho objeto de la manera tradicional, referenciando a su nombre símbolico, pero también se puede hacer indirectamente a través de este diccionario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> x
+'foo'
+>>> globals()['x']
+'foo'
+>>> x is globals()['x']
+True
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [acceso_globals]: Acceder a variable a través del diccionario *global*]
+
+La comparación confirma que son el mismo objeto, accediendo a través del diccionario o de la manera habitual. Incluso se pueden crear o modificar elementos en el espacio de nombres *global* usando esta función `globals`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> x
+>>> globals()['y'] = 'bar'
+>>> globals()
+{'__name__': '__main__', '__doc__': None, '__package__': None, '__loader__': <class '_frozen_importlib.BuiltinImporter'>, '__spec__': None, '__annotations__': {}, '__builtins__': <module 'builtins' (built-in)>, 'x': 'foo', 'y': 'bar'}
+>>> y
+'bar'
+>>> globals()['y'] = 'bar_bar'
+>>> y
+'bar_bar'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [editar_globals]: Crear y modificar variable a través del diccionario *global*]
+
+## La función `locals`
+
+También existe la función integrada `locals`, que de manera similar accede al diccionario del espacio de nombres *local*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def add(x,y):
+    z = 10
+    print(locals())
+    return x + y + z
+
+>>> add(3, 6)
+{'x': 3, 'y': 6, 'z': 10}
+19
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [locals]: Acceso al diccionario *local*]
+
+Cuando se llama a `locals` devuelve un diccionario que representa el espacio de nombres local a la función. Además de las variables definidas localmente, también incluye los parámetros de la función, puesto que estos son locales a la función.
+
+Si se llama a `locals` fuera de una función se comporta de igual manera que `globals`.
+
+Hay una pequeña diferencia entre `globals` y `locals`. La primera devuelve una referencia al diccionario que contiene el espacio de nombres *global*, mientras que `locals` devuelve una copia del diccionario para el espacio de nombres *local*.
+
+# Modificar variables fuera de ámbito
+
+Cuando se intenta modificar un objeto inmutable fuera del ámbito *local*, en realidad se está creando un objeto nuevo dentro del ámbito *local*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    x = 10
+    print(x)
+
+    def bar():
+        x = 20
+        print(x)
+        return
+
+    return
+
+>>>foo()
+10
+20
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [local_copy_inmutable]: Crear objeto inmutable *local*]
+
+Cuando la función `bar` hace la asignación a la variable `x`, está creando una nueva referencia local a un objeto de tipo entero con valor 20. En ese punto la función `bar` pierde la referencia al objeto `x` definido en el ámbito *enclosing* definido en la función `foo`. Con lo cual la sentencia de asignación no afecta al objeto en el ámbito *enclosing*.
+
+Pero una función sí puede modificar un objeto de tipo mutable que está fuera del ámbito local si modifica el objeto en el sitio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    lista = [10, 20, 30]
+
+    def bar():
+        lista[0] = 40
+
+    print(lista)
+    return
+
+>>>foo()
+[40, 20, 30]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [local_modify_mutable]: Modificar objeto mutable en *local*]
+
+En este caso, la lista es un objeto mutable, y la función `bar` puede hacer cambios dentro del objeto aunque esté en el ámbito *enclosing* más afuera.
+
+Pero si la función `bar` tratara de reasignar toda la lista entera, entonces se crearía un nuevo objeto local y no modificaría el objeto en el ámbito *enclosing*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    lista = [10, 20, 30]
+
+    def bar():
+        lista = [40, 50, 60]
+
+    print(lista)
+    return
+
+>>>foo()
+[10, 20, 30]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [local_assign_mutable]: Reasignar objeto mutable en *local*]
+
+Es un comportamiento similar a cuando una función trata de modificar un argumento de la función que es inmutable.
+
+# La palabra clave `global`
+
+A veces es necesario modificar una variable en el ámbito *global* desde una función. Esto se puede hacer a través de la palabra reservada `global`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x = 20
+
+def foo():
+    global x
+    x = 10
+    return
+
+foo()
+print(x)
+>>>
+10
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [global_ref]: Uso de `global` para modificar una variable del ámbito *global*]
+
+La sentencia `global x` indica que mientras la función `foo` se esté ejecutando, las referencias al nombre `x` hacen referencia al objeto `x` que existe en el espacio de nombres *global*. Esto significa que la asignación dentro de la función no crea una nueva referencia, si no que asigna un nuevo valor a `x` en el ámbito *global*.
+
+Incluso si la variable se declara como `global` dentro de una función anidada, está será añadida al ámbito *global*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x = 20
+
+def foo():
+
+    def bar():
+        global x
+        x = 10
+        return
+
+    bar()
+
+    return
+
+foo()
+print(x)
+>>>
+10
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [global_nested_ref]: Uso de `global` para modificar una variable del ámbito *global* desde una función anidada]
+
+Se podría conseguir el mismo efecto accediendo directamente al diccionario del espacio de nombres *global*, pero la intención queda mucho más clara usando la palabra reservada `global`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x = 20
+
+def foo():
+    globals()['x'] = 10
+    return
+
+foo()
+print(x)
+>>>
+20
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [modify_global]: Uso de `globals` para modificar una variable del ámbito *global*]
+
+Si el nombre que se especifica en la declaración de `global` no existe en el ámbito *global* cuando la función empieza, entonces la combinación de `global` y una asignación la creará en el ámbito *global*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    global y
+    y = 10
+    return
+
+foo()
+print(y)
+>>>
+10
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_global]: Crear variable *global* desde una función]
+
+Se pueden especificar varios nombres separados por comas en una sola declaración `global`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    global x, y, z
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [comma_separated_global]: Varias variables *global* en una sola declaración]
+
+Un nombre especificado en una declaración con `global` no puede aparecer en la función antes de la sentencia `global`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    print(x)
+    global x
+>>> SyntaxError: name 'x' is used prior to global declaration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [use_before_global]: Usar variable antes de declararla como *global*]
+
+## La palabra clave `nonlocal`
+
+Como se ha visto, la declaración `global` permite a una función acceder y modificar un objeto en el ámbito global, y si esta declaración se usa dentro de una función anidada, también afecta al ámbito global. Pero a veces, se necesita que una función anidada tenga acceso a un objeto en el ámbito de la función que la abarca, es decir, el ámbito *enclosing*.
+
+Para eso existe la palabra clave `nonlocal`, los nombres que se especifican ahí, se refieren a variables en el ámbito *enclosing* más cercano.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    x = 20
+
+    def bar():
+        nonlocal x
+        x = 10
+        return
+
+    bar()
+    print(x)
+    return
+
+foo()
+>>>
+10
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [non_local]: Uso de `nonlocal` para modificar una variable del ámbito *enclosing* desde una función anidada]
+
+## Buenas prácticas
+
+Aunque las palabras reservadas `global` y `nonlocal` estén disponibles en Python, no siempre es adecuado usarlas.
+
+Cuando una función modifica datos fuera de su ámbito, con `global` o `nonlocal`, o directamente modificando un tipo mutable, es una especie de efecto secundario similar a cuando una función modifica sus argumentos. Normalmente la modificación de variables globales se considera perjudicial.
+
+Pero como otras muchas cosas, es un asunto de estilo, hay momentos en los que el uso sensato de la modificación de una variable global puede reducir la complejidad de un programa. En Python al menos, usar estas palabras clave deja bien claro y explicito que la función está modificando una variable global. En otros lenguajes, esto puede hacerse directamente, sin necesidad de anunciarlo, lo cual puede complicar el averiguar donde se modifica el estado global.
+
+De manera general, modificar variables fuera del ámbito local no suele ser necesario, casi siempre hay maneras mejores de solucionarlo, normalmente mediante los valores de retorno de las funciones.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

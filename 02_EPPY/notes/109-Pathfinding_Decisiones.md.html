@@ -1,0 +1,839 @@
+<meta charset="utf-8">
+**02EPPY - 109 - Pathfinding, Decisiones**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# PathFinding
+
+Los personajes de un juego suelen necesitar moverse por el nivel, a veces ese movimiento está grabado a fuego por los desarrolladores, como una ruta de patrulla que puede seguir un guarda. Pero es habitual necesitar calcular una ruta apropiada a través del nivel de juego hasta un destino concreto. Y se quiere que sea lo más corta o rápida posible.
+
+El *pathfinding* está en la frontera entre los algoritmos de movimiento y los de toma de decisiones. A menudo, se usa simplemente para averiguar a donde moverse para alcanzar un objetivo, ese objetivo se decide por otra parte de la IA, y el buscador de caminos simplemente averigua como llegar. Para cumplirlo, puede estar dentro de un sistema de control de movimiento que solo se llame cuando se necesita planificar una ruta.
+
+La mayoría de los juegos que usan *pathfinding* se basan en el algoritmo *A**, pese a que es eficiente y sencillo de implementar, no puede trabajar directamente con los datos del nivel de juego, necesita que el nivel esté representado en una estructura particular, un grafo dirigido ponderado.
+
+## Grafos
+
+Los algoritmos de *pathfinding* se basan en una versión simplificada del nivel de juego, que se representa como un grafo. Si la simplificación se ejecuta correctamente, entonces el plan devuelto por el planificador será útil cuando se traduzca de nuevo a los términos del juego.
+
+Un grafo es una estructura matemática que se suele representar con un diagrama. Consiste en dos tipos de elementos, nodos (dibujados como círculos) y conexiones que enlazan nodos (dibujados como líneas).
+
+![Figure [res/109_000]: Grafo no Dirigido](res/109_000.png)
+
+Formalmente, un grafo consiste de un conjunto de nodos y un conjunto de conexiones, donde una conexión es simplemente un par de nodos no ordenados. Para *pathfinding*, cada nodo suele representar una región del nivel, como una habitación, la sección de un pasillo, … Si una habitación se conecta a un pasillo, entonces el nodo representando a la habitación se conectará al nodo que representa al pasillo, de esta manera el nivel de juego se divide en regiones que están conectadas entre sí.
+
+Para ir de una región a otra se usan conexiones. Un camino a través del grafo consiste en 0 o más conexiones, si el origen y destino son el mismo no hay conexiones, si los dos nodos están conectados, solo se necesita una conexión, y así sucesivamente.
+
+### Grafos Ponderados
+
+Un grafo ponderado es como un grafo convencional, pero para cada conexión se añade un valor numérico. Esto se llama peso, y en videojuegos se suele llamar coste.
+
+![Figure [res/109_001]: Grafo Ponderado](res/109_001.png)
+
+El coste en un grafo de *pathfinding* normalmente representa tiempo o distancia. Si un nodo representa una región del nivel, y está conectado a otro nodo, el coste de la conexión suele ser la distancia o el tiempo que se necesita para moverse de uno a otro nodo.
+
+Para una ruta completa a través de un grafo, desde el nodo origen al destino, se puede averiguar el coste total del camino, sumando los costes asociados a cada conexión entre los nodos del camino.
+
+Usualmente se miden las distancias o tiempos entre los nodos a partir de puntos representativos de cada región. Se elige el centro de la habitación y el centro del pasillo, y el coste entre las dos zonas es el coste entre los dos centros. No tiene sentido tener costes negativos, no se puede tener una distancia negativa entre dos puntos.
+
+En muchos casos un grafo ponderado es suficiente para representar un nivel de juego, pero se puede usar un grafo que aporta aún más información, un grafo dirigido.
+
+![Figure [res/109_002]: Grafo Ponderado Dirigido](res/109_002.png)
+
+Usar un grafo de este tipo implica por un lado que se puede ir de un nodo a otro, pero no volver, y además que los costes pueden ser diferentes en ambas direcciones. Esto abre nuevas posibilidades, como, por ejemplo, si se tiene una escalera que une dos zonas, puede tener un coste distinto ir escaleras arriba que escaleras abajo.
+
+Matemáticamente la única diferencia es que ahora la pareja de nodos que determinan una conexión es ordenada.
+
+Es muy habitual representar estos grafos dirigidos ponderados como matrices de adyacencia. Suelen ser matrices cuadradas en las cuales cada columna/fila representa a un nodo, y el valor de cada celda es el coste para ir del nodo que está en la fila al nodo que está en la columna.
+
+![Figure [res/109_003]: Matriz de Adyacencia](res/109_003.png)
+
+## Dijkstra
+
+El algoritmo de *Dijkstra* coge el nombre de *Edsger Dijkstra*, matemático que lo formuló. Inicialmente no estaba diseñado para encontrar caminos tal como lo entienden los juegos, se diseñó para encontrar el camino más corto en la teoría de grafos matemática.
+
+Dado un grafo y dos nodos (origen y destino) en ese grafo, se desea generar un camino con un coste mínimo. Cuando hay varios caminos con el mismo coste mínimo, no importa cual se coge.
+
+![Figure [res/109_004]: Grafo Dirigido Ponderado](res/109_004.png)
+
+El camino en sí consistirá en un conjunto de conexiones, dos nodos pueden estar conectados por más de una conexión, y cada una puede tener un coste distinto. Con lo cual, se necesita saber que conexiones usar, una lista de nodos no suele ser suficiente.
+
+El algoritmo trabaja en iteraciones, en cada una de ellas considera un nodo del grafo y sigue sus conexiones salientes. En la primera iteración considera el nodo inicial.
+
+Durante una iteración considera cada conexión saliente del nodo actual, para cada conexión encuentra el nodo final y almacena el coste total del camino hasta ese punto (coste temporal) junto con la conexión a través de la cual ha llegado.
+
+![Figure [res/109_005]: Situación Inicial](res/109_005.png)
+
+En la primera iteración, donde el nodo inicial es el nodo actual, el coste temporal de cada conexión final del nodo es simplemente el coste de cada conexión. Cada nodo conectado al nodo inicial tiene un coste temporal igual al coste de la conexión que lo llevó hasta allí, así como un registro de a través de que conexión fue.
+
+![Figure [res/109_006]: Situación tras una Iteración](res/109_006.png)
+
+Para iteraciones a partir de la primera, el coste temporal de cada nodo final de cada conexión es la suma del coste de la conexión y el coste temporal del nodo actual. No hay distinción para el algoritmo entre la primera y sucesivas iteraciones, poniendo el coste temporal del nodo inicial como 0 se puede reusar el código para todas las iteraciones.
+
+El algoritmo lleva un registro de todos los nodos que ha visitado en dos listas, abierta y cerrada. En la abierta registra los nodos que ha visto, pero aún no han tenido su propia iteración, en la cerrada, están los que ya han sido procesados. En el inicio, la lista abierta contiene solo al nodo inicial y la cerrada está vacía. Cada nodo puede estar en una de tres situaciones, en la lista cerrada (ha sido procesado), en la lista abierta (se ha visitado desde otro nodo, pero aún no se ha procesado), o puede no estar en ninguna de las dos.
+
+En cada iteración el algoritmo elige el nodo de la lista abierta que tiene el coste temporal menor, y se procesa. El nodo procesado se quita de la lista abierta y se pone en la lista cerrada.
+
+Si se llega a un nodo abierto o cerrado durante una iteración, el nodo ya tendrá un coste temporal asociado y un registro de la conexión que llevó hasta él. Se verifica si el camino que se ha encontrado ahora es mejor que el anterior, se calcula el coste temporal, y si es mayor no se actualiza el nodo, pero si el nuevo coste temporal es menor entonces se actualiza con el nuevo valor y la conexión de llegada. El nodo entonces se debe poner en la lista abierta (si estaba en la cerrada se mueve de allí).
+
+![Figure [res/109_007]: Situación tras Varias Iteraciones](res/109_007.png)
+
+El algoritmo básico acaba cuando la lista abierta está vacía, ha considerado todos los nodos en el grafo que se pueden alcanzar desde el nodo inicial, y están todos en la lista cerrada.
+
+Para *pathfinding*, solo interesa alcanzar el nodo destino, así que se puede parar antes, el algoritmo debería terminar cuando el nodo destino es el nodo más pequeño en la lista abierta.
+
+El paso final es recuperar el camino. Para eso se empieza desde el nodo destino y mirando qué conexión ha llevado hasta él, se va al nodo origen de esa conexión y se vuelve a mirar la conexión que llevó hasta él, y así sucesivamente hasta llegar al nodo inicial. La lista de conexiones es correcta, pero en el orden incorrecto, se da la vuelta y se devuelve.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+//Initialization
+PriorityQueue openList = { startVertex }
+array cost = { Big, Big, Big, ... }
+array pred = { No, No, No, ... }
+cost[startVertex] = 0;
+
+while !openList.empty()
+    //remove from open list
+    closingVertex = vertex in openList with minimum value in cost[];
+    remove closingVertex from openList;
+
+    for each non - closed vertex with an edge from closingVertex
+        //new cost is lower than previous
+        if (cost[vertex] > cost[closingVertex] + edgeWeight)
+            cost[vertex] = cost[closingVertex] + edgeWeight; //new cost
+            pred[vertex] = closingVertex; //route to here
+            //insert in open list
+            put vertex into openList;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dijskstra]: Algoritmo *Dijkstra* en Pseudocódigo]
+
+El principal problema de este algoritmo es que busca en todo el grafo indiscriminadamente la ruta más corta. Es útil cuando se intenta buscar el camino más corto para cada nodo posible, pero desperdicia recursos para el *pathfinding* de un punto a otro.
+
+El número de nodos que se consideraron, pero no formaron parte de la ruta final se necesita minimizar, porque procesar cada uno de ellos lleva tiempo. Y ese es el problema principal de *Dijkstra*, que no es eficiente en el caso de encontrar un camino óptimo de un punto a otro.
+
+## A*
+
+Este algoritmo es una versión ajustada de *Dijkstra*, es simple de implementar, es eficiente y tiene mucho margen para optimizaciones. Está diseñado para encontrar un camino de un punto a otro, y retorna un solo camino desde el origen al destino.
+
+Dado un grafo dirigido y ponderado, y dos nodos en ese grafo, se quiere un camino entre ellos cuyo coste sea mínimo, cualquiera de los posibles es válido, y ese camino consistirá de una lista de conexiones desde el origen hasta el destino.
+
+El algoritmo es casi idéntico al de *Dijkstra*, pero en lugar de coger el nodo de la lista abierta con el coste temporal menor, se elige el que es más probable que tenga el camino más corto hasta el destino. La función que determina esa probabilidad la controla una heurística. Si la heurística es precisa, el algoritmo será eficiente, si no lo es puede funcionar incluso peor que *Dijkstra*.
+
+En cada iteración, *A** considera cada conexión de salida desde el nodo actual, para cada conexión encuentra el nodo final y almacena el coste temporal del camino hasta ese nodo y la conexión desde la que ha llegado. Además, almacena un valor más, el valor estimado del coste total del camino desde el nodo origen, a través de este nodo hasta el nodo destino (coste total estimado). El coste total estimado es la suma de dos valores, el coste temporal y lo lejos que está el nodo del destino.
+
+A este valor estimado se le llama también valor heurístico del nodo, no puede ser negativo, la generación de este valor es clave a la hora de implementar el *A**.
+
+El algoritmo lleva un registro de los nodos abiertos que ha visitado, pero no procesado, y de los cerrados que ya ha procesado. Los nodos se mueven a la lista de abiertos cuando se encuentran al final de una conexión, y se mueven a la cerrada cuando se han procesado.
+
+Al contrario de *Dijkstra*, el nodo que se elige en cada iteración de la lista abierta, es el nodo que tiene el coste total estimado más bajo, y casi siempre es distinto del nodo con el coste temporal menor. Este cambio es el que hace al algoritmo que examine a los nodos más prometedores antes, si un nodo tiene un coste total estimado menor, entonces debe tener un coste temporal bajo y un coste estimado al destino también bajo. Si las estimaciones son precisas, entonces los nodos que están más cerca del destino se consideran antes, haciendo la búsqueda más pequeña.
+
+Como en *Dijkstra*, se puede llegar a un nodo abierto o cerrado durante una iteración, y hay que revisar los valores calculados. Se calcula el coste temporal, y si el nuevo valor es menor que el existente entonces hay que actualizarlo.
+
+El algoritmo *A** puede encontrar mejores rutas a los nodos que ya están en la lista cerrada, si una estimación previa fue demasiado optimista, entonces un nodo puede haber sido procesado pensando que era la mejor opción, cuando en realidad no lo era.
+
+Si el nodo sospechoso ha sido procesado y puesto en la lista cerrada, significa que todas sus conexiones han sido consideradas, es posible que un conjunto de nodos tuviera su coste temporal basado en el coste temporal del nodo sospechoso, actualizar los valores del nodo sospechoso no sería suficiente, todas sus conexiones deberían ser verificadas otra vez para propagar el nuevo valor. En el caso de revisitar un nodo en la lista abierta, no es necesario puesto que sus conexiones aún no han sido procesadas.
+
+Afortunadamente, hay una manera simple de forzar al algoritmo a recalcular y propagar el nuevo valor, se puede quitar de la lista cerrada y volverlo a poner en la abierta. Entonces tendrá que esperar hasta que se cierre y se reconsideren sus conexiones. Cualquier nodo que confíe en ese valor será procesado eventualmente más de una vez.
+
+En muchas implementaciones el proceso termina cuando el nodo destino es el más pequeño en la lista abierta. Pero un nodo con el coste total estimado puede necesitar que sus valores re revisen, así que no se puede garantizar que simplemente porque el nodo es el más pequeño en la lista abierta, se tiene la ruta más corta, terminar un *A** cuando el nodo destino es el más pequeño en la lista abierta no garantiza el camino más corto.
+
+El algoritmo puede terminar cuando el nodo en la lista abierta con el coste temporal más pequeño (no el coste total estimado) tiene un coste temporal más grande que el coste al camino que se ha encontrado al destino. Entonces y solo entonces se puede garantizar que no habrá un camino futuro que toma un atajo.
+
+Pero, puesto que *A** muy a menudo experimenta con resultados suboptimos, la mayoría de implementaciones terminan cuando el nodo destino es visitado la primera vez esperando que sea el más corto de la lista abierta, obteniendo una ventaja en rendimiento.
+
+El camino final se consigue de la misma manera que en *Dijkstra*, empezando en el destino y acumular las conexiones moviéndose de vuelta al origen, y por último se invierte el camino.
+
+### Algoritmo Detallado
+
+Se quiere ir del punto A (verde) al B (rojo). Hay una pared (azul) que separa los dos puntos. Se ha dividido el área de búsqueda en una rejilla cuadrada, para simplificar la búsqueda, eso suele ser el primer paso de cualquier algoritmo de *pathfinding*, en este ejemplo se simplifica a un array bidimensional. Cada ítem en el array representa uno de los cuadrados de la rejilla, y su situación es transitable o no. El camino se determina averiguando que cuadrados hay que pisar para llegar de A a B. Una vez que el camino se ha encontrado, el personaje se mueve del centro de un cuadrado al siguiente hasta llegar al destino. Se puede usar cualquier sistema para simplificar el área de búsqueda, pueden ser rectángulos, hexágonos, triángulos, o cualquier forma geométrica. Estos puntos centrales son los nodos.
+
+![Figure [res/109_008]: Situación Inicial](res/109_008.png)
+
+Se empieza la búsqueda empezando en el punto A y se añade a la lista abierta.
+
+En esta lista ahora solo hay un elemento, pero se tendrán más luego. Contiene los cuadrados (nodos) que quizás estén en el camino, pero quizás no. Básicamente es una lista de cuadrados que se necesitan verificar.
+
+Se mira a todos los cuadrados alcanzables que son transitables adyacentes al punto de salida, ignorando cuadrados con paredes, agua, o cualquier terreno no transitable. Se añaden a la lista abierta. Para cada uno de esos cuadrados, se guarda al cuadrado A como su cuadrado padre. Este cuadrado padre es que servirá para rastrear el camino final de vuelta.
+Se elimina el cuadrado A de la lista abierta, y se añade a la lista cerrada de cuadrados que no hay que volver a mirar por ahora.
+
+![Figure [res/109_009]: Situación tras Primer Paso](res/109_009.png)
+
+En este punto, se tiene un cuadrado (verde) como origen, está marcado azul porque ya está en la lista cerrada, todos los cuadrados adyacentes están en la lista abierta, cada uno tiene un puntero que apunta a su padre, el cual es el cuadrado inicial.
+
+A continuación, se elige uno de los cuadrados adyacentes que están en la lista abierta y se repite el proceso anterior. Se elige el cuadrado con el coste F menor.
+
+La clave para determinar que cuadrado usar cuando se averigua el camino es la ecuación:
+
+\begin{equation}
+F = G + H
+\end{equation}
+
+Donde G es el coste de movimiento desde el punto de inicio A hasta un cuadrado dado de la rejilla, siguiendo el camino seguido hasta ese punto.
+
+H es el coste de movimiento estimado desde el cuadrado hasta el destino final B. Esta es la heurística, es una suposición, no se sabe la distancia real hasta el destino, puede haber paredes en el camino y otros obstáculos.
+
+En este ejemplo se asigna un coste de 10 para G a cada cuadrado que se mueve en horizontal o vertical, y un coste de 14 para cada movimiento diagonal. La distancia real para moverse en diagonal es la raíz cuadrada de 2 (según *Pitágoras*), lo que es 1.414 el coste del movimiento horizontal, por simplicidad se usa 10 y 14. La relación entre ambos es correcta y se evita trabajar con raíces cuadradas y decimales, ganando algo de rendimiento en el camino.
+
+Puesto que se está calculando el coste G a lo largo de un camino hasta un cuadrado determinado, la manera de averiguar el coste G de ese cuadrado es coger el coste G de su padre y sumarle 10 o 14 dependiendo si se mueve en diagonal u ortogonal desde ese cuadrado padre.
+
+H se puede estimar de muchas maneras, la heurística más simple es la distancia Manhattan, donde se calcula el número total de cuadrados que se mueve en horizontal y vertical hasta alcanzar el destino desde el cuadrado actual, ignorando movimientos en diagonal y cualquier obstáculo. Se multiplica entonces eso por 10, para tenerlo en la misma escala que G.
+
+La heurística es simplemente una estimación aproximada de la distancia restante entre el cuadrado actual y el destino, al vuelo. Se está tratando de estimar la distancia restante del camino (que suele ser menor). Cuando más cercana sea la estimación a la distancia restante real, más rápido será el algoritmo. Si se sobreestima la distancia, no se garantiza que devuelva el camino más corto, en estos casos la heurística es inadmisible.
+
+F se calcula sumando G y H. Los resultados del primer paso en la búsqueda están escritos en cada cuadrado, F arriba a la izquierda, G abajo a la izquierda y H abajo a la derecha.
+
+![Figure [res/109_010]: Situación tras Primer Paso, con los Costes Calculados](res/109_010.png)
+
+En el cuadrado inmediatamente a la derecha, se tiene G = 10, porque solo está a un cuadrado de distancia en horizontal, los que están arriba y abajo también tienen G = 10, y los diagonales un G = 14.
+
+Los valores de H se han calculado estimando la distancia *Manhattan* al cuadrado rojo destino, moviéndose solo horizontal o verticalmente e ignorando la pared de en medio. Usando este método, el cuadrado inmediatamente a la derecha, está a 3 cuadrados de distancia del rojo, por lo tanto, H = 30. El cuadrado justo encima está a 4 cuadrados de distancia, H = 40.
+F se calcula sumando G y H para cada cuadrado.
+
+Para continuar la búsqueda se selecciona el cuadrado en la lista abierta con el menor valor de F, entonces se hace lo siguiente con ese cuadrado.
+
+Se elimina de la lista abierta y se añade a la lista cerrada. Se verifican todos los cuadrados adyacentes, ignorando los que están en la lista cerrada o no son transitables y se añaden a la lista abierta, si no lo están ya. Y se marca como padre de los nuevos cuadrados al cuadrado actual.
+
+Si un cuadrado adyacente ya está en la lista abierta, se verifica si el camino a ese cuadrado es mejor, es decir, si el valor de G para ese cuadrado es menor si se usa el cuadrado actual para llegar hasta él. Si no lo es, no se hace nada. Pero si el coste G del nuevo camino es menor, se cambia el padre del cuadrado adyacente al cuadrado actual, y se recalculan los valores de F y G para ese cuadrado.
+
+En los 9 cuadrados iniciales, hay 8 en la lista abierta, tras haber pasado al cuadrado inicial a la lista cerrada. De esos, el que tiene el menor coste F es el que está inmediatamente a la derecha con un valor de F de 40. Se selecciona este para procesarlo.
+
+Primero se elimina de la lista abierta, y se añade a la lista cerrada. Se verifican los cuadrados adyacentes, los que están a la derecha son paredes y se ignoran. El de la izquierda es el origen y está en la lista cerrada, se ignora también. Los otros cuatro cuadrados ya están en la lista abierta, se necesita verificar si los caminos a esos cuadrados son mejores usando este cuadrado para llegar allí, usando el valor de G como referencia. El cuadrado de arriba tiene un G = 14, si se usará el camino a través del cuadrado actual, el coste G seria de 20 (10 hasta llegar al cuadrado actual y otros 10 por moverse verticalmente), como 20 es mayor que 14 no es un camino mejor. Tiene sentido, es más directo llegar al cuadrado a través de la diagonal en lugar de moverse horizontal y verticalmente en dos pasos.
+
+Se repite el proceso para los cuatro cuadrados adyacentes en la lista abierta, y ninguno de los caminos se mejora atravesando el cuadrado actual, así que no se cambia nada. Ya se ha mirado en todos los cuadrados adyacentes, se ha acabado con este cuadrado.
+
+Se va a lista abierta de cuadrados, que ahora tiene 7 elementos, y se elige el que tiene el valor de F menor. En este caso, hay dos cuadrados con un valor de 54, no importa demasiado cual se elige de los dos, pero por velocidad, se suele elegir el ultimo que se ha añadido a la lista abierta. Esto desvía la búsqueda favoreciendo cuadrados que se encuentran más tarde en la búsqueda, cuando se está más cerca del objetivo.
+
+Se elige el que está justo debajo y a la derecha del punto inicial.
+
+![Figure [res/109_011]: Situación tras Segundo Paso](res/109_011.png)
+
+Esta vez se verifican los cuadrados adyacentes, el de la derecha es una pared, se ignora, igual que el de arriba. Se ignora también el de debajo de la pared porque no se puede llegar a ese cuadrado directamente desde el cuadrado actual sin cortar la esquina de la pared cercana, se debe bajar primero y luego ir a la derecha para rodear una esquina (este comportamiento de no dejar cortar esquinas es opcional).
+
+Esto deja cuatro cuadrados. Los de abajo no están aún en la lista abierta, así que se añaden y el cuadrado actual se convierte en su padre. De los otros tres cuadrados, dos ya están en la lista cerrada (el de inicio y el de arriba), se ignoran. El ultimo que queda, el de la izquierda está en la lista abierta, se verifica si su G es menor ahora, pero no lo es, se ignora también.
+
+Se repite el proceso hasta que se añade el cuadrado destino a la lista cerrada.
+
+![Figure [res/109_012]: Situación tras Varios Pasos, al Añadir a la Lista Cerrada el Destino](res/109_012.png)
+
+Es importante darse cuenta de un pequeño hecho, el cuadrado padre para el cuadrado que está dos por debajo del cuadrado inicial ha cambiado desde la figura 39. Antes tenía un valor de G = 28 y apuntaba al cuadrado diagonal arriba a la derecha. Ahora tiene un valor de G = 20 y apunta al cuadrado de arriba. Esto ha pasado en algún momento del algoritmo en la búsqueda, cuando el valor de G ha sido verificado y ha resultado que era menor usando un camino nuevo, así que se han actualizado sus valores de G y F, y su padre. Este cambio no parece importante en este ejemplo, pero hay muchas situaciones donde esta verificación constante puede ser una diferencia importante determinando el mejor camino al destino.
+
+Una vez se alcanza el destino, se calcula el camino. Se empieza en el cuadrado rojo destino, y se va hacia atrás desde un cuadrado a su padre, siguiendo las flechas. Esto llevara eventualmente al cuadrado inicial, ese es el camino. Mover el personaje desde A a B, es simplemente cuestión de moverse desde el centro de un cuadrado al centro del siguiente siguiendo el camino hasta que se alcanza el destino.
+
+![Figure [res/109_013]: Situación Final con el Camino](res/109_013.png)
+
+En resumen:
+
+- Se añade el nodo inicial a la lista abierta
+- Se repite:
+    - Buscar en la lista abierta el nodo con F menor
+    - Se mueve a la lista cerrada
+    - Para cada uno de los 8 cuadrados adyacentes
+    - Si no es transitable o ya está en la lista cerrada se ignora. En caso contrario se hace lo siguiente.
+    - Si no está en la lista abierta, se añade. Se hace que el nodo actual sea su padre, se guardan los costes de F, G y H para ese nodo.
+    - Si ya está en la lista abierta, si verifica si el este camino es mejor usando G. Una G menor significa un camino mejor, si es así, se cambia el padre del nodo al nodo actual, y se recalculan F y G.
+    - Parar cuando:
+    - Se añade el nodo destino a la lista cerrada.
+    - No se ha encontrado el nodo destino y la lista abierta está vacía, en ese caso, no hay camino.
+- Guardar el camino, moviéndose hacia detrás desde el nodo destino, yendo desde cada nodo hasta su padre hasta llegar al origen.
+
+### Heurísticas
+
+La heurística *Manhattan* es quizás la más simple, pero no es la única, se pueden considerar otras.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def manhattan_distance(src, dst):
+    x_dist = abs(src[0] - dst[0])
+    y_dist = abs(src[1] - dst[1])
+    return 10 * (x_dist + y_dist)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [manhattan]: Heurística *Manhattan*]
+
+Una alternativa es la distancia diagonal, si el mapa permite movimientos diagonales, se computan el número de pasos que se toman si no se puede ir en diagonal y luego se restan los pasos que se ahorran usando la diagonal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def diagonal_distance(src, dst):
+    x_dist = abs(src[0] - dst[0])
+    y_dist = abs(src[1] - dst[1])
+    return (10 * (x_dist + y_dist)) + (-6 * min(x_dist, y_dist))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [diagonal]: Heurística *Diagonal*]
+
+Otra alternativa muy habitual es usar la distancia euclídea, siguiendo el teorema de *Pitágoras*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def euclidean_distance(src, dst):
+    x_dist = abs(src[0] - dst[0])
+    y_dist = abs(src[1] - dst[1])
+    return 10 * math.sqrt((x_dist * x_dist) + (y_dist * y_dist))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [euclidean]: Heurística Euclídea]
+
+### Estructuras de Datos
+
+Uno de los elementos que más tiempo consumen en un algoritmo *A** es el mantenimiento de la lista abierta. Cada vez que se accede a ella, hay que encontrar el nodo que tiene el coste F menor, hay muchas maneras de hacer esto. Se puede guardar tal cual en una lista e iterar sobre toda ella cada vez que haya que buscar el nuevo nodo. Es simple, pero lento para caminos largos. Se mejorar manteniendo una lista ordenada y cogiendo entonces el primer elemento de ella. Esto funciona bien para mapas pequeños, pero no es la solución más rápida. La mejor estructura de datos para esto es la *binary heap*, esto puede mejorar la velocidad en ordenes de magnitud para caminos largos.
+
+### Node Array
+
+Una técnica habitual para optimizar es usar un array de nodos. Se crea un array de todos los nodos en el grafo antes de empezar el algoritmo. Este array tendrá registros para algunos nodos que nunca se considerarán y también para los que si serán procesados.
+
+Si cada elemento de ese array coincide con la posición x,y de cada nodo el acceso es inmediato, y si ese elemento almacena si está en la lista cerrada o abierta, el padre y el coste G, entonces el acceso se simplifica.
+
+Para verificar si un nodo está en la lista cerrada o abierta solo hay que acceder a ese array con las posiciones x,y. De hecho, con este sistema no se necesita mantener una lista cerrada, realmente esta lista solo se usa para verificar si un nodo ya se ha procesado, marcándolo en el node array es suficiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Node:
+    def __init__(self, seed):
+        isOpenClosed = 0    #is in open or closed list
+        parent = None       #position on tilemap of his parent (x,y)
+        g_cost = 0          #G cost
+
+nodes = [[Node() for _ in range(map_height)] for _ in range(map_width)]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [node_array]: Estructura para Node Array]
+
+Incluso se puede rizar el rizo, y en lugar de inicializar ese *node array* en cada llamada al *pathfinding* o usar dos *bools* para saber si está en la cerrada o abierta se puede usar un solo *int* para eso. En cada llamada se crean dos números muy lejanos nuevos, p.ej. 500 y 500.000, cuando un nodo va a ir a la lista abierta se le pone un 500 en su valor, y si va a la cerrada 500.000, así al consultar ese nodo resultado del algoritmo ya se puede saber si está en la abierta (500), en la cerrada (500.000), o no se ha visitado (cualquier otro valor), así se ahorra el tiempo de resetear ese array en cada llamada al *pathfinding*.
+
+### Coste del terreno variable
+
+En este ejemplo, si el terreno es transitable se tiene un coste fijo para viajar de un nodo al otro. Pero se puede tener un terreno cuyo coste de moverse de un nodo al siguiente es variable, por ejemplo, una colina, un pantano, … Para eso habría que añadir el coste del terreno cuando se calcula el coste G para un nodo, se le añade un coste extra por transitar en esos nodos especiales. El algoritmo está diseñado para encontrar el camino del menor coste y lo manejará fácilmente.
+
+También se pueden implementar mapas de influencia. Si hay que pasar unidades por un desfiladero y cada vez que una pasa por ahí es masacrada, la IA puede marcar los nodos de ese desfiladero de manera que se penalice el paso por ahí para que el algoritmo del *pathfinding* favorezca caminos más seguros.
+
+### Caminos más suaves
+
+El algoritmo calculará el camino más corto, de menor coste, pero no será el más suavizado. Hay muchas maneras de manejar esto, una de ellas es mediante los *steering behaviors* y el comportamiento *path following*, que se puede ajustar para seguir el camino marcado por el *pathfinding*. Otra manera podría ser penalizar a los nodos donde se hace un cambio de dirección, añadiéndole un coste extra a su valor G. O bien, recorrer el camino una vez calculado, buscando lugares donde elegir un nodo adyacente hubiera dado un camino que pareciera mejor.
+
+### Áreas no cuadradas
+
+En el ejemplo se han usado áreas cuadradas, pero no es necesario. Se pueden usar áreas de formas hexagonales o incluso irregulares. Es habitual que se creen mallas de navegación que discretizan el suelo de los niveles buscando conectar las esquinas de la geometría para formar polígonos simples que serán los nodos del grafo donde se ejecuta el *pathfinding*.
+
+![Figure [res/109_014]: Malla de Navegación](res/109_014.png width="400px")
+
+### Pathfinding Jerárquico
+
+Cuando se planea una ruta de manera natural se suele hacer a varios niveles. Primero se planea una ruta resumida a alto nivel, y luego se van planeando poco a poco los detalles de cada trozo de la ruta de alto nivel.
+
+Se puede dividir el mapa en regiones grandes, con eso construir un grafo y resolver un *pathfinding* a ese nivel. Una vez se tiene el camino para llegar de una región a otra, se puede bajar un nivel, y construir un grafo para cada una de esas regiones con sus propias divisiones y volver a resolver un *pathfinding* a ese nivel para refinar el camino.
+
+De esta manera se mejora la eficiencia del algoritmo, puesto que siempre trabaja sobre mapas pequeños. Si al intentar averiguar un camino, los dos puntos están en distintas regiones, primero se tiene que resolver ese camino, y luego ir resolviendo el propio para moverse dentro de cada región. Esto se puede hacer a más de dos niveles si se tienen mapas muy extensos. O incluso ir resolviendo los caminos de más bajo nivel conforme el personaje va recorriendo el mapa.
+
+### Optimizaciones
+
+Al desarrollar y probar el algoritmo de *A** pronto se aprecia que consume mucho tiempo de procesamiento, sobre todo si se tienen muchos personajes buscando caminos o el nivel es de un tamaño considerable. Algunas formas de mejorar esto ya se han comentado, usar *pathfinding* a varios niveles, usar *binary heaps* para la lista abierta, usar un *node array*, …. Otros consejos pueden ser:
+
+- Considerar usar un mapa más pequeño o menos personajes
+- Nunca hacer *pathfinding* para más de unas pocas unidades en cada frame. Se pueden poner en una cola y extender el cálculo en varios ciclos de juego.
+- Usar cuadrados más grandes (o la forma que sea) para el mapa. Esto reduce el número de nodos de búsqueda. Se pueden usar áreas grandes para caminos largos e ir cambiando a búsquedas sobre áreas más pequeñas cuando se va acercando al destino.
+- Para caminos largos se pueden pre calcular caminos y grabarlos en el propio juego, o calcularlos en una fase de precarga.
+- Pre procesar el mapa para averiguar qué áreas son inaccesibles para el resto del mapa. De esa manera, si se pide un camino a una de esas áreas se puede resolver rápidamente que no hay camino sin tener que lanzar un *pathfinding* que será muy costoso (buscará en todo el mapa).
+
+# Decisiones
+
+La toma de decisiones suele ser una pequeña parte del esfuerzo necesario para construir una buena IA. La mayoría de los juegos usan sistemas de toma de decisiones muy simples, máquinas de estado y árboles de decisión. Últimamente se están implementando sistemas más sofisticados como los árboles de comportamiento, lógica difusa o redes neuronales, sin embargo, su adopción no es muy generalizada, puesto que pueden ser complicadas y en muchas ocasiones no aportar demasiado.
+
+El personaje procesa un conjunto de datos y los usa para generar una acción que quiere realizar. La entrada al sistema de toma de decisiones es el conocimiento que posee un personaje y la salida es la petición de la acción. El conocimiento puede ser dividido en conocimiento externo o interno. El conocimiento externo son los datos que el personaje sabe acerca del entorno de juego a su alrededor, la posición de otros personajes, la disposición del nivel, … El conocimiento interno es información acerca del estado interno del personaje o su proceso de pensamiento, su salud, sus objetivos, lo que estaba haciendo hace unos segundos, …
+
+![Figure [res/109_015]: Toma de Decisiones](res/109_015.png width="400px")
+
+Las acciones, también tienen dos componentes, se puede solicitar una acción que cambie el estado externo del personaje (moverse a un punto, disparar un arma, …) o que solo afecte a su estado interno. Estos últimos cambios son menos obvios en los juegos, pero son significativos para los algoritmos de toma de decisiones. Pueden corresponder a un cambio de la opinión que tiene un personaje sobre el jugador, cambiar su estado emocional, o cambiar su objetivo. Los algoritmos tendrán unas acciones internas propias, mientras que las externas se pueden generar de manera que sean idénticas para cada algoritmo.
+
+El formato y la cantidad de conocimiento depende de los requisitos del juego. La representación del conocimiento esta enlazada intrínsecamente con la mayoría de algoritmos de toma de decisiones. Las acciones, por otro lado, pueden ser tratadas más consistentemente.
+
+## Árboles de Decisión
+
+Los árboles de decisión son rápidos, fáciles de implementar y fáciles de entender. Son la técnica de toma de decisiones más básica, pero se pueden extender hasta resultar ser bastante sofisticados. Se usan muy habitualmente para controlar personajes o animaciones. Tienen la ventaja de ser muy modulares y fáciles de crear.
+
+Dado un conjunto de conocimiento, se necesita generar una acción equivalente entre un conjunto de acciones posibles. Un árbol de decisión está hecho de puntos de decisión conectados. El árbol tiene una decisión inicial, la raíz, y para cada decisión, desde la raíz, una de las opciones de salida es elegida.
+
+![Figure [res/109_016]: Árbol de Decisión](res/109_016.png width="400px")
+
+Cada elección se hace basándose en el conocimiento del personaje. Puesto que los árboles de decisión son usados a menudo como mecanismos de decisión rápidos y simples, los personajes se suelen referir directamente al estado global del juego, en lugar de tener una representación de lo que personalmente conocen.
+
+El algoritmo continúa recorriendo el árbol, tomando decisiones en cada nodo hasta que no queda ninguna decisión que considerar. En cada hoja del nodo se encuentran las acciones, cuando el algoritmo de decisión llega a una acción, la ejecuta inmediatamente. Una acción se puede encontrar al final de varias ramas distintas.
+
+### Decisiones
+
+Las decisiones en un árbol son simples, suelen verificar un solo valor y no tienen lógica booleana. En función de la implementación y el tipo de los datos de los valores almacenados en el conocimiento del personaje, se pueden realizar diferentes tipos de verificaciones. Si el tipo de datos es un *boolean* se puede verificar si es verdadero o falso, si es una enumeración se puede verificar si encaja con uno de un conjunto de valores, si es un valor numérico se puede verificar si está dentro de un rango, …
+
+Además de tipos primitivos, en sistemas orientados a objetos es habitual permitir a los árboles de decisiones acceder a métodos de instancias. Esto permite al árbol delegar el procesamiento más complejo a código optimizado, mientras que se siguen aplicando las decisiones simples.
+
+El árbol de decisiones es eficiente porque las decisiones suelen ser muy simples, cada decisión solo lleva una verificación. Cuando se requieren combinaciones booleanas en las verificaciones, la estructura del árbol debería representarlo.
+
+Para relacionar dos decisiones con un *AND*, se deberían incluir las dos decisiones en serie en el árbol, tomando el camino del sí. Y para relacionarlas con un *OR* se ponen también en serie, pero tomando el camino del no.
+
+![Figure [res/109_017]: Decisiones Combinadas](res/109_017.png)
+
+Puesto que las decisiones están construidas en un árbol, el número de decisiones que efectivamente se necesitan considerar suele ser mucho más pequeña que el número de decisiones totales del árbol. Suelen ser simples de construir y se puede hacer en etapas, es decir, se pueden añadir fácilmente decisiones adicionales conforme se avanza en el desarrollo añadiendo nuevos comportamientos.
+
+### Ramificaciones
+
+La mayoría de decisiones se suelen elegir entre dos opciones, estos son los árboles de decisiones binarios. Pero se pueden construir de tal manera que las decisiones puedan tener cualquier número de opciones, se pueden tener diferentes decisiones con diferente número de ramas.
+
+Se puede tener a un guarda que necesita tomar una decisión basándose en el nivel de alerta de la base militar, y ese nivel puede estar dentro de un conjunto de estados (verde, amarillo, rojo, negro), se puede simplificar el árbol si pueden haber más de dos ramas tras cada punto de decisión. La estructura es más plana, solo se requiere una decisión y es más eficiente.
+
+![Figure [res/109_018]: Decisiones binarias vs múltiples](res/109_018.png)
+
+Pese a las ventajas obvias, es común encontrar árboles de decisión que usan solo decisiones binarias. El código para dar soporte a múltiples ramas normalmente simplifica a una serie de tests binarios (sentencias *if*), y pese a que el árbol es más simple con múltiples ramas, la mejora de velocidad no suele ser significativa. Además, los arboles binarios se pueden optimizas más fácilmente, y muchos algoritmos de aprendizaje requieren que los arboles sean binarios.
+
+### Representación del conocimiento
+
+Los árboles de decisión trabajan con tipos de datos primitivos, se pueden basar decisiones en enteros, coma flotante, *booleans*, … Uno de los beneficios de estos árboles es que no requieren traducir el formato del conocimiento usado por el resto del juego. Por tanto, se suelen implementar para que puedan acceder al estado del juego directamente, si el árbol necesita saber a qué distancia está el jugador de un enemigo, es probable que acceda a las posiciones del jugador y del enemigo directamente. Esta técnica en cambio, puede causar *bugs* difíciles de encontrar, si el árbol se usa poco, puede no ser obvio que está roto. Durante el desarrollo, la estructura del estado del juego cambia constantemente, y esto puede romper decisiones que se basan en alguna estructura o implementación particular. Una decisión puede detectar a que dirección está mirando una cámara de seguridad, si en la implementación del juego se cambia de un simple ángulo a un *quaternion* para representar la orientación de la cámara, entonces la decisión dejara de funcionar. Para evitar estas situaciones, se suele aislar el acceso al estado del juego y se implementa algún tipo de interfaz.
+
+### Árboles balanceados
+
+Los árboles de decisión funcionan más rápido cuando el árbol está balanceado. Un árbol balanceado tiene aproximadamente el mismo número de hojas en cada rama.
+
+![Figure [res/109_019]: Árbol Balanceado](res/109_019.png)
+
+En un árbol no balanceado llegar a una hoja puede requerir tomar muchas decisiones, mientras que en uno balanceado ese número es mucho menor y puede ser casi constante. Con lo cual el coste de evaluarlo es predecible. En cambio, si se puede predecir que gran parte de las evaluaciones van a acabar en una hoja, quizás un árbol no balanceado que favorece esa hoja pueda resultar más óptimo.
+
+Igualmente, no todas las decisiones son iguales. Una decisión que cueste mucho tiempo ejecutarse (una que pueda buscar la distancia al enemigo más cercano) solo debería tomarse si es absolutamente necesario. Tener este tipo de decisiones muy abajo en el árbol, incluso a expensas de acabar con un árbol no balanceado, suele ser buena idea.
+
+Estructurar árboles para conseguir máximo rendimiento es un arte, pero puesto que suelen ser muy rápidos, no es importante exprimir hasta el último ciclo de su ejecución. En general, hay que balancear el árbol, hacer que las ramas que más se usen sean más cortas que las que no se usan apenas, y poner las decisiones más caras más tarde.
+
+Se puede permitir que varias ramas se fusionen en una nueva decisión, haciendo que se pueda llegar a una decisión de varias maneras. Es lo mismo que asignar una sola acción a más de una hoja.
+
+Hay que tener cuidado de no introducir posibles bucles en el árbol, el proceso de decisión se podría quedar atascado en un bucle para siempre, sin encontrar una hoja. Estrictamente, la estructura valida es un grafo acíclico dirigido.
+
+![Figure [res/109_020]: Bucle en un árbol](res/109_020.png width="300px")
+
+### Árboles aleatorios
+
+A veces, no se quiere que la elección de un comportamiento sea totalmente predecible, algún elemento aleatorio que aporte variación e interés es deseable. Es fácil añadir una decisión al árbol que tenga un elemento aleatorio, se puede generar un número aleatorio y elegir una rama basándose en ese valor.
+
+Puesto que los árboles de decisión se ejecutan frecuentemente, reaccionando al estado inmediato del mundo, los comportamientos aleatorios suponen un problema. En una decisión aleatoria, se podría estar alternando entre dos comportamientos en cada frame, produciendo un resultado extraño para el jugador. Hay que hacer que la decisión aleatoria sea consciente de lo que evaluó la última vez, y si no ha habido cambios en el mundo se toma la misma decisión en la siguiente ejecución.
+
+## Máquinas de Estado Finitas
+
+A menudo, los personajes en un juego pueden actuar de maneras limitadas, y seguirán haciendo lo mismo hasta que un evento o influencia les haga cambiar. Un guardia estará en su puesto de vigilancia hasta que vea al jugador, en ese momento pasa a modo ataque cubriéndose y disparando. Se puede dar soporte a este tipo de comportamientos usando árboles de decisión, pero, suele ser mucho más sencillo usar máquinas de estado.
+
+Las máquinas de estado son la técnica más usada para este tipo de toma de decisiones y junto al scripting, constituyen la mayoría de sistemas de toma de decisiones en los juegos actuales. Las máquinas de estado tienen en cuenta tanto al mundo a su alrededor como a su estado interior.
+
+En una máquina de estados cada personaje vive en un estado. Normalmente, las acciones o comportamientos están asociados con cada estado, así, mientras el personaje se mantenga en ese estado, continuará realizando la misma acción.
+
+![Figure [res/109_021]: Máquina de Estados simple](res/109_021.png)
+
+Los estados están conectados por transiciones. Cada transición lleva de un estado a otro, el estado destino, y cada uno tiene un conjunto de condiciones asociadas. Si el juego determina que las condiciones de una transición se cumplen, entonces el personaje cambia su estado al estado del destino de la transición.
+
+Se suele usar *UML* (*Unified Modeling Language*) para realizar diagramas de estados de las máquinas, los estados se representan con recuadros y las transiciones son flechas, nombradas con la condición que las disparan. El circulo solido indica el estado inicial de la máquina, es decir, el que se disparará la primera vez que se ejecuta.
+
+En un árbol de decisiones, se usa siempre el mismo conjunto de decisiones, y cualquier acción puede ser alcanzada a través del árbol, en una máquina de estados, solo las transiciones del estado actual se consideran, así que no se pueden alcanzar todas las acciones.
+
+Las máquinas de estado que se usan en AI de juegos suelen ser finitas, *FSM* (máquina de estados finita). La estructura básica es muy general y admite múltiples implementaciones.
+Resumiendo:
+
+- Se tiene un conjunto de estados fijos en los que puede estar la máquina.
+- La máquina solo puede estar en un estado a la vez.
+- Una secuencia de entradas o eventos se manda a la máquina.
+- Cada estado tiene un conjunto de transiciones, cada uno asociado con una entrada y apuntando a un estado. Cuando una entrada llega, si encaja con una transición del estado actual, la máquina cambia al estado al que apunta la transición.
+
+### Máquinas incrustadas
+
+Se usa un enumerado para el conjunto de estados de la máquina.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class FSM_Main_State(Enum):
+    PATROL = 0,
+    CHASE = 1,
+    SHOOT = 2,
+    COVER = 3,
+    RECHARGE = 4,
+    RUNAWAY = 5,
+    HIDE = 6,
+    DEAD = 7,
+    MAX = 8
+
+main_state = FSM_Main_State.PATROL;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [states]: Estados en un Enumerado]
+
+El agente tendrá un estado, que será uno de los posibles valores del conjunto definido en el enumerado. Y se le asigna el valor inicial al punto de entrada de la máquina.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def update(dt)
+    if main_state == FSM_Main_State.PATROL:
+        PerformPatrol()
+        if SeesEnemy() or HearsAlarm():
+            main_state = FSM_Main_State.CHASE
+    elif main_state == FSM_Main_State.CHASE:
+        PerformChase()
+        if !TrackEnemy():
+            main_state = FSM_Main_State.PATROL
+        elif EnemyOnRange():
+            main_state = FSM_Main_State.SHOOT
+        elif EnemyShoots():
+            main_state = FSM_Main_State.COVER
+    elif main_state == FSM_Main_State.SHOOT
+        PerformShoot()
+        if OutOfAmmo() or EnemyShoots():
+            main_state = FSM_Main_State.COVER
+        elif LowLife():
+            main_state = FSM_Main_State.RUNAWAY
+        elif EnemyKilled():
+            main_state = FSM_Main_State.PATROL
+    elif main_state == FSM_Main_State.COVER:
+        PerformCover()
+        if EnemyNotShooting() and !EnemyOnRange():
+            main_state = FSM_Main_State.CHASE
+        elif EnemyNotShooting() and EnemyOnRange():
+            main_state = FSM_Main_State.SHOOT
+        elif OutOfAmmo():
+            main_state = FSM_Main_State.RECHARGE
+        elif LowLife():
+            main_state = FSM_Main_State.RUNAWAY
+    elif main_state == FSM_Main_State.RECHARGE:
+        PerformRecharge()
+        if GunRecharged():
+            main_state = FSM_Main_State.COVER
+    elif main_state == FSM_Main_State.RUNAWAY:
+        PerformRunAway()
+        if LifeRefill():
+            main_state = FSM_Main_State.PATROL
+        elif ExtraLowLife():
+            main_state = FSM_Main_State.HIDE
+    elif main_state == FSM_Main_State.HIDE:
+        PerformHide()
+        if LifeRefill():
+            main_state = FSM_Main_State.PATROL
+        elif NoLife():
+            main_state = FSM_Main_State.DEAD
+    elif main_state = FSM_Main_State.DEAD:
+        DoNothing()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fsm]: Implementación de FSM]
+
+En la función `update` cuando se actualiza el estado del agente, se ejecuta un `switch` sobre el estado actual, se ejecuta la acción necesaria en ese estado y a continuación se verifican las transiciones para ese estado, y si alguna se cumple se cambia de estado.
+
+Con este sistema, se mejora sustancialmente el código del de un árbol de decisiones, aún hay saltos condicionales, pero se ha simplificado el estado mutable a un solo campo. Todo el código para manejar un estado está junto.
+
+Todas las reglas de transición y la ejecución de las acciones son partes del código de juego. Una máquina de estado incrustada es fácil de escribir, pero difícil de mantener. Es fácil que crezcan hasta aparecer como código sucio y poco claro. Otro problema es que se necesita a un programador para escribir el comportamiento de la IA, y recompilar el juego cada vez que se cambia el comportamiento.
+
+### State Pattern
+
+Se trata de permitir a un objeto alterar su comportamiento cuando cambia su estado interno, el objeto parecerá que cambia su clase.
+
+Se define un *interface* para el estado, cada porción de comportamiento que es dependiente del estado (en el `switch`) se convierte en un método.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class State:
+
+    def update(agent, delta_time)
+        pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [state]: Clase Base `State`]
+
+Ahora el agente tiene como estado una referencia a esta clase estado. Para cada estado, se define una clase que implementa ese *interface*. Sus métodos definen el comportamiento del agente cuando está en ese estado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class PatrolState(State):
+    def update(agent, delta_time) {
+        PerformPatrol()
+        if SeesEnemy() or HearsAlarm():
+            changeStateTo(CHASE)
+
+    def PerformsPatrol():
+        ...
+
+    def SeesEnemy():
+        ...
+
+    def HearsAlarm():
+        ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [state_impl]: Implementación de un Estado]
+
+En la clase del agente en el `update` se delega al estado actual.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+main_state = PatrolState()
+
+def update(delta_time) {
+    main_state.update(self, delta_time)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_state]: Llamar a `update` del Estado actual]
+
+Para cambiar el estado solo hay que darle una nueva referencia con el nuevo objeto de estado.
+
+### Acciones de entrada y salida
+
+Cuando la máquina cambia de estado es habitual realizar alguna acción al salir del antiguo estado y entrar al nuevo. Para eso le damos a los estados dos métodos para ello.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class State:
+    void update(agent, delta_time):
+        pass
+
+    def enter():        #Do stuff when entering the state
+        pass
+
+    def exit():         #Do stuff when exiting the state
+        pass
+
+class Agent:
+
+    def change_state(state_dst):
+        current_state.exit()
+        current_state = state_dst
+        current_state.enter()
+
+        main_state.update(self, delta_time)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [enter_exit]: Entrada y Salida de Estados]
+
+### Máquinas de estado concurrentes
+
+Las máquinas de estado ayudan a desenredar código complicado imponiendo una estructura rígida sobre ella. Se tiene un conjunto de estados, un estado actual único y unas cuantas transiciones incrustadas. Si se intenta usar una máquina de estados par alguna IA compleja, pronto empezarán los problemas al encontrar los límites del modelo. Una solución son las máquinas de estado concurrentes.
+
+Si hay estados concurrentes, es decir, un mismo agente puede estar en dos estados al mismo tiempo la lógica de la maquina no queda más remedio que duplicarla. Si por ejemplo el guarda puede estar además afectado por una ceguera producida por el ataque del jugador, habría que duplicar todos sus estados para cubrir todos los casos posibles. Y si hay que añadir más estados concurrentes el número de estados explota con infinitas combinaciones. No solo es cuestión del número de estados, si no de la redundancia, gran parte del código es redundante entre múltiples estados concurrentes.
+
+El problema es que se han mezclado dos piezas distintas de estado, lo que está haciendo y como está su visión, en una sola máquina de estado. Para modelar todas las posibles combinaciones, se necesita un estado para cada pareja. La solución es obvia, tener dos máquinas de estado separadas.
+
+Se mantiene la maquina original, y se define otra nueva para manejar la ceguera. Entonces el agente tiene dos estados, y cuando se delega a los estados se hace para ambos.
+
+Cada máquina responde, genera su comportamiento y cambia su estado independientemente de la otra máquina. Cuando dos máquinas no tienen mucha relación esto funciona bien.
+
+### Máquinas de estado jerárquicas
+
+Muchas veces un estado tiene un superestado (haciendo de el mismo un subestado), cuando un evento llega, si el subestado no lo gestiona, se le envía al superestado. Es como hacer un *override* con métodos heredados.
+
+De hecho, si se usa el patrón estado para implementar la máquina de estados, se puede usar herencia para implementar la jerarquía. Se define una clase base para el superestado. Y entonces cada subestado hereda de ella.
+
+No es la única manera de implementar la jerarquía, se puede modelar la cadena de superestados del estado actual explícitamente usando una pila de estados en lugar de un simple estado en la clase principal. El estado actual está en la cima de la pila, y por debajo esta su inmediato superestado, y por debajo el superestado de este, … Cuando se sirve algún comportamiento se empieza por la cima de la pila, y se va bajando hasta que alguno lo maneja, y si no lo hace ninguno se ignora.
+
+### Máquinas de estado basadas en pila
+
+El problema muchas veces es que las máquinas de estado no tienen el concepto de historia. Se sabe el estado actual, pero no se sabe el estado en el que estaba antes, no hay una manera sencilla de ir al estado anterior.
+
+Mientras que una máquina de estados finita normal tiene un solo puntero a un estado, una basada en pila, tiene una pila de estados. Se puede pasar de un estado a otro de manera habitual, pero hay dos operaciones nuevas.
+
+Se puede hacer un *push* de un estado a la pila, el estado actual siempre es el que está en la cima, así que esto hace la transición a un nuevo estado. Pero deja el estado anterior directamente bajo el actual en la pila en lugar de descartarlo.
+
+Igualmente se puede hacer un *pop* del estado en la cima de la pila. Ese estado se descarta, y el estado de abajo se convierte en el estado actual.
+
+## Árboles de Comportamiento
+
+Un árbol de comportamiento es un árbol de nodos jerárquicos que controlan el flujo de la toma de decisiones de una entidad dirigida por la IA. En los extremos del árbol, las hojas, están los comandos que controlan a la entidad, y formando las ramas hay varios tipos de nodos de utilidad que controlan a la IA recorriendo el árbol hacia abajo para alcanzar la secuencia de comandos que mejor se ajusta la situación.
+
+Los árboles pueden ser extremadamente profundos, con nodos llamando a sub árboles que ejecutan funciones particulares, permitiendo al programador crear librerías de comportamientos que pueden ser encadenadas para formar comportamientos muy convincentes. El desarrollo es muy iterable, se puede empezar formando un comportamiento básico, y luego crear nuevas ramas para manejar métodos alternativos de conseguir objetivos, con ramas ordenadas por su atractivo, permitiendo a la IA tener tácticas secundarias cuando un comportamiento particular falla.
+
+### Conducido por datos vs conducido por código
+
+Hay muchas implementaciones distintas de árboles de comportamiento, la distinción principal es si los árboles están definidos de manera externa al código, mediante ficheros tipo *XML*, *JSON*, o cualquier formato propietario y manipulados en un editor externo, o si las estructuras de los árboles están definidas en el código mismo a través de instancias de clases anidadas.
+
+Sea cual sea la implementación, los nodos hojas, (que son los que ejecutan la lógica especifica del juego y controlan el personaje o verifican el entorno) se necesitan definir en el código. Puede ser en el lenguaje nativo o usando un lenguaje de scripting como *Lua* o *Python*. Así se pueden montar comportamientos complejos. Esos nodos pueden llegar a ser muy expresivos, a veces operando más como una librería standard para manipular los datos dentro del árbol, que como simples comandos del personaje.
+
+### Recorrido del árbol
+
+Un aspecto importante de los árboles de comportamiento es que, al contrario de cada método en el código, un nodo o rama particulares pueden costar varios frames en completarse. En la implementación básica, el sistema recorrerá el árbol desde la raíz cada frame, verificando cada nodo en el árbol para verificar si está activo, volviendo a verificar cualquier nodo en el camino, hasta que encuentra el nodo activo para seguir su ejecución.
+
+Esta no es una manera muy eficiente, sobre todo cuando los árboles se hacen profundos mientras se desarrollan y expanden durante el desarrollo. Es casi obligatorio, por tanto, que una implementación almacene el nodo actualmente en proceso para ser alcanzado directamente en el árbol en lugar de recorrer el árbol entero en cada frame.
+
+### Flujo
+
+Un árbol de comportamiento está constituido por varios tipos distintos de nodos, sin embargo, hay funcionalidades básicas que son comunes a cualquier tipo de nodo. Pueden devolver al menos uno de tres estados:
+
+- Éxito
+- Fallo
+- En ejecución
+
+Los primeros dos, informan a sus padres que su operación ha sido un éxito o un fracaso. El tercero significa que aún no se ha determinado el éxito del mismo, y el nodo aún está en ejecución. El nodo entonces será alcanzado otra vez la próxima vez que el árbol reciba el control de la ejecución, y en ese momento se tendrá otra vez la oportunidad de acabar con éxito, fallar o seguir en ejecución.
+
+Esta funcionalidad es la clave de los árboles de comportamiento, puesto que permite a un nodo persistir en el procesamiento a lo largo de varios frames del juego. Por ejemplo, un nodo *Walk*, puede ofrecer el estado en ejecución durante el tiempo que intenta calcular un camino, y también durante el tiempo que le cuesta al personaje alcanzar la localización especificada. Si el *pathfinding* falla por alguna razón, o alguna otra complicación aparece durante el camino, el nodo devuelve el fallo a su padre. Si en algún momento la posición del personaje es igual a la posición destino, entonces devuelve éxito indicando que el comando *Walk* se ha ejecutado exitosamente.
+
+Esto significa que un nodo aislado tiene un contrato definido para el éxito o el fracaso, y cualquier árbol usando ese nodo tiene asegurado el resultado que reciba del nodo. Estos estados se propagan y definen el flujo del árbol, para proveer una secuencia de eventos y caminos de ejecución distintos por el árbol para asegurarse que la IA se comporta como se espera.
+
+Con esta funcionalidad compartida en común, hay tres arquetipos principales de nodos en un árbol de comportamiento, compuesto (*composite*), decorador (*decorator*) y hoja (*leaf*).
+
+![Figure [res/109_022]: Nodos Arquetipo](res/109_022.png)
+
+### Composite
+
+Un nodo *composite*, es un nodo que puede tener uno o más nodos. Procesarán uno o más de esos nodos en secuencia ordenada o aleatoriamente dependiendo del nodo en cuestión. En algún momento, considerarán su procesamiento completo y devolverán un estado de éxito o fallo a su padre, a menudo determinado por el éxito o fallo de sus nodos hijos. Durante el tiempo que están procesando a sus hijos, devolverán el estado en ejecución.
+
+El nodo *composite* más habitual es el *sequence*, que simplemente ejecuta cada hijo en secuencia, devolviendo fallo cuando cualquier nodo hijo falla, o éxito cuando todos los hijos se han ejecutado exitosamente.
+
+### Decorator
+
+Un nodo *decorator*, al contrario que un nodo *composite* solo puede tener un nodo hijo. Su función es o bien transformar el resultado que recibe del estado de su nodo hijo, o finalizar el nodo, o procesar al hijo, en función del tipo de nodo decorador.
+
+### Leaf
+
+Estos son los nodos de nivel más bajo, y no pueden tener ningún hijo. Sin embargo, son los tipos de nodos con más potencia, puesto que están definidos e implementados por el juego para hacer las acciones específicas de juego o personaje, requeridas para hacer que el árbol ejecute cosas útiles.
+
+Un nodo hijo *Walk*, hará al personaje andar hacia un punto específico del mapa, y devuelve éxito o fallo en función del resultado.
+
+Puesto que se pueden definir nodos hoja, a menudo con muy poco código, pueden ser muy expresivos cuando se ponen en capas sobre *composites* y *decorators*, y permiten hacer potentes árboles capaces de comportamientos complejos por capas priorizadas.
+
+En analogía al código del juego, se puede pensar en *composites* y *decorators* como funciones, sentencias condicionales, bucles y otras construcciones del lenguaje definiendo el flujo del código, y las hojas nodo como llamadas a funciones específicas que ejecutan la lógica de los personajes de la IA, o verificar su estado o situación.
+
+Estos nodos pueden tener parámetros, por ejemplo, el nodo hoja *Walk*, puede tener una coordenada a la cual el personaje tiene que caminar. Estos parámetros pueden cogerse de variables almacenadas dentro del contexto del personaje de la IA procesando el árbol. Por ejemplo, la localización a donde caminar puede ser determinada por un nodo *GetLocation*, y almacenada en una variable y entonces otro nodo *Walk* puede usar esa variable almacenada en el contexto para definir el destino. Lo que hace potentes a los árboles de comportamiento es el uso de un contexto compartido entre nodos para almacenar y alterar datos persistentes arbitrarios durante el procesamiento.
+
+Otro tipo integral de nodos hoja es el que llama a otro árbol de comportamiento pasando el contexto del árbol actual al nodo llamado. Estos son importantes puesto que permiten crear módulos y árboles que se pueden reusar en distintos sitios, quizás usando un nombre de variable dentro del contexto donde operan. Por ejemplo, un comportamiento *BreakIntoBulding* puede esperar una variable con el destino de un edificio sobre la que operar, así los árboles padres pueden poner esa variable en el contexto, y entonces llamar al sub árbol a través de una hoja.
+
+### Nodos Composite
+
+Hay dos tipos principales de nodos *composite*, las secuencias y los selectores
+
+#### Sequences
+
+Un nodo secuencia visita todos sus nodos hijos en orden, empezando por el primero, y cuando este tiene éxito, llama al segundo, y así con toda la lista de hijos. Si algún hijo falla, entonces el nodo secuencia devuelve inmediatamente el fallo a su padre. Si el ultimo hijo de la secuencia acaba con éxito, entonces el nodo secuencia devuelve el éxito a su padre.
+
+Es importante aclarar que los tipos de los nodos en los árboles de comportamiento tienen un amplio rango de aplicaciones. El uso más obvio de los nodos secuencia es definir una secuencia de tareas que deben ser todas completadas, y donde el fallo de una significa que el procesamiento del resto de la secuencia es redundante.
+
+![Figure [res/109_023]: Nodo Sequence](res/109_023.png)
+
+Esta secuencia de ejemplo, hará que el personaje atraviese una puerta, cerrándola tras de sí. El orden de procesamiento seria:
+
+- Secuencia
+- Walk to Door 		    -> éxito
+- Secuencia 		      -> en ejecución
+- Open Door 		      -> éxito
+- Secuencia 		      -> en ejecución
+- Walk Through Door 	-> éxito
+- Secuencia 		      -> en ejecución
+- Close Door 		      -> éxito
+- Secuencia 		      -> éxito
+
+Al final la secuencia devuelve éxito al padre. Si un personaje falla al andar hasta la puerta, porque el camino está bloqueado, ya no es relevante intentar abrirla o atravesarla. La secuencia devuelve el fallo en el momento en que el nodo *WalkToDoor* falla, y el padre de la secuencia puede manejar el fallo consecuentemente.
+
+El hecho de que las secuencias de manera natural se presten a secuencias de acciones del personaje, y puesto que los árboles de comportamiento tienden a sugerir que este es su único uso, quizás sea confuso que haya muchas maneras de hacer uso de secuencias más allá de que el personaje haga una lista de cosas secuencial.
+
+![Figure [res/109_024]: Nodo Sequence](res/109_024.png)
+
+En este ejemplo, no hay una lista de acciones, sino una lista de pruebas. Los nodos hijo verifican si el personaje tiene hambre, si tiene comida, si está en un sitio seguro y solo si todo esto ha devuelto éxito al padre secuencia, entonces el personaje se come la comida. Usando secuencias de esta manera permite verificar una o más condiciones antes de llevar a cabo una acción. Puesto que todos los hijos necesitan tener éxito, y esos hijos pueden ser cualquier combinación de nodos *composite*, *decorators* u hojas, permite una verificación condicional muy potente dentro del cerebro de la IA.
+
+![Figure [res/109_025]: Nodo Inverter](res/109_025.png)
+
+En este ejemplo se puede ver el uso de un decorador para negar cualquier verificación y hacer una puerta *not*. Esto significa que se puede recortar la cantidad de nodos que se necesitan para probar las condiciones del personaje o mundo de juego.
+
+#### Selectors
+
+Mientras que una secuencia actúa como una puerta *and*, requiriendo que todos los hijos tengan éxito para devolver éxito, un *selector* devolverá éxito si cualquiera de sus hijos ha tenido éxito y no procesará ningún otro hijo. Procesará el primer hijo, si falla procesará el segundo, y si este falla, procesará al tercero, hasta que alguno devuelva éxito, y en ese punto el nodo *selector* devolverá éxito a su padre. Solo fallará si todos sus hijos fallan. Esto significa que se comporta como una puerta *or*, y como instrucción condicional puede usarse para verificar condiciones múltiples para ver si alguna es cierta.
+
+Su mayor potencia viene de su capacidad para representar diversas trayectorias de acción, en orden de prioridad de la más favorable a la menos favorable, y devolver éxito si ha conseguido un éxito en cualquiera de ellas. Las implicaciones son importantes, y se pueden desarrollar IA sofisticadas a través del uso de selectores.
+
+![Figure [res/109_026]: Nodo Selector](res/109_026.png)
+
+Se puede tratar con puertas cerradas de manera inteligente, solo con el uso de un puñado de nuevos nodos.
+
+Cuando se llega al segundo nodo de la secuencia, el personaje ya está delante de la puerta. Entonces se ejecuta el selector, primero se procesa el nodo *OpenDoor*, es la opción preferida, simplemente abrir la puerta, si tiene éxito entonces el selector tiene éxito, no hay más acciones que explorar en los hijos del selector. Pero si este nodo falla abriendo la puerta porque alguien la ha cerrado con llave, entonces se le devuelve fallo al nodo selector, en este punto, el selector ejecutará el segundo nodo, la segunda acción preferida, que es intentar abrir la cerradura de la puerta. Aquí se añade otra secuencia, que debe ser completa del todo antes de volver al selector, donde primero se intenta desbloquear la puerta y luego intentar abrirla. Si cualquier paso de abrir la cerradura falla, porque la IA no tiene la llave, entonces devolverá fallo al selector, y entonces intentará la tercera acción, destrozar la puerta. Si el personaje no es lo suficientemente fuerte, quizás falle, en ese caso no hay más acciones, y el selector fallará, y hará que el selector padre falle también, abandonando el intento de pasar a través de la puerta.
+
+Yendo un paso más lejos, quizás haya un selector por encima que intenta otro curso de acción basándose en el fallo de esta secuencia.
+
+![Figure [res/109_027]: Nodo Selector](res/109_027.png)
+
+En el lado izquierdo, el lado preferido, se intenta atravesar la puerta, si falla, intenta entrar por la ventana. En resumen, hay un comportamiento, entrar en edificio, en el cual se puede confiar que conseguirá entrar o informar al padre que ha fallado, quizás no haya ventanas, en ese caso el selector de encima fallará, y quizás el selector padre le dirá a la IA que vaya a otro edificio.
+
+Un punto importante de los árboles de comportamiento que simplifica el desarrollo de IA es que el fallo ya no es un factor crítico que hay que manejar de manera excepcional, sino que es una parte natural y esperada del proceso de toma de decisiones que encaja de manera natural con el paradigma del sistema de IA.
+
+#### Sequences / Selectores aleatorios
+
+Estos trabajan de manera idéntica a los normales, excepto que el orden en que se seleccionan los nodos hijo para ser procesados se determina aleatoriamente. Pueden ser usados para añadir impredecibilidad a un personaje en casos en los que no está claro un orden de ejecución preferido de todos los posibles cursos de acción.
+
+### Nodos Decorator
+
+#### Inverter
+
+Simplemente poniéndolo se invierte o niega el resultado de su nodo hijo, el éxito se convierte en fallo y viceversa. Son usados en pruebas condicionales.
+
+#### Succeeder
+Un nodo *succeeder* siempre devolverá éxito, independientemente de lo que haya devuelto el nodo hijo, son útiles en casos en los que no se quiere procesar una rama de un árbol donde se espera o anticipa un fallo, pero no se quiere abandonar el procesamiento de la secuencia en la que se encuentra la rama. El opuesto a este nodo no se requiere, puesto que un *inverter* convertirá un *succeeder* en un *failer*, si se requiere un fallo para el padre.
+
+#### Repeater
+
+Este reprocesará su nodo hijo vez que el nodo devuelva un resultado, son muy usados en la base del árbol, para hacer que el árbol se ejecute continuamente. Los *repeaters* pueden ejecutar opcionalmente sus hijos un numero especifico de veces antes de volver al padre.
+
+#### Repeat Until Fail
+
+Como un *repeater*, estos decoradores continuarán reprocesando su hijo hasta que el hijo finalmente devuelva un fallo, en ese punto el *repeater* devolverá un éxito a su padre.
+
+### Contexto de los Datos
+
+Cuando un árbol de comportamiento se llama sobre una entidad de IA, se crea un contexto para los datos que actúa como almacenaje para las variables arbitrarias que son interpretadas y alteradas por los nodos (posiblemente un *map* de *STL* en *C++*). Los nodos serán capaces de leer o escribir en las variables para dar a los nodos que se procesan más tarde datos contextuales y permitir al árbol actuar como una unidad cohesionada.
+
+### Nodos Hoja
+
+Para proveer funcionalidad a los nodos hoja y permitir añadir funcionalidad especifica de juego a los árboles de comportamiento, muchos sistemas tienen dos funciones que se necesitan implementar.
+
+- *init*, se llama la primera vez que un nodo es visitado por su padre durante la ejecución del mismo. Por ejemplo, una secuencia lo llamará cuando sea el turno del nodo para ser procesado. No será vuelto a llamar otra vez hasta la próxima vez que el nodo padre sea disparado tras haber finalizado dicho nodo padre su procesamiento y devuelto el resultado a su respectivo padre. Esta función se usa para inicializar el nodo y empezar la acción que el nodo representa. Si el nodo hoja representa la acción de *Walk*, podría conseguir los parámetros del destino y quizás inicializar la tarea de *pathfinding*.
+
+- *process*, se llama en cada frame del árbol de decisión, mientras se está procesando. Si está función devuelve éxito o fallo, entonces su procesamiento acabará y se le pasa el resultado al padre. Si devuelve en ejecución será reprocesada en el siguiente frame, una y otra vez, hasta que devuelva éxito o fallo. En el nodo *Walk*, devolverá en ejecución hasta que el *pathfinding* acabe con éxito o falle.
+
+Lo nodos pueden tener propiedades asociadas a ellos, que pueden ser parámetros literales pasados explícitamente, o referencias a variables del contexto de los datos de la entidad.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def walk(character, destination):
+    //Do Stuff
+    if reached_destination():
+        return success
+
+    if failed_reaching_destination():
+        return failure
+
+    return running      //on route
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [walk]: Nodo *Walk*]
+
+En este caso, el nodo *Walk* tiene dos parámetros, el personaje y el destino. Puede parecer natural asumir siempre que el personaje que está ejecutando el árbol de comportamiento es el sujeto de un nodo, y, por tanto, no es necesario que se le pase explícitamente como parámetro. Pero en muchas ocasiones, como en nodos condicionales, es habitual interaccionar con otros personajes, así que suele ser buena idea pasar el personaje al que aplica el comando, aunque se esté seguro que solo la IA que está ejecutando el árbol lo requiera.
+
+La localización pasada, se puede introducir manualmente con las coordenadas x,y,z. Pero es más habitual que se guarde en el contexto como variable por otro nodo, consiguiendo la localización de algún otro objeto de juego, o quizás calculando un lugar seguro a cubierto.
+
+### Pilas
+
+La primera vez que se trabaja con árboles de comportamiento, es natural restringir el ámbito de los nodos que se usan a acciones del personaje, o pruebas condicionales sobre el personaje o su entorno. Con esta restricción la potencia de estos árboles se limita.
+
+Su utilidad se revela cuando se implementan operaciones en pila como nodos. Se pueden añadir tres implementaciones de nodos al juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+PushToStack(item, stack)
+PopFromStack(item, stack)
+IsEmpty(stack)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [stack]: Pila]
+
+Todo lo que necesitan son sus funciones de *init* y *process* implementadas para crear y modificar un objeto en la pila con unas pocas líneas de código, y abren un nuevo mundo de posibilidades.
+
+Por ejemplo, *PushToStack*, crea una nueva pila si no existe y la almacena en la variable pasada, y entonces empuja el objeto en ella. De manera similar, *PopFromStack*, saca un elemento de la pila y lo almacena en la variable ítem, fallando si la pila está vacía. Y *IsEmpty* verifica si la pila está vacía y devuelve éxito si lo está o fallo en caso contrario.
+
+Con estos nodos, se tiene la capacidad de iterar a través de una pila de objetos.
+
+![Figure [res/109_028]: Pila](res/109_028.png)
+
+Usando un decorador *RepeatUntilFail*, se puede sacar un elemento de la pila repetidamente y operar sobre él, hasta que la pila esté vacía, en ese punto el *pop* devolverá fallo, *sequence* devolverá fallo también y el decorador también devolverá la ejecución.
+
+Otros nodos útiles pueden ser:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+SetVariable(varName, object)
+IsNull(object)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [nodes]: Nodos]
+
+Permiten poner valores a variables arbitrarias en el árbol en circunstancias donde los *composites* y decoradores no permiten la suficiente granularidad para conseguir la información requerida.
+
+Si se añade al árbol un nodo *GetDoorStackFromBuilding*, al que se le pasa un objeto edificio, y este obtiene una lista de todas las puertas exteriores de un edificio, creando y llenando una pila con los objetos y poniendo la variable destino.
+
+![Figure [res/109_029]: Ejemplo de uso](res/109_029.png)
+
+Inicialmente puede parecer complejo entender este árbol, pero una vez familiarizado con la manera que los nodos operan y como los éxitos y fallos atraviesan el árbol todo empieza a tener sentido.
+
+Este árbol consigue e intenta entrar en cada puerta de un edificio, y devuelve éxito si el personaje ha conseguido atravesar cualquier puerta, y fallo si no lo ha hecho.
+
+Primero consigue una pila que contiene todas las puertas del edificio, entonces llama al nodo decorador *RepeatUntilFail* que continuará reprocesando a sus hijos hasta que uno devuelva un fallo.
+
+Este hijo, en secuencia, sacará una puerta de la pila, almacenando su valor en una variable puerta.
+
+Si la pila está vacía porque no hay puertas, entonces este nodo fallará y romperá el decorador *UntilFail*, que devolverá éxito (estos decoradores siempre devuelven éxito), para continuar la secuencia del padre, donde se invierte la verificación *isNull* de la puerta usada (lo cual será correcto, porque nunca se ha usado dicha variable), y esto causará que el árbol entero falle.
+
+Si la pila consigue una puerta, entonces llama a otra secuencia (con un *inverter*) que intentará caminar hasta la puerta, abrirla y atravesarla.
+
+Si el personaje falla al atravesar la puerta de cualquier manera disponible para él (la puerta está cerrada y el personaje es muy débil para romperla), entonces el *selector* fallará, y devolverá fallo al padre, que es el *inverter*, que transforma el fallo en éxito, lo que significa que no se escapa del *RepeatUntilFail*, que repite y vuelve a llamar a su secuencia para sacar otra puerta de la pila y el personaje vuelve a intentarlo con la siguiente puerta.
+
+Si el personaje consigue atravesar la puerta, entonces pone esa puerta en la variable *usedDoor*, y la secuencia devuelve éxito. Este éxito se invierte en fallo, para salir del *RepeatUntilFail*.
+
+En estas circunstancias, se falla la prueba *IsNull* sobre la variable *usedDoor*, puesto que no es nula. Esto se invierte en un éxito, que hace que todo el árbol tenga éxito. El padre sabe que el personaje ha encontrado una puerta y la ha atravesado y está dentro del edificio.
+
+Si falla, se puede repetir el mismo proceso con un nodo *GetWindowStackFromBuilding*, e intentarlo con las ventanas. O con algo de manipulación de la pila con unos pocos nodos más, se pueden conseguir todas las puertas y ventanas inmediatamente unas tras otras, y añadir las ventanas al final de la pila de puertas, y procesarlas todas en el mismo camino, asumiendo que abrir, desbloquear, romper, cerrar, operan sobre una base genérica de puertas y ventanas.
+
+Se ha añadido un decorador *succeeder* como padre del nodo cerrar puerta, esto es así porque si el personaje ha roto la puerta, entonces fallará cerrándola. Sin el *succeeder*, esto causará que la secuencia falle antes de poner la variable *usedDoor* y se vaya a la siguiente puerta. Una solución alternativa podría pasar por diseñar el nodo de cerrar la puerta de manera que siempre tenga éxito incluso si la puerta está rota. Sin embargo, se quiere mantener la capacidad de verificar el éxito de cerrar una puerta, así que un *succeeder* asegura que el fallo es ignorado si el comportamiento lo requiere.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

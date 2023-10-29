@@ -1,0 +1,66 @@
+<meta charset="utf-8">
+**03EPPY - A4 - Instalación SQLite**
+    <small>©2022 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# Instalación
+
+La instalación puede realizarse en Windows, Mac o Linux. Nosotros realizaremos la parte práctica en Windows.
+
+## Consola 
+
+Seguir los siguientes pasos para realizar la instalación de SQLite en modo consola:
+
+1. Abrir al sitio [*sqlite.org*](https://www.sqlite.org)
+    
+2. Acceder al menú de descargas *Downloads*. En nuestro caso buscamos la parte de binarios para Windows y seleccionamos la opción con las herramientas para poder gestionar la base de datos.
+
+![](res/a3/sqlt_inst_down.png =100x)  
+
+3. Crear una carpeta y descomprimir la descarga es esta carpeta. En el siguiente ejemplo la carpeta se ha creado en la ruta resaltada, pero se puede elegir la ubicación al gusto del usuario. Una vez descomprimida dentro de la carpeta que se crea veremos los ejecutables que nos permitirán trabajar con la base de datos.
+
+![](res/a3/sqlt_inst_ruta.png =100x)
+
+4. Configurar la consola siguiendo los siguientes pasos:
+
+    - Botón derecho en *Este equipo* <span style="color:blue">(1)</span>
+    - Propiedades <span style="color:blue">(2)</span>
+
+        ![](res/a3/sqlt_inst_config0.png =100x)
+
+    - Configuación avanzada del sistema <span style="color:red">(1)</span>
+    - Variables de entorno <span style="color:red">(2)</span>
+    - Seleccionar variable *Path* (doble click) <span style="color:red">(3)</span>
+    - Botón *Nuevo* <span style="color:red">(4)</span>
+    - Copiar ruta de la carpeta que tiene los ejecutables (descomprimida en el paso 3) <span style="color:red">(5)</span>
+    - Botones *Aceptar* hasta salir por completo <span style="color:red">(6)</span>
+
+        ![](res/a3/sqlt_inst_config.png =100x)
+
+5. Para comprobar que se ha instalado y configurado correctamente abrir una consola y escribir *sqlite3*. Y aparece una versión de SQLite con la que ya podemos trabajar con la base de datos en modo consola.
+
+        ![](res/a3/sqlt_inst_cmd.png =100x)
+
+        Es importante antes de ejecutar *sqlite3* posicionarnos en la carpeta en la que estará la base de datos con la que vamos a
+        
+## Interfaz gráfica
+
+Seguir los siguientes pasos para realizar la instalación de SQLite en modo gráfico:
+
+1. Abrir al sitio [*sqlitebrowser.org*](https://www.sqlitebrowser.org)
+    
+2. Acceder al menú de descargas *Downloads* y seleccionar la opción que se adecue al equipo en el que va a ser instalado.
+
+![](res/a3/sqlt_inst_browser.png =100x)  
+
+3. Una vez descargado proceder a la instalación. Podemos dejar todo por defecto, pero sí tener en cuenta que si queremos que se cree un icono de acceso directo en escritorio o menú de programas hay que indicarlo cuando aparezca la siguiente ventana:
+
+    ![](res/a3/sqlt_inst_checks.png =100x)
+
+4. Abrir el programa ***DB Browser (SQLite)*** desde el icono si se ha creado o buscando la aplicación desde el menú de programas.
+
+    ![](res/a3/sqlt_inst_dbbrow.png =100x)
+
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

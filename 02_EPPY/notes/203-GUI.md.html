@@ -1,0 +1,743 @@
+<meta charset="utf-8">
+**02EPPY - 203 - Interfaces de Usuario**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Introducción
+
+Aunque parece que las aplicaciones móviles y web están inundando el mercado del desarrollo de software, aún hay una gran demanda de aplicaciones de escritorio tradicionales con Interfaces de Usuario Gráficas `GUI`. En Python hay muchas alternativas para ello, `Tkinter`, `wxPython`, `PyQt`, `PySide2`,...
+
+# PyQt
+
+PyQt es un `binding` de Python para [`Qt`](https://www.qt.io/), el cual es un conjunto de librerías de C++ y herramientas de desarrollo que incluyen abstracciones independientes de plataforma para interfaces de usuario gráficas, redes, hilos, expresiones regulares, y muchas otras características.
+
+`PyQt6` está basado en Qt6, e implementa cerca de mil de las clases que `Qt` ofrece en un conjunto de módulos de Python, que están todos contenidos en un paquete de alto nivel llamado `PyQt6`. Es compatible con Windows, Linux, macOS, iOS y Android, esto puede ser interesante si se busca una librería capaz de desarrollar aplicaciones multiplataforma con una apariencia nativa en cada plataforma.
+
+Se puede observar que `PyQt` no sigue el estilo de código [PEP 8](https://www.python.org/dev/peps/pep-0008/) habitual para aplicaciones Python, esto es porque está construido sobre `Qt`, que está escrita en C++ y usa estilo `CamelCase` para los nombres de funciones, métodos y variables.
+
+## Instalación
+
+Se puede instalar de muchas maneras distintas, construir desde los fuentes, usar `wheels`, instaladores nativos, anaconda,... Pero la más simple es usar PyPI con el método habitual `pip` o `pipenv`, desde [aquí](https://pypi.org/project/PyQt6/).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> pipenv install pyqt6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [install_pyqt6]: Instalar `pyqt6`]
+
+# Hola Mundo
+
+El primer paso es importar los módulos necesarios, para empezar, `QApplication`, `QWidget` y `QLabel`, todos ellos del módulo `PyQt6.QtWidgets`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QLabel
+from PyQt6.QtWidgets import QWidget
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [imports]: Módulos básicos de PyQt]
+
+Luego hay que crear una instancia de la clase `QApplication`, el cual hace la inicialización y crea una aplicación. Es importante crear este objeto antes de crear ningún objeto relacionado con `GUI`. Este objeto también se encarga de gestionar los argumentos de línea de comandos que pueda recibir el programa, con lo cual, hay que pasar la variable `sys.argv` como argumento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+app = QApplication(sys.argv)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [application]: Creación del objeto `QApplication`]
+
+A continuación, hay que crear el interfaz gráfico de la aplicación. En este caso, el `GUI` estará basado en la clase `QWidget`, que es la clase base de la cual todos los objetos de interfaz de PyQt heredan.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+window = QWidget()
+window.setWindowTitle('Hello World')
+window.setGeometry(0, 0, 250, 100)
+window.move(200, 200)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [window]: Creación de la ventana]
+
+Se crea una instancia de `QWidget`, que actuará como ventana de la aplicación, que contiene todas las características necesarias para ello. Con el método `setWindowTitle` de esta instancia se puede cambiar el título de la ventana. Con el método `setGeometry` se define el tamaño y la posición de la ventana, los dos primeros parámetros son la posición en el eje x e y, y los dos siguientes, el ancho y alto. Y a continuación con el método `move` se puede mover dicha ventana a una posición determinada en la pantalla.
+
+Todas las aplicaciones de `GUI` necesitan widgets, que es como se llama a los distintos componentes que puede tener una interfaz gráfica, como etiquetas, botones,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+hello_label = QLabel('<h1>Hello World!</h1>', parent=window)
+hello_label.move(60, 30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [label]: Creación de una etiqueta]
+
+Se crea una instancia de la clase `QLabel` para mostrar un texto en la ventana de la aplicación. Estos objetos pueden aceptar texto en `HTML`, se usa un `<h1>Hello World!</h1>` para mostrar el texto como una cabecera de texto. Se le pasa como parámetro `parent` la ventana, para indicar a que objeto pertenece en la estructura visual, en este caso, se dice que esta etiqueta está contenida dentro de la ventana. Luego se usa el método `move` para situarlo dentro de dicha ventana.
+
+En `PyQt6` se puede usar cualquier widget, como subclase de `QWidget` como ventana de primer nivel, incluso un botón o una etiqueta. La única condición es que no se le pase ningún `parent`. Cuando se usa un widget de esta manera, `PyQt6` automáticamente le da una barra de título y la convierte en una ventana normal.
+
+La relación padre-hijo se usa para dos propósitos complementarios:
+
+- Un widget que no tiene `parent` es una ventana principal o una ventana de primer nivel
+- Un widget que tiene un `parent` (que siempre es otro widget) es contenido (o mostrado) dentro de su `parent`.
+
+Esta relación también define la propiedad, con los padres siendo dueños de sus hijos. Este modelo de posesión asegura que si se borra un `parent`, entonces todos sus hijos se borran de manera automática.
+
+Para evitar fugas de memoria, hay que asegurarse que todos los widgets tienen un `parent`, excepto las ventanas de primer nivel.
+
+Ahora solo queda mostrar la ventana, llamando a su método `show`, el cual añade un nuevo evento a la cola de eventos de la aplicación para que reciba el pintado y su actualización. Y por último, se arranca el bucle de eventos de la aplicación llamando a `app.exec`. Esta llamada se suele hacer envuelta en una llamada a `sys.exit`, lo que permite a Python salir limpiamente y liberar todos los recursos de memoria cuando la aplicación termina.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+window.show()
+
+sys.exit(app.exec())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [show_exec]: Mostrar ventana y ejecutar la aplicación]
+
+Al ejecutar todo este código se debería ver algo parecido a esto.
+
+![Figure [res/203_000]: Ejemplo de `Hola Mundo` en `PyQt`](res/203_000.png)
+
+# Objetos de PyQt
+
+Hay que conocer los conceptos básicos de la lógica de `PyQt` para usar esta librería de manera eficiente al desarrollar aplicaciones de interfaz de usuario gráficas. Estos elementos son las piezas básicas sobre las que se construye cualquier aplicación `GUI`. La mayoría de ellas están representadas en clases de Python, y el módulo `PyQt6.QtWidgets` las contiene a todas.
+
+- Widgets
+- Layout managers
+- Diálogos
+- Ventanas principales
+- Aplicaciones
+- Bucles de eventos
+- Signals y slots
+
+## Widgets
+
+`QWidget` es la clase base para todos los objetos de interfaz, o widgets. Estos son componentes gráficos de forma rectangular que se pueden poner en la ventana de la aplicación para construir el `GUI`. Los widgets contienen una serie de atributos y métodos que permiten modelar su apariencia y comportamiento. También pintar una representación de si mismos en la pantalla.
+
+Estos widgets pueden recibir pulsaciones de ratón, de teclado y otros eventos por parte del usuario, el sistema de ventanas, y muchos otros sitios. Cada vez que un widget captura un evento, emite una `signal` que anuncia su cambio de estado. `PyQt6` tiene muchos widgets que sirven a muchos propósitos diferentes, hay más de 40 disponibles, estos son solo una pequeña muestra, pero sirven para mostrar la potencia y flexibilidad de esta librería.
+
+### Buttons
+
+El primero de ellos es el botón, se puede crear uno de ellos a través de la clase `QPushButton`, que provee un botón clásico. Los más típicos suelen ser `Ok`, `Cancel`, `Apply`, `Yes`, `No` y `Close`.
+
+![Figure [res/203_001]: Botones](res/203_001.png)
+
+Estos botones son de los widgets más usados, cuando se pulsa sobre ellos, se puede pedir al sistema que ejecute alguna acción.
+
+### Labels
+
+Las etiquetas se usan a través de la clase `QLabel`, que ofrecen una manera de mostrar información útil en la forma de texto o imágenes.
+
+![Figure [res/203_002]: Labels](res/203_002.png)
+
+Se suelen usar estas etiquetas para explicar como usar el `GUI`, se puede ajustar su apariencia de muchas maneras distintas, incluso pueden aceptar texto `HTML`.
+
+### Line edit
+
+Otro widget de uso común es `line edit`, una caja de texto de una sola linea, que se puede crear a través de la clase `QLineEdit`. Esos objetos son útiles cuando se necesita que el usuario introduzca algún tipo de dato en texto plano.
+
+![Figure [res/203_003]: Line edits](res/203_003.png)
+
+Estos objetos suelen proveer operaciones de edición básicas, como `copy`, `paste`, `undo`, `redo`, `drag and drop`,...  Incluso pueden tener un texto `placeholder` para informar al usuario de que clase de entrada se espera en cada caso.
+
+### Combo boxes
+
+Se pueden crear con la clase `QComboBox`, el cual presenta al usuario una lista de opciones de una manera que ocupa un espacio mínimo en pantalla.
+
+![Figure [res/203_004]: Combo box](res/203_004.png)
+
+Este combo box es de solo lectura, esto quiere decir que el usuario puede seleccionar una de muchas opciones, pero no puede añadir ninguna. También se pueden crear combo boxes editables, permitiendo al usuario añadir nuevas opciones.
+
+### Radio button
+
+Estos botones de selección se pueden crear con `QRadioButton`, que pueden estar seleccionados o no. Suelen ser útiles cuando se necesita que el usuario selecciona una opción entre varias, y todas ellas suelen estar visibles en la pantalla a la vez.
+
+![Figure [res/203_005]: Radio button](res/203_005.png)
+
+En este grupo de radio buttons, solo puede estar seleccionado uno de ellos en un momento determinado. Si el usuario selecciona otro radio button, el que estaba seleccionado antes se apagarán automáticamente.
+
+## Layout managers
+
+Un problema habitual, es como se colocan todos esos widgets en una ventana para crear una `GUI` que sea coherente y funcional. Hay muchas técnicas que se pueden usar para componer los widgets en una ventana, por ejemplo, se puede usar `resize` y `move` para darles a los widgets posiciones y tamaños absolutos. Pero esto puede generar varios problemas.
+
+- Hay que hacer muchos cálculos manuales para determinar el tamaño y posición correctos para cada uno de los widgets en la ventana
+- Hay que hacer cálculos extra para responder correctamente a cambios en el tamaño de la ventana, al redimensionarse
+- Hay que rehacer todos estos cálculos cada vez que se cambia la composición de las ventanas, o se añaden o eliminan widgets
+
+Una alternativa es usar `resizeEvent` para calcular el tamaño y posición del widget de manera dinámica. Sin embargo, la alternativa más eficaz es usar `layout managers`, que mejoran la productividad y la mantenibilidad del código.
+
+Estas son clases que permiten dar tamaño y posición a los widgets en los sitios donde se quiere que estén en la ventana, y automáticamente se adaptan a los eventos de redimensión y cambios del contenido. También controlan el tamaño de los widgets que contienen. Esto significa que los widgets en un `layout` se redimensionan automáticamente cuando el tamaño de la ventana cambia.
+
+Incluso, al escribir aplicaciones internacionales, estos `layout managers` ayudan evitar los problemas de las distintas longitudes de texto para diferentes idiomas.
+
+### QHBoxLayout
+
+Este `layout manager` coloca los widgets horizontalmente, de izquierda a derecha.
+
+![Figure [res/203_006]: `QHBoxLayout`](res/203_006.png)
+
+Los widgets aparecen uno al lado del otro, empezando por la izquierda. Se puede crear un objeto de tipo `QHBoxLayout`, y se añaden tres botones `QPushButton` a este layout con el método `addWidget`. Y por último con el método `setLayout` del objeto `window` se añade dicho layout a la ventana.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtWidgets import QHBoxLayout
+from PyQt6.QtWidgets import QPushButton
+
+layout = QHBoxLayout()
+layout.addWidget(QPushButton('Left'))
+layout.addWidget(QPushButton('Center'))
+layout.addWidget(QPushButton('Right'))
+window.setLayout(layout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hbox_layout]: Crear layout horizontal con tres botones]
+
+Se han añadido tres botones en un orden horizontal, los botones se muestran de izquierda a derecha en el mismo orden en el cual se añadieron al layout en el código.
+
+![Figure [res/203_007]: Tres botones en un layout horizontal](res/203_007.png)
+
+### QVBoxLayout
+
+Este layout los coloca de manera vertical, de arriba a abajo.
+
+![Figure [res/203_008]: QVBoxLayout](res/203_008.png)
+
+Cada widget aparecerá debajo del anterior. Se puede crear un objeto de tipo `QVBoxLayout`, y se añaden tres botones `QPushButton` a este layout con el método `addWidget`. Y por último con el método `setLayout` del objeto `window` se añade dicho layout a la ventana.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtWidgets import QVBoxLayout
+from PyQt6.QtWidgets import QPushButton
+
+layout = QVBoxLayout()
+layout.addWidget(QPushButton('Left'))
+layout.addWidget(QPushButton('Center'))
+layout.addWidget(QPushButton('Right'))
+window.setLayout(layout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [vbox_layout]: Crear layout vertical con tres botones]
+
+Se han añadido tres botones en un orden vertical, los botones se muestran de arriba a abajo en el mismo orden en el cual se añadieron al layout en el código.
+
+![Figure [res/203_009]: Tres botones en un layout vertical](res/203_009.png)
+
+### QGridLayout
+
+Este coloca los widgets dentro de una rejilla de filas y columnas. Cada widget tiene una posición relativa en la rejilla. Se puede definir la posición de un widget pasando un par de coordenadas (fila, columna), que deben ser números enteros validos y definen en que celda de la rejilla se va a colocar el widget.
+
+![Figure [res/203_010]: QGridLayout](res/203_010.png)
+
+Este layout coge todo el espacio que tiene disponible de su `parent`, lo divide en filas y columnas, y pone cada widget en su propia celda. Se puede crear un objeto de tipo `QGridLayout`, y se añaden nueve botones `QPushButton` a este layout con el método `addWidget`. En este caso se añade un par de parámetros extra que indican la fila y la columna con la posición de cada botón. Y en el caso del último botón, se añaden dos parámetros más, `rowSpan` y `columnSpan`, que se pueden usar para hacer que un widget ocupe más de una fila o columna. En este caso, el último botón ocupa una fila, pero dos columnas. Y por último con el método `setLayout` del objeto `window` se añade dicho layout a la ventana.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtWidgets import QGridLayout
+from PyQt6.QtWidgets import QPushButton
+
+layout = QGridLayout()
+layout.addWidget(QPushButton('Button (0, 0)'), 0, 0)
+layout.addWidget(QPushButton('Button (0, 1)'), 0, 1)
+layout.addWidget(QPushButton('Button (0, 2)'), 0, 2)
+layout.addWidget(QPushButton('Button (1, 0)'), 1, 0)
+layout.addWidget(QPushButton('Button (1, 1)'), 1, 1)
+layout.addWidget(QPushButton('Button (1, 2)'), 1, 2)
+layout.addWidget(QPushButton('Button (2, 0)'), 2, 0)
+layout.addWidget(QPushButton('Button (2, 1) + 2 Columns Span'), 2, 1, 1, 2)
+window.setLayout(layout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [grid_layout]: Crear grid layout con nueve botones]
+
+Se han añadido nueve botones en una rejilla, donde el último botón ocupa más de una celda.
+
+![Figure [res/203_011]: Nueve botones en un layout vertical](res/203_011.png)
+
+### QFormLayout
+
+Este coloca los widgets en una disposición de dos columnas, la primera columna suele mostrar mensajes en etiquetas, y la segunda suele contener widgets como `QLineEdit`, `QComboBox`, `QSpinBox`,... Permiten al usuario introducir datos acerca de la información en la primera columna.
+
+![Figure [res/203_012]: QFormLayout](res/203_012.png)
+
+La columna de la izquierda consiste de etiquetas, y la derecha de widgets. Si se está trabajando sobre una base de datos, este tipo de layout puede ser una opción cómoda para crear formularios de datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtWidgets import QFormLayout
+from PyQt6.QtWidgets import QLineEdit
+
+layout = QFormLayout()
+layout.addRow('Name:', QLineEdit())
+layout.addRow('Age:', QLineEdit())
+layout.addRow('Job:', QLineEdit())
+layout.addRow('Hobbies:', QLineEdit())
+window.setLayout(layout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [form_layout]: Crear form layout con cuatro campos]
+
+El layout `QFormLayout` tiene un método llamado `addRow`, para añadir un fila completa con dos widgets, el primer parámetros debe ser una etiqueta, y el segundo parámetro debe ser cualquier widget que permita al usuario introducir o editar datos.
+
+![Figure [res/203_013]: Cuatro campos en un layout de formulario](res/203_013.png)
+
+## Diálogos
+
+Con `PyQt` se pueden desarrollar dos tipos de aplicaciones de escritorio, depende de la clase que se use al crear la ventana principal.
+
+- Una aplicación con una ventana principal, hereda de `QMainWindow`
+- Una aplicación de diálogos, hereda de `QDialog`
+
+Para crear una aplicación de estilo diálogo, hay que crear una clase `GUI` que herede de `QDialog`, que es la clase base de todas las ventanas de diálogo. Una ventana de diálogo es siempre una ventana de primer nivel que se puede usar como ventana principal para este tipo de aplicaciones.
+
+Las ventanas de diálogo se usan comúnmente en aplicaciones de ventana principal, para pequeñas comunicaciones e interacción con el usuario. Cuando las ventanas de diálogo se usan de esta manera pueden ser:
+
+- Ventanas modales, bloquean el acceso a otras ventanas visibles en la misma aplicación, se puede mostrar un diálogo modal llamando a `exec`
+- Ventanas sin modo, que operan de manera independiente de otras ventanas en la misma aplicación, se puede mostrar una ventana de este tipo con `show`
+
+Las ventanas de diálogo también pueden proveer un valor de retorno y tener botones por defecto, como por ejemplo, `Ok` o `Cancel`.
+
+Un diálogo es siempre un widget de primer nivel, si tiene un `parent`, entonces su posición por defecto es centrado sobre el widget de primer nivel del padre. Este tipo de diálogo compartirá con su padre la entrada en la barra de tareas. Si no tiene un `parent`, entonces el diálogo tiene su propia entrada en la barra de tareas del sistema.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QDialog
+from PyQt6.QtWidgets import QDialogButtonBox
+from PyQt6.QtWidgets import QFormLayout
+from PyQt6.QtWidgets import QLineEdit
+from PyQt6.QtWidgets import QVBoxLayout
+
+class Dialog(QDialog):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Dialog')
+        dlg_layout = QVBoxLayout()
+        form_layout = QFormLayout()
+        form_layout.addRow('Name:', QLineEdit())
+        form_layout.addRow('Age:', QLineEdit())
+        form_layout.addRow('Job:', QLineEdit())
+        form_layout.addRow('Hobbies:', QLineEdit())
+        dlg_layout.addLayout(form_layout)
+        buttons = QDialogButtonBox()
+        buttons.setStandardButtons(QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok)
+        dlg_layout.addWidget(buttons)
+        self.setLayout(dlg_layout)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    dlg = Dialog()
+    dlg.show()
+    sys.exit(app.exec())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dialog]: Aplicación sobre un diálogo]
+
+Se crea una clase completa que hereda de `QDialog`, se crea un layout vertical y un layout de formulario. Se añaden 4 widgets al layout de formulario, este layout de formulario se añade al layout vertical. Se crea un `QDialogButtonBox`, que es una clase para colocar botones de diálogo, y con el método `setStandardButtons` se añaden dos botones standard, `Cancel` y `Ok`. Estos botones se añaden al layout vertical, y se le dice a la clase `QDialog` que el layout que debe usar es el vertical, que contiene al layout de formulario, que a su vez, contiene los 4 widgets.
+
+Los `layout managers` se pueden anidar uno dentro de otro, llamando al método `addLayout` en el layout contenedor y pasando el layout a anidar como argumento a este método.
+
+![Figure [res/203_014]: Ventana de diálogo](res/203_014.png)
+
+## Ventanas principales
+
+La mayoría de las veces, las aplicaciones de `GUI` serán con una ventana principal. Esto significa que tendrán una barra de menús, algunas barras de herramientas, una barra de estado, y un widget central que era el elemento principal de la aplicación. También es común, que estas aplicaciones tengan varias ventanas de diálogo para realizar tareas secundarias que dependan de las entradas del usuario.
+
+Se usa la clase `QMainWindow` para desarrollar una aplicación de este estilo, se necesita heredar de dicha clase para crear la clase principal. Una instancia de una clase que deriva de `QMainWindow` se considera una ventana principal. Esta clase tiene su propio layout integrado, que se puede usar para colocar lo siguiente:
+
+- Una [barra de menú](https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qmenubar.html), en la parte superior de la ventana, que contiene el menú principal de la aplicación
+- Varias [barras de herramientas](https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qtoolbar.html), en los laterales de la ventana, que suelen contener [botones de herramientas](https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qtoolbutton.html) y otro tipo de widgets, como `QComboBox`, `QSpinBox`,...
+- Un widget central, que está situado en el centro de la ventana, puede ser de cualquier tipo, o un widget compuesto
+- Varios widgets dockables, alrededor del widget central, los [widget dockables](https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qdockwidget.html) son ventanas pequeñas móviles
+- Una [barra de estado](https://www.riverbankcomputing.com/static/Docs/PyQt6/api/qtwidgets/qstatusbar.html), en la parte inferior de la ventana, que muestra información del estado general de la aplicación
+
+No se puede crear una ventana principal sin primero asignarle un widget central. Hay que tener un widget central, incluso aunque sea un placeholder, en este caso, se puede usar un `QWidget` temporalmente. Se puede asignar un widget central a la ventana principal con el método `setCentralWidget`. El layout de la ventana principal permite tener solo un widget central, pero puede ser uno simple o compuesto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QLabel
+from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QStatusBar
+from PyQt6.QtWidgets import QToolBar
+
+class Window(QMainWindow):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Ventana Principal')
+        self.setCentralWidget(QLabel("This is the Central Widget"))
+        self._create_menu()
+        self._create_tool_bar()
+        self._create_status_bar()
+
+    def _create_menu(self):
+        self.menu = self.menuBar().addMenu("&Menu")
+        self.menu.addAction('&Exit', self.close)
+
+    def _create_tool_bar(self):
+        tools = QToolBar()
+        self.addToolBar(tools)
+        tools.addAction('Exit', self.close)
+
+    def _create_status_bar(self):
+        status = QStatusBar()
+        status.showMessage("This is the Status Bar")
+        self.setStatusBar(status)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    win = Window()
+    win.show()
+    sys.exit(app.exec())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [main_window]: Ventana principal]
+
+Se crea una clase `Window` que hereda de `QMainwindow`, en el constructor se le asigna un `QLabel` como widget central, y se llama a 3 funciones para crear los otros tres elementos de `GUI`, una barra de menú, con una acción `exit` que cierra la ventana, una barra de herramientas con otra acción ´exit´, y por último una barra de estado que muestra un texto.
+
+![Figure [res/203_015]: Ventana principal](res/203_015.png)
+
+## Aplicaciones
+
+La clase más básica que se usa al desarrollar aplicaciones con `PyQt` es `QApplication`, está en el núcleo de cualquier aplicación de `Qt`. Gestiona el flujo de control de la aplicación así como sus características principales. Cualquier instancia de `QApplication` se considera una aplicación, y cada aplicación de `PyQt` tiene que tener al menos uno de esos objetos. Algunas de sus responsabilidades incluyen:
+
+- Manejar la inicialización y finalización
+- Proveer de un bucle de eventos y el manejo de eventos
+- Gestionar la mayor parte del escenario de datos del sistema y de la aplicación
+- Proveer acceso a información global, como el directorio de la aplicación, tamaño de pantalla,...
+- Interpretar los argumentos de línea de comandos
+- Definir la apariencia de la aplicación
+- Proveer capacidades de localización
+
+Y muchas otras, esta es una clase imprescindible en cualquier aplicación de `PyQt`.
+
+## Bucles de eventos
+
+Las aplicaciones de `GUI` están dirigidas por eventos. Esto significa que las funciones y métodos se ejecutan en respuesta a acciones del usuario como pulsar un botón, seleccionar un elemento de un combo box, introducir o actualizar texto, pulsar una tecla en el teclado,... Estas acciones de usuario se suelen llamar eventos.
+
+Estos eventos se suelen manejar en un bucle de eventos, también llamado `main loop`. Este es un bucle infinito en el cual todos los eventos del usuario, del sistema de ventanas y cualquier otro sitio son procesados y enviados. El bucle de eventos espera a que suceda un evento y entonces lo envía para realizar alguna tarea. Este bucle de eventos sigue en marcha hasta que la aplicación termina.
+
+Estos bucles de eventos son usados por todas las aplicaciones que tienen algún tipo de interfaz gráfico, es un bucle infinito que espera a que sucedan eventos, y cuando esto sucede, el bucle verifica si el evento es del tipo `Terminate`, en cuyo caso, el bucle termina y la aplicación se cierra. En cualquier otro caso, el evento se envía a la cola de eventos de la aplicación para su procesamiento, y el bucle se reinicia.
+
+En `PyQt` se puede ejecutar el bucle de eventos de la aplicación al llamar a `exec` sobre el objeto `QApplication`.
+
+Para que un evento dispare una acción de respuesta, hay que conectar el evento con la acción que se quiere ejecutar, en `PyQt` se establecen dichas conexiones usando el mecanismo de `signals` y `slots`.
+
+## Signals y slots
+
+Los widgets de `PyQt` son receptores de eventos, es decir, cada widget puede recibir un número específico de eventos, como pulsaciones de ratón, de teclas,... En respuesta a dichos eventos, los widgets siempre emiten una `signal`, que es una especie de mensaje que anuncia un cambio en su estado.
+
+Esta `signal` en si misma no realiza ninguna acción, si se quiere que una señal dispare una acción, hay que conectarla a un `slot`. Esta es la función o método que realizará la acción cada vez que la señal conectada se emita.
+
+Si una señal está conectada a un slot, entonces este slot es llamado cada vez que la señal se emite. Si una señal no está conectada a ningún slot, entonces no sucede nada y la señal es ignorada.
+
+- Una señal puede ser conectada a uno o mas slots
+- Una señal también puede ser conectada a otra señal
+- Un slot puede ser conectado a una o varias señales
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+widget.signal.connect(slot_function)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [signal_slot]: Conectar una señal a un slot]
+
+Esto conectará una función llamada `slot_function` a una señal `widget.signal`. Siempre que `widget.signal` se emite, se llamará a `slot_function`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def say_hi():
+    if message.text():
+        message.setText("")
+    else:
+        message.setText("Hello World!!!")
+
+app = QApplication(sys.argv)
+window = QWidget()
+window.setWindowTitle('Signals and slots')
+layout = QVBoxLayout()
+
+button = QPushButton('Say Hi!!!')
+button.clicked.connect(say_hi)
+
+layout.addWidget(button)
+message = QLabel('')
+layout.addWidget(message)
+
+window.setLayout(layout)
+window.show()
+
+sys.exit(app.exec())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [signal_slot2]: Cambiar una etiqueta al pulsar un botón]
+
+Se crea una función `say_hi`, que se usará como `slot`, se conecta la señal que emite el botón con el evento `clicked` a dicho slot. De esta manera, cada vez que el usuario pulsa el botón, se llama a la función `say_hi` y el `QLabel` llamado `message` alterna su texto entre `Hello World!!!` y una cadena vacía.
+
+![Figure [res/203_016]: Conectar señal con slot](res/203_016.png)
+
+Cada widget tiene su propio conjunto de señales predefinidas, se pueden consultar en la página de documentación de cada widget.
+
+Si la función slot necesita recibir argumentos extra, se le pueden pasar usando `functools.partial`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import functools
+
+def say_hi(who):
+    if message.text():
+        message.setText("")
+    else:
+        message.setText(f"Hello {who}")
+
+...
+
+button.clicked.connect(functools.partial(say_hi, "World!!"))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [signal_slot_partial]: Conectar slot con parámetros extra]
+
+La llamada a `functools.partial` devuelve un objeto que se comporta de manera similar a llamar a la función `say_hi` con `who='World'`. Ahora, cuando el usuario pulsa el botón, el mensaje se verá como antes. También se puede usar una lambda para conectar una señal a un slot que requiera parámetros extra.
+
+Este mecanismo de señales y slots es lo que se usará principalmente para dar vida a las aplicaciones con `PyQt`, permite convertir eventos de usuario en acciones concretas.
+
+# Calculadora
+
+Para acabar de ver el uso de `PyQt` y como crear una aplicación completa de `GUI` se va a desarrollar una aplicación de ejemplo, una calculadora. Para ello se va a usar el patrón de diseño Modelo-Vista-Controlador.
+
+## Modelo Vista Controlador
+
+El patrón de diseño Modelo-Vista-Controlador, o [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller), tiene tres capas de código, cada una con roles distintos.
+
+- El modelo, se encargará de la lógica de negocio de la aplicación. Contiene la funcionalidad principal y los datos. Para la calculadora, se encargará de los cálculos.
+- La vista, implementa la parte gráfica, contiene todos los widgets con los que el usuario necesita interactuar. La vista también recibe las acciones del usuario y los eventos. Para la calculadora, la vista será la ventana que se ve en la pantalla.
+- El controlador, conecta el modelo y la vista para hacer que la aplicación funcione. Los eventos de usuario, o las peticiones, se envían al controlador, que pone el modelo a trabajar. Cuando el modelo entrega los resultados solicitados (o los datos) en el formato correcto, el controlador los enviar a la vista para que se muestren. Para la calculadora, el controlador recibirá los eventos de usuario de la vista, le pedirá al modelo que ejecute los cálculos y actualizará la vista con los resultados.
+
+Un paso a paso típico del patrón de diseño MVC en una aplicación de escritorio seria:
+
+1. El usuario realiza una acción o petición (evento) en la vista (`GUI`)
+2. La vista notifica al controlador sobre las acciones del usuario
+3. El controlador obtiene la petición del usuario y pide al modelo una respuesta
+4. El modelo procesa la petición del controlador, realiza las operaciones requeridas y devuelve una respuesta con el resultado
+5. El controlador recibe la respuesta del modelo y actualiza la vista como corresponde
+6. El usuario finalmente ve el resultado solicitado en la vista
+
+![Figure [res/203_017]: Patrón de diseño MVC](res/203_017.png)
+
+## Estructura básica
+
+Se empieza creando un fichero `calc.py`, donde dejar el código de la calculadora. Se importan los módulos de `PyQt` requeridos de `PyQt6.QtWidgets`. Se crea una clase `CalcUI` que hereda de `QMainWindow` que será la vista de la aplicación, en el constructor se le pone un título a la ventana, y se le pone un tamaño fijo con `setFixedSize`, esto hace que el usuario no pueda redimensionar la ventana. Se crea un widget que tomará el rol de widget central, este tipo de ventanas necesitan siempre un widget central, y este objeto será el `parent` del resto de los componentes de la `GUI`.
+
+Se define la función principal, que será el punto de entrada de la aplicación. Aquí se crea un objeto `QApplication`, se crea un objeto de la clase de la vista antes creada `CalcUI`, y se muestra llamando a su método `show`. Y por último se lanza el bucle de eventos llamando al método `exec` del objeto tipo `QApplication` antes instanciado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import sys
+
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QWidget
+
+class View(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle('PyCalc')
+        self.setFixedSize(235, 235)
+
+        self._central_widget = QWidget(self)
+        self.setCentralWidget(self._central_widget)
+
+def main():
+
+    calc = QApplication(sys.argv)
+
+    view = View()
+    view.show()
+
+    sys.exit(calc.exec())
+
+if __name__ == '__main__':
+    main()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [esqueleto]: Estructura básica de la calculadora]
+
+Al ejecutar dicho script se puede ver una aplicación vacía.
+
+![Figure [res/203_018]: Ventana vacía](res/203_018.png)
+
+## Vista
+
+Hay que añadir todos los elementos que constituyen una calculadora, la pantalla con el resultado y los botones para los números, y también botones para las operaciones matemáticas básicas y para borrar la pantalla del resultado.
+
+Se añaden los imports correspondientes a los módulos de los widgets que se van a usar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QGridLayout
+from PyQt6.QtWidgets import QLineEdit
+from PyQt6.QtWidgets import QPushButton
+from PyQt6.QtWidgets import QVBoxLayout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_widgets]: Imports de módulos para los widgets]
+
+Se va a usar un layout vertical `QVBoxLayout` para el layout general de la calculadora, y un layout de rejilla `QGridLayout` para colocar los botones. Un `QLineEdit` para la pantalla de resultados, y `QPushButton` para los botones.
+
+Se actualiza el constructor de la vista para crear el layout vertical, que contendrá en la parte superior la pantalla del display, y en la parte inferior un layout de rejilla con los botones. Se asigna además dicho layout al widget central. Luego se llama a dos funciones protegidas de la clase, que crearán los botones y la pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+self.general_layout = QVBoxLayout()
+self._central_widget.setLayout(self.general_layout)
+
+self._create_display()
+self._create_buttons()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [view_constructor]: Crear layout vertical y llamar a crear botones y display en el constructor de la vista]
+
+La función `_create_display` creará un objeto de tipo `QLineEdit` para mostrar la ventana de resultados, le pondrá un tamaño fijo, alineará el texto a la derecha, y lo pone en modo solo lectura, para evitar que el usuario lo pueda editar directamente. Y por último, lo añade al layout general de la vista.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def _create_display(self):
+    self.display = QLineEdit()
+    self.display.setFixedHeight(35)
+    self.display.setAlignment(Qt.AlignmentFlag.AlignRight)
+    self.display.setReadOnly(True)
+    self.general_layout.addWidget(self.display)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_display]: Función para crear la pantalla de resultados]
+
+La función `_create_buttons` creará los botones de la calculadora. Se crea un layout de tipo rejilla, y se usa un diccionario para guardar los textos de cada botón y su posición en la rejilla del layout. Se usa un bucle para recorrer dicho diccionario y se crean los widgets para los botones y se añaden a dicho diccionario, se les pone un tamaño fijo a todos ellos, y se añade cada uno al layout de rejilla, en su posición oportuna por (fila, columna). Y por último se añade el layout de rejilla que contiene a los botones al layout vertical general.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def _create_buttons(self):
+    self.buttons = {}
+    buttons_layout = QGridLayout()
+    buttons = {'7': (0, 0),
+            '8': (0, 1),
+            '9': (0, 2),
+            '/': (0, 3),
+            'C': (0, 4),
+            '4': (1, 0),
+            '5': (1, 1),
+            '6': (1, 2),
+            '*': (1, 3),
+            '(': (1, 4),
+            '1': (2, 0),
+            '2': (2, 1),
+            '3': (2, 2),
+            '-': (2, 3),
+            ')': (2, 4),
+            '0': (3, 0),
+            '00': (3, 1),
+            '.': (3, 2),
+            '+': (3, 3),
+            '=': (3, 4),
+            }
+
+    for btn_text, pos in buttons.items():
+        self.buttons[btn_text] = QPushButton(btn_text)
+        self.buttons[btn_text].setFixedSize(40, 40)
+        buttons_layout.addWidget(self.buttons[btn_text], pos[0], pos[1])
+
+    self.general_layout.addLayout(buttons_layout)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [create_buttons]: Función para crear los botones]
+
+Ahora la vista de la calculadora ya muestra la pantalla y los botones, pero no hay manera de actualizar la información que se muestra en la pantalla. Para ello se añaden unos métodos extra.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def set_display_text(self, text):
+    self.display.setText(text)
+    self.display.setFocus()
+
+def display_text(self):
+    return self.display.text()
+
+def clear_display(self):
+    self.set_display_text('')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_display]: Funciones para actualizar la pantalla de resultados]
+
+Estos métodos formarán el interface público de la vista y completarán esta clase. La función `set_display_text`, usa `setText` sobre el `QLineEdit` `display` para actualizar el texto de la pantalla y `setFocus` para darle el foco del cursor a dicha pantalla. La función `displayText` es un método getter, que devuelve el texto actual de la pantalla, cuando el usuario pulse el botón igual, el programa usará el valor de la pantalla como la expresión matemática a evaluar. Por último la función ´clearDisplay´, limpiará la pantalla poniendo un string vacío, para que el usuario pueda introducir una nueva expresión matemática.
+
+![Figure [res/203_019]: Vista de la calculadora](res/203_019.png)
+
+## Modelo
+
+El modelo es la capa de código que se encarga de la lógica de negocio, en este caso, de los cálculos matemáticos. El modelo evaluará las expresiones matemáticas introducidas por los usuarios. Puesto que el modelo necesita gestionar errores, se define una constante global que será el mensaje que verá el usuario cuando se introduzca una expresión inválida.
+
+La clase modelo implementa solo un método para evaluar dichas expresiones matemáticas, hace uso de la función `eval` de Python para evaluar una expresión desde una cadena de carácteres, es decir, ejecutar código Python valido. Se envuelve esta evaluación en una instrucción `try...except` para capturar cualquier posible error que pueda resultar de dicha evaluación, como por ejemplo, expresiones matemáticas mal formadas. En caso correcto se devuelve el resultado de la evaluación, y en caso de producirse alguna excepción se devuelve el código de error. Este bloque `try...except` no captura ninguna excepción específica.
+
+Esta función se basa en el uso de `eval`, y este método tiene que usarse con mucho cuidado, puesto que realmente ejecuta cualquier código que se le pase, así que puede llevar a algunos problemas de seguridad, se recomienda usar solo `eval` cuando la entrada de datos está muy controlada y se puede confiar en ella, como en este caso.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+class Model:
+
+    def __init__(self):
+        pass
+
+    def evaluate_expression(self, expression):
+        try:
+            result = str(eval(expression, {}, {}))
+        except Exception:
+            result = ERROR_MSG
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [model]: Clase del modelo]
+
+Ahora solo queda crear una instancia del modelo en la función `main`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+model = Model()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [model_main]: Instancia del modelo en el `main`]
+
+## Controlador
+
+La clase del controlador conectará la vista al modelo, se usará el controlador para hacer que la calculadora realice acciones en respuesta a los eventos del usuario. Dicho controlador necesitará realizar tres tareas principales:
+
+1. Acceder al interface público de la vista
+2. Manejar la creación de expresiones matemáticas
+3. Conectar las señales de los botones pulsados a los slots apropiados
+
+En el constructor del controlador, primero se guarda una referencia a la vista y al modelo, se usarán esta referencia para tener acceso al interface público de la vista y el modelo. Se llama a la función protegida `_connect_signals` para realizar la conexión entre las pulsaciones de los botones y las acciones que tienen que hacer cada uno de ellos.
+
+Esta función recorre todos los botones de la vista, y accede al texto de cada uno de ellos y al propio botón. Para todos los botones que tienen una operación o un número, asigna sus señales de pulsación de botón con el slot (función) `_build_expression` del propio controlador, como esta función necesita recibir el parámetro extra del texto del botón pulsado para crear la expresión matemática, se usa el método `partial` del módulo `functools`. El botón que tiene el texto `C`, es decir, borrar, conecta la señal de la pulsación de dicho botón con el método `clear_display` de la vista para limpiar la pantalla de resultados. El botón con el texto `=` conecta la señal de su pulsación con el método `_calculate_result`, al igual que la señal `returnPressed` sobre la pantalla de resultados de la vista, para responder a la pulsación de la tecla `Return`.
+
+El método `_build_expression` construye la expresión matemática, simplemente concatenando la nueva parte del string al final de la que estuviera en la pantalla en ese momento, y diciendo a la vista que actualice dicha pantalla. Antes de eso, si se tiene en la pantalla de resultados el mensaje de error, se limpia dicha pantalla.
+
+Por último, el método `_calculate_result` llama al método `evaluate_expression` del modelo para realizar el cálculo, y muestra el resultado por la pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from functools import partial
+
+class Controller:
+
+    def __init__(self, view, model):
+        self._view = view
+        self._model = model
+        self._connect_signals()
+
+    def _build_expression(self, sub_exp):
+        if self._view.display_text() == ERROR_MSG:
+            self._view.clear_display()
+
+        expression = self._view.display_text() + sub_exp
+        self._view.set_display_text(expression)
+
+    def _calculate_result(self):
+        result = self._model.evaluate_expression(self._view.display_text())
+        self._view.set_display_text(result)
+
+    def _connect_signals(self):
+        for btn_text, btn in self._view.buttons.items():
+            if btn_text not in {'=', 'C'}:
+                btn.clicked.connect(partial(self._build_expression, btn_text))
+
+        self._view.buttons['C'].clicked.connect(self._view.clear_display)
+        self._view.buttons['='].clicked.connect(self._calculate_result)
+        self._view.display.returnPressed.connect(self._calculate_result)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [controller]: Clase controlador]
+
+Solo falta crear una instancia de dicho controlador en la función `main`, que conecte todo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+controller = Controller(view, model)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [controller_main]: Instancia del controlador en el `main` recibiendo la vista]
+
+En este punto los botones ya lanzan sus señales, y el controlador es capaz de crear las expresiones matemáticas a través de estas pulsaciones, y delegar en el modelo el cálculo de dichas expresiones.
+
+![Figure [res/203_020]: Calculadora con el controlador funcionando](res/203_020.png)
+
+# Herramientas adicionales
+
+`PyQt` ofrece un conjunto de herramientas adicionales para ayudar a construir aplicaciones `GUI`.
+
+[QT Designer](https://www.riverbankcomputing.com/static/Docs/PyQt6/designer.html) es una herramienta para diseñar y construir interfaces de usuario de manera visual, se pueden diseñar widgets, diálogos, o ventanas completas usando formularios en pantalla, drag and drop,... Esta herramienta usa ficheros en formato `XML` para almacenar los diseños de `GUI`, que se pueden cargar luego con la clase `QUiLoader`, `PyQt` incluye el módulo `uic` para eso. Incluso se pueden convertir estos ficheros en código Python con una herramienta de línea de comandos llamada [pyuic6](https://www.riverbankcomputing.com/static/Docs/PyQt6/designer.html#pyuic6).
+
+![Figure [res/203_021]: QT Designer](res/203_021.png)
+
+También se tienen un buen conjunto de herramientas para la internacionalización de aplicaciones en los idiomas locales. `pylupdate6` crea y actualiza ficheros de traducción, luego con [QT Linguist](https://doc.qt.io/qt-6/qtlinguist-index.html) se pueden traducir dichos ficheros con las strings en distintos idiomas. Incluso se pueden crear ficheros que sean binarios que se pueden usar directamente por la aplicación.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

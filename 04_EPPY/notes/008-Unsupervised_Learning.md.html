@@ -1,0 +1,131 @@
+<meta charset="utf-8">
+**04EPPY - 080 - Unsupervised Learning**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Aprendizaje No Supervisado
+==============================================================
+
+Principal Component Analysis
+--------------------------------------------------------------
+
+Se ha visto como se pueden caracterizar las tres especies de Iris, teniendo en cuenta las cuatro medidas de los pétalos y sépalos. Se han representado varios gráficos de dispersión, por parejas de features, pero sería interesante poder unificarlos. Cuatro dimensiones son un problema que no se puede resolver ni por un gráfico 3D.
+
+Para esto existe una técnica llamada Análisis de Componentes Principales (PCA), que permite reducir el número de dimensiones de un sistema manteniendo toda la información de la caracterización de todos los puntos. Las nuevas dimensiones generadas se llaman componentes principales. En este caso, se puede reducir el sistema de cuatro a tres dimensiones y visualizar estas tres features en un único gráfico de dispersión 3D. De esta manera se pueden usar medidas tanto de los sépalos y pétalos para caracterizar las distintas especies de los elementos de prueba en el conjunto de datos.
+
+Estas nuevas variables representaran a todas las antiguas variables de la forma mas representativa posible, reduciendo la magnitud de los datos a analizar, pudiendo representar los datos originales en un plano o gráfico 3D, facilitando su visualización y ayudar a tomar decisiones, incluso mejorar el coste computacional.
+
+El primer paso es eliminar las variables no predictoras del dataset, en este caso, se dejan solo las correspondientes a las 4 mediciones, eliminando la de definición de especie o target. Mediante la función `drop` de pandas, cambiando al eje para columnas se elimina la columna de target.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+df_pca = df_iris.drop('target', axis=1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_drop_target]: Eliminar columna target]
+
+Se usa el `StandardScaler` de scikit-learn para realizar una normalización de los datos. Se crea el objeto, se ajusta a los datos, y por último se aplica una transformación sobre dichos datos, para así tenerlos escalados correctamente, con un rango distinto, pero normalizados. Los datos siguen teniendo 150 filas y 4 columnas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn.preprocessing import StandardScaler
+x_scaled = StandardScaler()
+x_scaled.fit(df_pca)
+scaled = x_scaled.transform(df_pca)
+print(scaled)
+
+Output:
+[[-9.00681170e-01  1.01900435e+00 -1.34022653e+00 -1.31544430e+00]
+ [-1.14301691e+00 -1.31979479e-01 -1.34022653e+00 -1.31544430e+00]
+ ...
+ [ 4.32165405e-01  7.88807586e-01  9.33270550e-01  1.44883158e+00]
+ [ 6.86617933e-02 -1.31979479e-01  7.62758269e-01  7.90670654e-01]]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_scaled_data]: Datos escalados de las features de Iris]
+
+Se importa la clase `PCA` dentro del módulo `decomposition` de scikit-learn, encargada de trabajar con el algoritmo de Principal Component Analysis. Se define el numero de componentes que se quiere calcular, es decir, a que dimension se quiere reducir el problema original. Por ahora, se intentara reducir las dimensiones a 3. Se crea la clase `PCA`, y se le pasa el número de componentes deseado, para luego ajustar con `fit` el conjunto de datos previamente normalizado y escalado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn.decomposition import PCA
+n_components = 3
+pca = PCA(n_components = n_components)
+pca.fit(scaled)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_fit]: Ajustar a 3 componentes]
+
+A continuación hay que aplicar una transformación llamando al método `transform` para efectivamente aplicar el algoritmo PCA sobre los datos. De esta manera ya se tienen los autovectores en la variable `x_pca` que devuelve el método `transform`. Si se verifican sus dimensiones, ya se puede observar que ahora se tienen solo 3 columnas, se han reducido las dimensiones de 4 a 3.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x_pca = pca.transform(scaled)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_transform]: Aplicar la transformación]
+
+Se puede visualizar la varianza acumulada en los autovectores, que explica las características que reúnen todo el conjunto de variables, pero con una dimensión menos. Se visualiza el gráfico accediendo al parámetro `explained_variance_ratio`, y haciendo una suma acumulada con `cumsum` de NumPy para ver como se acumula la varianza de cada componetne.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+ax.plot([1,2,3], np.cumsum(pca.explained_variance_ratio_))
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_plot_variance]: Visualizar la acumulación de varianza en los tres componentes]
+
+![Figure [res/006_007]: Varianza acumulada de los nuevos componentes](res/006_007.png)
+
+De este gráfico se puede deducir que el primer componente acumula aproximadamente un 0.72 de varianza acumulada, el segundo componente llega al 0.95 y añadiendo un tercer componente se llega a casi el 1.00.
+
+Se pueden mostrar los datos exactos de varianza accediendo al parametro `explained_variance_ratio`, construyendo una lista sobre el. Lo cual confirma los datos que se han podido observar a través de Figure [res/006_007].
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+columns = [i for i in pca.explained_variance_ratio_]
+
+Output:
+[0.7296244541329985, 0.22850761786701787, 0.036689218892828765]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_variance]: Mostrar la varianza en los tres componentes]
+
+Se crea una lista con los titulos para cada componente de manera que se pueda usar en un dataframe como nombres de columnas, y se crea un dataframe a partir de los autovectores creados por PCA, usando los nombres de las columnas que se acaban de crear.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+columns = [f"AutoVector_{i+1}" for i,v in enumerate(pca.explained_variance_ratio_)]
+df = pd.DataFrame(x_pca, columns=columns)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_dataframe]: Dataframe]
+
+Al principio se han eliminado las variables no predictoras para poder realizar el PCA correctamente, esto significa que en los datos, ahora no se tiene informacion sobre las especies de cada medicion. Hay que hacer un `join` con el dataset original, a traves de los índices, que se mantienen en todo el proceso, para incluir solo los datos de las especies en cada medición, usando un `inner join`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+df_joined = df.join(df_iris['target'], how='inner')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_join]: Añadir la columna de target al dataframe]
+
+Ahora se puede lanzar el scatterplot de seaborn, para poder visualizar los autovectores y se puede apreciar en el grafico de dispersion, que con tan solo los dos primeros componentes se pueden clasificar y ver bien las separaciones entre clases.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+s = sns.scatterplot(data=df_joined, x='AutoVector_1', y='AutoVector_2', hue='target', palette='viridis')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_plot2]: Generar gráfico de dispersión con solo dos componentes]
+
+![Figure [res/006_008]: Gráfico de dispersión con dos componentes](res/006_008.png)
+
+Se puede incluso intentar visualizr los nuevos valores usando un gráfico de dispersión 3D usando el módulo `mpl_toolkits.mplot3d` de matplotlib.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.set_title('Iris Dataset PCA')
+ax.scatter(x_pca[:,0],x_pca[:,1],x_pca[:,2], c=iris.target)
+ax.set_xlabel('AutoVector_1')
+ax.set_ylabel('AutoVector_2')
+ax.set_zlabel('AutoVector_3')
+ax.w_xaxis.set_ticklabels(())
+ax.w_yaxis.set_ticklabels(())
+ax.w_zaxis.set_ticklabels(())
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pca_3d]: Generar gráfico 3D de dispersión con los tres componentes]
+
+![Figure [res/006_009]: Gráfico de dispersión 3D con tres componentes](res/006_009.png)
+
+Se puede observar en dicho gráfico que las tres especies de Iris están bien caracterizadas unas respecto a otras formando tres grupos, usando solo tres componentes.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

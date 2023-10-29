@@ -1,0 +1,683 @@
+<meta charset="utf-8">
+**02EPPY - 103 - Introducción a PyGame**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# PyGame
+
+PyGame es una librería específica para desarrollo de videojuegos para Python. Está construida sobre otra librería de creación de videojuegos llamada *Simple DirectMedia Layer* o *SDL*. *SDL* fue desarrollada por *Loki SW* para simplificar la tarea de portar juegos de una plataforma a otra. Proporcionaba una manera común de crear una pantalla en varias plataformas y poder trabajar con gráficos y dispositivos de entrada. Puesto que su uso era muy sencillo, se volvió muy popular entre los desarrolladores de videojuegos cuando se publicó en el año 1998, y desde entonces ha sido usada en multitud de juegos comerciales.
+
+SDL fue escrita en C, un lenguaje usado comúnmente en videojuegos por su velocidad y capacidad de trabajar con el hardware a bajo nivel. Pero desarrollar en C, o en C++, puede ser lento y es fácil caer en errores y problemas. Por lo tanto, se produjeron *bindings* a muchos otros lenguajes, y SDL se pudiera usar desde casi cualquier lenguaje. Uno de estos *bindings* es PyGame, que ofrece a los programadores de Python el acceso a la librería SDL.
+
+Estas dos librerías han estado en constante desarrollo desde su creación, y puesto que ambas son de código abierto, un gran número de programadores han trabajado en pulir y mejorar estas herramientas para crear juegos.
+
+Se puede acceder a la documentación de la librería, tutoriales,... desde [aquí](https://www.pygame.org/news).
+
+## Instalar PyGame
+
+Instalar módulos en Python hoy en día es una tárea sencilla gracias al gestor de paquetes *pip*. El paquete PyGame está disponible en el repositorio de paquetes de PyPI [aquí](https://pypi.org/project/pygame/).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+(.venv)$ pipenv install pygame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [install_pygame]: Instalación de PyGame]
+
+Esto debería dejar instalada la librería PyGame dentro de nuestro entorno virtual en cualquier plataforma.
+
+## Módulos
+
+El paquete PyGame contiene varios módulos que pueden ser usados independientemente. Hay un módulo para cada uno de los dispositivos que se pueden usar en un juego, y muchos otros para simplificar el desarrollo. Se acceden a dichos módulos a través del espacio de nombres *pygame*, por ejemplo, *pygame.display* se refiere al módulo *display*.
+
+Nombre | Objetivo
+-------|-----------
+*pygame.BufferProxy* | Vista de píxels de surfaces
+*pygame.cdrom* | Accede y controla discos CD
+*pygame.Color* | Representación de colores
+*pygame.cursors* | Carga imágenes para cursores
+*pygame.display* | Accede a pantallas
+*pygame.draw* | Pinta formas, líneas y puntos
+*pygame.event* | Gestiona eventos externos
+*pygame.font* | Usa fuentes TrueType para texto
+*pygame.freetype* | Carga y pintado de fuentes mejorado
+*pygame.gfxdraw* | Funciones de pintado con anti-aliasing
+*pygame.image* | Carga y guarda imágenes
+*pygame.joystick* | Usa mandos de juego
+*pygame.key* | Lee teclas pulsadas en el teclado
+*pygame.locals* | Constantes de pygame
+*pygame.math* | Funciones matemáticas
+*pygame.mixer* | Carga y reproduce sonidos
+*pygame.mixer.music* | Carga y reproduce sonidos
+*pygame.mouse* | Gestiona el ratón
+*pygame.Overlay* | Gestiona transparencias
+*pygame* | Funciones de pygame de alto nivel
+*pygame.PixelArray* | Manipula datos de píxels de imágenes
+*pygame.Rect* | Gestiona áreas rectangulares
+*pygame.scrap* | Acceso al clipboard
+*pygame.sndarray* | Manipula datos de sonido
+*pygame.sprite* | Gestiona imágenes en movimiento
+*pygame.Surface* | Objetos para imágenes y la pantalla
+*pygame.surfarray* | Manipula datos de píxels de imágenes
+*pygame.time* | Gestiona temporizadores y frame rate
+*pygame.transform* | Redimensiona y mueve imágenes
+[Table [modules]: Módulos de PyGame]
+
+Para acceder al listado completo de módulos y toda la documentación se puede acceder a la web oficial de PyGame [aquí](http://www.pygame.org/docs/). Algunos de estos módulos se usan de manera habitual, mientras que otros se usan de manera menos frecuente. Todos los juegos tendrá alguna forma de pantalla, así que el módulo *display* es esencial, y se necesitará algún tipo de entrada del usuario, sea por teclado, joystick o ratón.
+
+Es posible que algunos de los módulos no esté presente en alguna plataforma, el hardware quizás no soporte alguna característica o bien los drivers correspondientes no estén instalados. En ese caso, *PyGame* pondrá ese módulo a *None*, para verificar si un módulo está disponible se puede hacer lo siguiente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+if pygame.font is None:
+    print("Font Module Not Available")
+    exit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [check_module]: Verificar Existencia de Módulo]
+
+## Hello World
+
+Para verificar que todo funciona y empezar a conocer como funciona PyGame es interesante realizar una pequeña prueba, el típico *Hello World*.
+
+El primer paso es intentar arrancar nuestra aplicación desde el *`__main__.py`*. Para ello se va a crear un fichero *game.py* dentro del directorio del juego. Se importa en el *main*, se crea una instancia de la clase *Game*, y se llama a su método *run()* para arrancar el juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+from shmup import game
+...
+app = game.Game()
+app.run()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [call_Game]: Llamar a Clase Game desde main()]
+
+El fichero *game.py* será una clase simple que abrirá una ventana y pintará una imagen que seguirá el movimiento del ratón, pero hará uso de las llamadas básicas a PyGame.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+import pygame
+import os
+
+class Game:
+    hero_image_filename = ["shmup", "assets", "images", "hero.png"]
+
+    def __init__(self):
+        pass
+
+    def run(self):
+        # Simple pygame program
+
+        # Import and initialize the pygame library
+        pygame.init()
+
+        # Set up the drawing window
+        screen = pygame.display.set_mode([640, 480], 0, 32)
+        pygame.display.set_caption("Hello World...")
+
+        # Load hero image
+        hero_image = pygame.image.load(os.path.abspath(os.path.join(*Game.hero_image_filename))).convert_alpha()
+
+        # Run until the user asks to quit
+        running = True
+        while running:
+
+            # Did the user click the window close button?
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            # Fill the background with black
+            screen.fill((0, 0, 0))
+
+            # Render hero image in mouse position
+            x, y = pygame.mouse.get_pos()
+            x -= hero_image.get_width() / 2
+            y -= hero_image.get_height() / 2
+            screen.blit(hero_image, (x, y))
+
+            # Flip the display
+            pygame.display.update()
+
+        # Done! Time to quit
+        pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [game_helloworld]: Clase Game para el *Hello World*]
+
+En primer lugar se importa la librería PyGame para poder acceder a todas sus funcionalidades y submódulos. La segunda línea importa una serie de funciones y constantes en el espacio de nombres actual, no es esencial para usar PyGame, pero es más cómodo al no tener que estar usando el prefijo de *pygame.locals* para valores que se usan muy a menudo. El último import hace referencia al módulo *os* de Python que provee una forma portable de usar funcionalidad del sistema operativo.
+
+Dentro del método *run*, la primera tárea es inicializar el módulo PyGame, para ellos se llama al método *pygame.init()*, aquí se inicializan y se arrancan todos sus subsistemas, lo que cargará los drivers y buscará el hardware necesario para que PyGame esté listo para usar todos los dispositivos en la máquina. Se pueden inicializar sólo los módulos que se van a usar, llamando a la función *init* de cada submódulo de manera individual, por ejemplo, *pygame.sound.init()* inicializará solo el módulo de sonido. Esto puede hacer que el arranque del juego sea un poco más rápido, puesto que solo se inician los módulos que se van a usar realmente. Pero la mayoría de juegos usan casi todos los módulos, así que es más simple iniciarlos todos. Tras este paso, ya se puede usar PyGame de manera completa.
+
+Tras iniciar PyGame, hay que crear una superficie de visualización.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+screen = pygame.display.set_mode([640, 480], 0, 32)
+pygame.display.set_caption("Hello World...")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [game_screen]: Crea una ventana]
+
+La visualización puede ser una ventana en el escritorio o pantalla completa, pero siempre se tiene acceso a ella a través de un objeto *Surface* de PyGame. La llamada a *pygame.display.set_mode()* devuelve un objeto Surface que representa la ventana en el escritorio. El primer parámetro que recibe es una tupla con el ancho y alto de la ventana que se quiere crear. En este caso, de 640x480 píxels. El siguiente parámetro es un valor que contiene una serie de *flags* usadas en la creación de la ventana. Un *flag* es una característica que puede ser activada o desactivada, se pueden combinar varios *flags* con la operación de manipulación de bits *Or*, operador *`|`*. Por ejemplo, para crear una superficie de pintado acelerada por hardware de doble buffer, se puede poner el parametro de *flag* a *DOUBLEBUF`|`HWSURFACE*.... En Table [display_flags] están detalladas las *flags* que se pueden usar. Por ahora, se dejan todas deshabilitadas, por eso se le pasa el valor 0, que es el valor por defecto.
+
+Flag | Objetivo
+-----|-----------
+*FULLSCREEN* | Crea una ventana que ocupa toda la pantalla
+*DOUBLEBUF* | Crea una ventana con doble buffer, recomendada para *HWSURFACE* o *OPENGL*
+*HWSURFACE* | Crea una ventana acelerada por hardware
+*OPENGL* | Crea una ventana que se renderiza por OpenGL
+*RESIZABLE* | Crea una ventana que se puede redimensionar
+*NOFRAME* | Quita el borde y la barra de título de la ventana
+[Table [display_flags]: *Flags* para la Creación de una Ventana]
+
+El siguiente parámetro determina la profundidad de la superficie de pintado, que es la cantidad de bits usada para almacenar los colores en la pantalla. Por ahora, se usa el valor de 32 bits, puesto que da más colores y además gestiona correctamente el canal alpha de la transparencia. En Table [bit_depth] se muestran los valores más habituales de profundidad de bits para los colores. Si no se le da un valor de profundidad o se pone a 0, PyGame usará el valor que tiene el escritorio.
+
+En algunas ocasiones, PyGame no puede proveer la ventana exactamente tal como se le solicita, puede que la tarjeta gráfica no soporte las características que se piden. En ese caso, PyGame elegirá un modo que sea compatible con el hardware y que pueda emular lo solicitado, pero a cambio, se añade una penalización de rendimiento, con lo cual, es importante intentar siempre crear contextos que sean ampliamente soportados.
+
+Profundidad de Bits | Número de Colores
+--------------------|-----------
+8 bits | 256 colores, elegidos de una paleta de colores más grande
+15 bits | 32768 colores, con un bit extra
+16 bits | 65536 colores
+24 bits | 16,7 millones de colores
+32 bits | 16,7 millones de colores, con 8 bits extra
+[Table [bit_depth]: Profundidad de bits más comunes]
+
+Si todo ha ido bien, la llamada a *set_mode* muestra una ventana en el escritorio y devuelve un objeto Surface, que se almacena en la variable *screen*. Entonces, se llama a *set_caption* del módulo *display* para ponerle nombre a la barra de título de la ventana, en este caso, el mensaje *Hello World...*.
+
+A continuación, se usa la función *load* dentro del módulo *image* de PyGame para cargar la imagen que se va a usar posteriormente. La ruta del fichero está guardada en el miembro de clase estático *hero_image_filename* en forma de lista desde el directorio raíz del proyecto. Para cargar la imagen se usa *path.join* del módulo *os* para componer la ruta final de manera cross platform.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+hero_image = pygame.image.load(os.path.join(*Game.hero_image_filename)).convert_alpha()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [load_hero]: Carga Imagen]
+
+La función *load* lee un fichero del disco y devuelve un objeto *Surface* que contiene los datos de la imagen. Es el mismo tipo de objetos de la pantalla, pero representan imágenes almacenadas en memoria y no son visibles hasta que se pintan sobre la pantalla principal. Inmediatamente se llama a *convert*, que es una función miembro de los objetos *Surface*. Esta función convierte la imagen al mismo formato que la pantalla que se está usando, puesto que es más rápido pintar imágenes si tienen la misma profundidad que la pantalla. Concretamente, aquí se está usando la función *convert_alpha*, puesto que la imagen a cargar es un *png* que tiene un canal *alpha*, lo que significa que hay partes de la imagen que pueden ser translucidas o completamente transparentes. Sin la información *alpha*, la imagen se vería como un recuadro opaco.
+
+La siguiente parte del código es el llamado *main game loop*. Este *loop* es *True*, lo que significa que se ejecutará continuamente hasta que se rompa la condición o se fuerce su salida. Todos los juegos tienen un *loop* similar a este, que se suele repetir para cada refresco de pantalla.
+
+Dentro del *main loop* hay otro *loop*, de eventos, que casi todos los juegos tiene de una u otra manera.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+        running = False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [event_loop]: *Loop* de eventos]
+
+Un evento es la manera que PyGame tiene de informar al juego que algo ha pasado fuera del código. Se crean para muchas cosas, pulsaciones de teclas, recibir información de internet,... y se encolan hasta que son gestionados. La función *get* del módulo *event* devuelve cualquier evento que esté esperando, el cual se itera dentro del loop para recoger todos los pendientes. Por ahora, solo hay interés en el evento *QUIT*, que es generado por PyGame cuando el usuario pulsa el botón de cerrar en la ventana. Así pues, cuando el tipo de evento que llega es *QUIT* se cambia el valor a la variable que se encarga de gestionar el *main loop*, para poder salir del mismo, y se ignoran el resto de eventos. En un juego, se tendrían que gestionar muchos más tipos de eventos.
+
+A continuación, se debería actualizar el mundo de juego, pero como en este ejemplo no hay nada se omite este paso.
+
+La siguiente instrucción rellena la *Surface* de la pantalla de un color negro sólido. Con este se asegura que en cada iteración del *main loop* se borra toda la pantalla de cualquier resto de pintado de la anterior iteración. Si se comenta esta línea se puede ver el efecto de no realizar el borrado. El color negro viene representado por el trío de valores *(0,0,0)*.
+
+A continuación se quiere pintar la imagén del jugador en la posición donde se encuentra el puntero del ratón.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+x, y = pygame.mouse.get_pos()
+x -= hero_image.get_width() / 2
+y -= hero_image.get_height() / 2
+screen.blit(hero_image, (x, y))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [hero_mouse]: Pintar la Imagen en la Posición del Ratón]
+
+Conseguir la posición del ratón es sencillo, el módulo *mouse* tiene todo lo necesario para trabajar con el ratón. La función *get_pos* devuelve  una tupla que contiene las coordenadas actuales del ratón. La primera linea desempaqueta la tupla en dos valores para las coordenadas *x* e *y*. Se pueden usar directamente estas coordenadas para pintar la imagen en esa posición, pero eso pondría la imagen en la esquina superior izquierda del puntero del ratón, y se quiere tenerla centrada. Así que, con una sencilla operación, se obtiene el tamaño de la imagen (altura y anchura), y se ajustan las posiciones al centro de la misma con la mitad de dichas dimensiones.
+
+Para pintar la imagen se usa la función *blit* del objeto *Surface* de la pantalla, para pintar la imagen sobre la pantalla final. El termino *blit* significa copiar una imagen sobre otra. Esta función recibe la imagen que se quiere pintar, la del jugador en este caso, y las coordenadas destino donde pintarla sobre la pantalla. Las coordenadas en PyGame tienen su origen (0,0) en la esquina superior izquierda de la pantalla, y van en dirección positiva hacia abajo y hacia la derecha. Por lo tanto, se usarán las coordenadas calculadas anteriormente para que esté centrada sobre el cursor del ratón.
+
+![Figure [res/103_000]: Origen de Coordenadas](res/103_000.png)
+
+Con esto ya estaría la imagen del jugador pintada sobre la pantalla, pero falta un paso más antes de poder verlo en acción. Hay que actualizar la ventana. Esto se hace mediante la llamada *update* del módulo *display*. Cuando se construye una imagen a través de sucesivos *blits* a la *Surface* de la pantalla, estos no se ven inmediatamente. Esto es así porque PyGame primero construye la imagen de la pantalla en un *back buffer*, que es una *Surface* oculta. Mientras que la que se está viendo en el monitor en ese momento es el *front buffer*, la imagen se construye sobre el *back buffer*, en el siguiente *frame* se intercambian esas dos *Surfaces*. De esta manera se evita el parpadeo o *flickering* que se produciría si se estuviera pintando en la pantalla a la vez que mostrándola, y hacer que la simulación de animación sea suave y realista. Una llamada a *update* del módulo *display* asegura esa lógica, haciendo que la imagen creada en memoria acabe mostrándose en el monitor sin ningún parpadeo.
+
+Al salir del búcle hay que liberar los recursos de PyGame y se devuelve el control a quien llamó al método *start()* y cierra la aplicación. Hay que acordarse de llamar a *pygame.quit()* al final del juego para liberar todos los recursos que PyGame pudiera haber adquirido durante su ejecución.
+
+![Figure [res/103_001]: Hello World!!](res/103_001.png)
+
+# Eventos
+
+En el ejemplo anterior solo se gestionaba el evento *QUIT*, que es esencial para poder cerrar el juego, pero PyGame crea otros muchos eventos para informar sobre otras cosas que suceden como el movimiento del ratón o la pulsación  de ciertas teclas.
+
+Los eventos se pueden generar en cualquier momento, sin importar lo que esté realizando el programa en ese momento. Por ejemplo, el código puede estar dibujando algo en la pantalla cuando el jugador pulsa el botón de disparo en su mando. Puesto que el programa no puede reaccionar inmediatamente a los eventos, PyGame los almacena en una cola hasta que el programa está listo para gestionarlos, típicamente al inicio del *main loop*. Cuando el jugador pulsa la tecla de disparo, el evento del mando llega, portando información acerca de qué tecla se ha pulsado. Cuando el jugador suelta el botón de disparo, otro evento llega con información acerca de que tecla se ha soltado. Y podrían ir seguidos de un evento de ratón, teclado,...
+
+## Consultando Eventos
+
+Usando el método *get* del módulo *event*, como en el ejemplo anterior, se obtienen todos los eventos y se eliminan de la cola, que es como abrir la puerta y dejar entrar a todo el mundo. Probablemente sea la mejor manera de gestionar los eventos, puesto que asegura que se reciben y gestionan todos los eventos antes de empezar a pintar nada en la pantalla, pero hay otras maneras de trabajar con la cola de eventos. Si se llama al método *event.wait()*, PyGame esperará a que un evento ocurra antes de retornar el control, que es como esperar en la puerta hasta que alguien llegue. Este método no se suele usar en videojuegos puesto que suspende la ejecución hasta que algo sucede, es bloqueante, pero puede ser útil para aplicaciones desarrolladas con PyGame que colaboran con otros programas en el sistema, como un reproductor multimedia. Una alternativa es *event.poll()*, que devuelve un solo evento si hay alguno esperando, o un evento vacio de tipo *NOEVENT* si no hay ningún evento encolado. En cualquier caso, es importante no permitir que se acumulen demasiado en la cola, puesto que ésta tiene el tamaño limitado y se pueden perder eventos si se desborda.
+
+Es necesario llamar a alguna de las funciones de gestión de eventos en intervalos regulares de forma que PyGame pueda procesar esos eventos internamente. Si no se van a gestionar los eventos, se debe llamar al menos a *event.pump()* en algún sitio del loop de eventos para vaciar la cola.
+
+Los objetos de los eventos contienen una serie de variables miembro que describen el evento en cuestión. La información que contienen depende del tipo de evento. La única cosa en común que comparten todos los objetos de eventos es el *type*, que es un valor que indica el tipo de evento. Es el primer valor que hay que buscar en un evento, para poder decidir que hacer con él.
+
+Evento | Objetivo | Parámetros
+-------|----------|-----------
+*QUIT* | El usuario ha pulsado el botón de cerrar | ninguno
+*ACTIVEEVENT* | PyGame ha sido desactivado o escondido | *gain*, *state*
+*KEYDOWN* | Se ha pulsado una tecla | *unicode*, *key*, *mod*
+*KEYUP* | Se ha soltado una tecla | *key*, *mod*
+*MOUSEMOTION* | Se ha movido el ratón | *pos*, *rel*, *buttons*
+*MOUSEBUTTONDOWN* | Se ha pulsado un botón del ratón | *pos*, *button*
+*MOUSEBUTTONUP* | Se ha soltado un botón del ratón | *pos*, *button*
+*JOYAXISMOTION* | El joystick o mando se ha movido | *joy*, *axis*, *value*
+*JOYBALLMOTION* | La bola del joystick se ha movido | *joy*, *ball*, *rel*
+*JOYHATMOTION* | El hat del joystick se ha movido | *joy*, *hat*, *value*
+*JOYBUTTONDOWN* | Se ha pulsado un botón del joystick | *joy*, *button*
+*JOYBUTTONUP* | Se ha soltado un botón del joystick | *joy*, *button*
+*VIDEORESIZE* | La ventana de PyGame se ha redimensionado | *size*, *w*, *h*
+*VIDEOEXPOSE* | Parte o toda la ventana de PyGame ha sido expuesta | ninguno
+*USEREVENT* | Un evento personalizado del usuario ha sucedido | *code*
+[Table [events]: Tipos de Eventos]
+
+Usando este conocimiento se puede escribir un pequeño programa que muestre todos los eventos que se generan.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+import pygame
+from sys import exit
+
+pygame.init()
+
+screen = pygame.display.set_mode([640, 480], 0, 32)
+
+while True:
+    for event in pygame.event.get():
+        print(event)
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+    pygame.display.update()
+
+pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [display_events]: Imprimir Eventos por la Consola]
+
+Se simplifica el código y tan sólo se añade el *print* del evento para mostrar por consola todo el evento, su tipo y las variables que contiene.
+
+![Figure [res/103_002]: Eventos Impresos en Consola](res/103_002.png)
+
+Al ejecutar el programa Listing [display_events] se muestra una pantalla en negro, pero si se mueve el ratón sobre la ventana se empiezan a ver los mensajes en la consola Figure [res/103_002]. Estos eventos especifican la posición actual del ratón, cuanto se ha movido desde el último evento de movimiento y que botones están pulsados en ese momento. Se puede obtener la posición actual del ratón en un momento determinado usando el módulo *mouse*, como se hacía en Listing [game_helloworld], pero se puede perder información acerca de lo que el usuario ha estado haciendo. Esto puede llegar a ser un problema en ordenadores de sobremesa que hacen mucho trabajo en segundo plano, y pueden ocasionalmente pausar la ejecución del juego durante una pequeña porción de tiempo. Para el cursor del ratón, solo se necesita saber donde está al inicio de cada frame, así que usar *mouse.get_pos()* es adecuado. Si se estuviera usando el movimiento del ratón para conducir un tanque y los botones para disparar, sería mejor idea trabajar con los eventos para que el juego pudiera monitorizar mejor las acciones del jugador.
+
+## Eventos de Movimiento de Ratón
+
+Los eventos de tipo *MOUSEMOTION* se lanzan siempre que se mueve el ratón sobre una ventana de PyGame, y contienen tres valores.
+
+- *buttons* - Una tupla de tres números que corresponden a los botones del ratón. Con lo cual *buttons[0]* es el botón izquierdo del ratón, *buttons[1]* es el botón central (en la rueda del ratón) y *buttons[2]* es el botón derecho. Si el botón está pulsado, entonces este valor está puesto a 1, en caso contrario, está a 0. Se pueden pulsar varios botones a la vez.
+
+- *pos* - Una tupla que contiene la posición *(x, y)* del ratón cuando el evento se generó.
+
+- *rel* - Una tupla que contiene la distancia que el ratón se ha movido desde el último evento de movimiento de ratón.
+
+## Eventos de Pulsación de Botones de Ratón
+
+Además de los eventos de movimiento, el ratón genera eventos *MOUSEBUTTONDOWN* y *MOUSEBUTTONUP*. Si se pulsa un botón de ratón, primero se genera un evento *down* y al soltar el botón se genera uno *up*. Si se usa el botón del ratón para disparar un misil, solo se necesitaría uno de los dos eventos, pero se puede tener otro tipo de arma, como una metralleta, que disparara continuamente mientras el botón está pulsado. En este caso, se empieza el disparo de la metralleta cuando se dispara el evento *down*, y se dispara hasta que llega el evento *up* correspondiente. Ambos tipos de eventos, tienen los siguientes dos valores.
+
+- *button* - El número del botón que se ha pulsado, un valor de 1 indica que el botón izquierdo se ha pulsado, un 2 el botón central, y el 3 el botón derecho.
+
+- *pos* - Una tupla que contiene la posición *(x, y)* del ratón cuando el evento se generó.
+
+## Eventos de Teclado
+
+El teclado y el joystick tiene eventos *up* y *down* similares. *KEYDOWN* se lanza cuando se ha pulsado una tecla, y *KEYUP* cuando esa tecla se ha soltado. Estos eventos de teclado tienen todos los tres mismos valores.
+
+- *key* - Es un número que representa la tecla que ha sido pulsada o soltada. Cada tecla física en el teclado tiene asociada una constante que empieza por *K_*. Las teclas del alfabeto van desde *K_a* hasta *K_z*, pero también hay constantes para todas las otras teclas, como *K_SPACE* o *K_RETURN*. Para un listado completo se puede consultar la [documentación oficial](https://www.pygame.org/docs/ref/key.html).
+
+- *mod* - Este valor representa las teclas que son usadas en combinación con otras teclas, como *Shift*, *Alt* y *Ctrl*. Cada una de esas teclas modificadoras se representan con una constante que empieza por *KMOD_*, como *KMOD_SHIFT*, *KMOD_ALT* y *KMOD_CTRL*. Se pueden buscar estas constantes en el valor *mod* usando *AND*, operador *%* de manipulación de bits. Por ejemplo, *mod & KMOD_CTRL* devolverá *True* si se ha pulsado la tecla *Ctrl*. Para un listado completo se puede consultar la [documentación oficial](https://www.pygame.org/docs/ref/key.html).
+
+- *unicode* - Es el valor en *unicode* de la tecla pulsada. Es producido por la combinación de la tecla pulsada y cualquier modificador. Hay un valor *unicode* para cada símbolo del alfabeto. En videojuegos no se suele usar muy a menudo, puesto que las teclas suelen usarse más como interruptores para disparar acciones que como medios para introducir un texto. Una excepción puede ser una tabla de puntuación, donde quizás se pueda permitir al jugador introducir su nombre con carácteres no habituales en el alfabeto normal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+import pygame
+import os
+
+pygame.init()
+
+screen = pygame.display.set_mode([640, 480], 0, 32)
+
+circle = pygame.Surface((50,50))
+pygame.draw.circle(circle, (60,139,210), (25, 25), 25)
+
+x, y = screen.get_width()/2, screen.get_height()/2
+move_x, move_y = 0, 0
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                move_x = -0.1
+            elif event.key == pygame.K_RIGHT:
+                move_x = +0.1
+            elif event.key == pygame.K_UP:
+                move_y = -0.1
+            elif event.key == pygame.K_DOWN:
+                move_y = +0.1
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                move_x = 0
+            elif event.key == pygame.K_RIGHT:
+                move_x = 0
+            elif event.key == pygame.K_UP:
+                move_y = 0
+            elif event.key == pygame.K_DOWN:
+                move_y = 0
+
+    x+= move_x
+    y+= move_y
+
+    screen.fill((0, 0, 0))
+
+    screen.blit(circle, (x, y))
+
+    pygame.display.update()
+
+pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [keyboard_events]: Eventos de Teclado]
+
+Usando estos eventos se controla el manejo de un círculo en pantalla con el teclado. Primero se crea un círculo sobre una *Surface* con el método *circle* del módulo *draw*.
+
+Dentro del condicional donde se verifica que el evento que llega es de tipo *KEYDOWN*, se comprueba que la tecla pulsada sea una de las teclas de cursor. Si se pulsa el cursor izquierdo, llega *K_LEFT*, en ese caso la variable *move_x* se pone a -1, si llega *K_RIGHT* se pone a +1, si llega *K_UP* entonces *move_y* se pone a -1 y se llega *K_DOWN* a +1.
+
+Esta variable se suma a las *x,y* que determinan la posición donde se pinta el círculo sobre la pantalla.
+
+Se gestiona también la llegada de los eventos *KEYUP*, para dejar de mover el círculo cuando el jugador suelta la tecla del cursor. El código dentro de este condicional es similar al anterior, pero se ponen las variables *move_x* y *move_y* a 0 siempre para parar el movimiento.
+
+## Filtrando Eventos
+
+No todos los eventos necesitan ser gestionados en todos los juegos, además hay varias maneras alternativas de obtener la información de los eventos. Por ejemplo, si se usa *mouse.get_pos()*, es probable que no se necesite responder a los eventos de *MOUSEMOTION*.
+
+De manera ocasional también se puede suspender la gestión de ciertos eventos. Si hubiera que reproducir una pequeña película entre dos níveles de juego, se deberían ignorar los eventos de teclado o ratón hasta que la película hubiera acabado.
+
+Se pueden bloquear eventos de la cola con la función *set_block*, y pasándo como parámetro el tipo de evento a bloquear.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+pygame.event.set_blocked(pygame.MOUSEMOTION)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [block_mouse]: Bloquear Eventos de Movimiento de Ratón]
+
+Si a la función se le pasa una lista de tipos, todos esos tipos serán bloqueados de la cola de eventos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+pygame.event.set_blocked([pygame.KEYDOWN, pygame.KEYUP])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [block_keys]: Bloquear Varios Eventos de Teclado]
+
+Si se quieren desbloquear todos los eventos, se le pasa el valor *None* a la función, esto producirá que todos los eventos se encolen.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+pygame.event.set_blocked(None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [block_none]: Desbloquear Todos los Eventos]
+
+El método opuesto a *set_blocked* es *set_allowed*, el cual selecciona los eventos que deberían estar permitidos o desbloqueados. De manera similar, puede recibir un tipo de evento, o una lista de ellos. Pero si se le pasa el valor *None*, bloquea todos los eventos, puesto que no permite ninguno.
+
+Igualmente, se le puede preguntar a PyGame si un tipo de evento está bloqueado o no, a través de la función *event.get_block*, a la cual se le pasa el tipo de evento a consultar.
+
+## Enviando Eventos
+
+Por norma general, es PyGame el encargado de crear todos los eventos, pero también se pueden crear eventos personalizados. Se puede usar esta característica para producir *demos*, replicando las entradas del usuario.
+
+Para mandar un evento, hay que construir un objeto de tipo *pygame.event.Event* y enviarlo con la función *pygame.event.post*. Este evento se pondrá al final de la cola de eventos, listo para ser recuperado por el loop de eventos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+my_event = pygame.event.Event(pygame.KEYDOWN, key = pygame.K_SPACE, mod = 0, unicode = u' ')
+pygame.event.post(my_event)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [post_key]: Simular la Pulsación de la tecla Espacio]
+
+El constructor de la clase *Event* recibe el tipo del evento, seguido por los valores que ese evento debe contener. En Listing [post_key] se intenta simular la pulsación de la tecla Espacio, por eso se crea un evento de tipo *KEYDOWN* con los valores que dicho evento espera recibir.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+my_event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_SPACE, "mod": 0, "unicode": = u' '})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [post_key_dict]: Usar un Diccionario para crear los Datos del Evento]
+
+Además de simular eventos, también se puede usar este sistema para crear nuevos eventos. Lo que hay que hacer es usar un valor para el evento que esté por encima de *USEREVENT*, que es el valor máximo que PyGame usará para sus propios eventos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+MYEVENTYPE = pygame.USERVENT + 1
+my_event = pygame.event.Event(MYEVENTTYPE, message = "This is My Event!!!")
+pygame.event.post(my_event)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [post_custom_event]: Lanzando un Evento Personalizado]
+
+Gestionar estos eventos se realiza de manera idéntica a los generados por PyGame, hay que verificar el tipo de evento que llega es el personalizado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+for event in pygame.event.get():
+    if event.type == MYEVENTYPE:
+        print(event.message)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [get_custom_event]: Gestionar un Evento Personalizado]
+
+# Ventanas
+
+PyGame tiene muchas opciones distintas para crear y gestionar ventanas. El tipo de ventana que se necesita depende del tipo de juego. Normalmente es más sencillo usar una resolución de pantalla fija, puesto que simplifica el código. La decisión también depende de la acción que transcurre en el juego, cuantas más cosas estén moviéndose en pantalla a la vez, más lento funcionará el juego, y quizás se pueda compensar bajando la resolución de pantalla.
+
+La mejor solución suele ser dejar al usuario decidir que resolución quiere usar, y pueda ajustarla hasta obtener un buen compromiso entre calidad visual y suavidad en el juego. En ese caso, hay que asegurarse que el juego se vea bien en todas las potenciales resoluciones.
+
+## Pantalla Completa
+
+La forma más simple de crear una ventana es a través de la función *set_mode* del módulo *display*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+screen = pygame.display.set_mode([640, 480], 0, 32)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [open_window]: Crear una Ventana]
+
+El primer parámetro es el tamaño de la ventana que se quiere crear. Un tamaño de *(640, 480)* crea una ventana pequeña que se puede ver sin problemas en cualquier ordenador de escritorio, pero se puede usar cualquier resolución.
+Ejecutar el juego en una ventana es ventajoso para depurar, pero muchos juegos llenan la pantalla completa y no tienen la barra de título o bordes. El modo de pantalla completa suele ser más rápido ya que el juego no tiene que cooperar con otras ventanas en la pantalla. Para usar una ventana en modo pantalla completa, hay que usar el flag *FULLSCREEN* en el segundo parámetro de la función *set_mode*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+screen = pygame.display.set_mode([640, 480], pygame.FULLSCREEN, 32)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [open_window_fullscreen]: Crear una Ventana en Pantalla Completa]
+
+Si algo funciona mal en el juego estando en pantalla completa, puede ser difícil volver al escritorio. Por eso es más cómodo trabajar en modo ventana mientras se está desarrollando y probando el juego. También hay que ofrecer una forma alternativa de cerrar el juego, puesto que en pantalla completa el botón de cerrar de la ventana no es visible en pantalla completa.
+
+Cuando se entra en modo ventana completa, la tarjeta de video probablemente cambie a un modo de video diferente, lo que cambiará el ancho y alto de la ventana, y potencialmente el número de colores que puede mostrar a la vez. Las tarjetas de video solo suelen soportar unas pocas combinaciones de tamaños y número de colores, pero PyGame se encarga de manejar los casos en los que esto no sucede. Si el tamaño de pantalla solicitado no está soportado, PyGame seleccionará el siguiente tamaño soportado por encima, y lo copiará a la ventana en el centro, haciendo que se vean bordes negros en los lados de la ventana. Para evitar este efecto, se recomienda usar resoluciones standard que soporten todas las tarjetas gráficas, *(640, 480)*, *(800, 600)*, *(1024, 768)*. Para poder verificar que resoluciones soporta la pantalla en uso, se puede usar la función *list_modes*, que devuelve una lista de tuplas conteniendo las resoluciones soportadas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+$ python
+
+>>> import pygame
+pygame 2.0.1 (SDL 2.0.14, Python 3.9.1)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+>>> pygame.init()
+
+Output:
+(7, 0)
+
+>>> pygame.display.list_modes()
+
+Output:
+[(1920, 1080), (1920, 1080), (1920, 1080), (1680, 1050), (1680, 1050), (1600, 1200), (1600, 1024), (1600, 1024), (1440, 900), (1366, 768), (1280, 1024), (1280, 1024), (1280, 960), (1280, 960), (1280, 800), (1280, 800), (1280, 720), (1280, 720), (1280, 720), (1176, 664), (1176, 664), (1176, 664), (1152, 864), (1152, 864), (1024, 768), (1024, 768), (800, 600), (800, 600), (720, 576), (720, 480), (720, 480), (640, 480), (640, 480), (640, 480)]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [supported_resolutions]: Resoluciones Soportadas]
+
+Se puede observar también que PyGame devuelve una tupla cuando se inicia, el primer valor de la tupla es el número de veces que se ha iniciado con éxito, mientras que el segundo valor es el número de veces que ha fallado.
+
+Si la tarjeta de video no puede trabajar con el número de colores que se ha solicitado, PyGame convertirá los colores en la *surface* de la ventana de manera automática, lo que puede resultar en una perdida de calidad en la imagen y en el rendimiento.
+
+Se puede pasar en cualquier momento de un modo ventana a un modo a pantalla completo, en Listing [full_screen_toggle] se hace a través de la pulsación de la tecla *f*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import pygame
+import os
+
+pygame.init()
+
+screen = pygame.display.set_mode([640, 480], 0, 32)
+
+circle = pygame.Surface((50,50))
+pygame.draw.circle(circle, (60,139,210), (25, 25), 25)
+
+full_screen = False
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_f:
+                full_screen = not full_screen
+                if full_screen:
+                    screen = pygame.display.set_mode([640, 480], pygame.FULLSCREEN, 32)
+                else:
+                    screen = pygame.display.set_mode([640, 480], 0, 32)
+
+    screen.fill((0, 0, 0))
+
+    screen.blit(circle, (screen.get_width()/2 - circle.get_width()/2, screen.get_height()/2 - circle.get_width()/2))
+
+    pygame.display.update()
+
+pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [full_screen_toggle]: Cambiando a Pantalla Completa]
+
+## Ventanas Redimensionables
+
+En ocasiones se puede permitir al usuario redimensionar la ventana del juego, que se suele hacer pinchando con el ratón en la esquina de la ventana y arrastrando el puntero. En PyGame es tan fácil como usar el flag *RESIZABLE* al llamar a la función *set_mode*. PyGame informa al juego que se ha cambiado la resolución a través de un evento de tipo *VIDEORESIZE* que contiene los nuevos valores para el ancho y alto de la pantalla. Cuando se reciben estos eventos, se debería llamar a *set_mode* otra vez para ajustar el tamaño de la pantalla a las nuevas dimensiones.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import pygame
+import os
+
+SCREEN_SIZE = (640, 480)
+
+pygame.init()
+
+screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE, 32)
+
+circle = pygame.Surface((50,50))
+pygame.draw.circle(circle, (60,139,210), (25, 25), 25)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+        if event.type == pygame.VIDEORESIZE:
+            SCREEN_SIZE = event.size
+            screen = pygame.display.set_mode(SCREEN_SIZE, RESIZABLE, 32)
+            print(f'Window Resized to {event.size}')
+
+    screen.fill((0, 0, 0))
+
+    screen.blit(circle, (screen.get_width()/2 - circle.get_width()/2, screen.get_height()/2 - circle.get_width()/2))
+
+    pygame.display.update()
+
+pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [resizable_window]: Ventana Redimensionable]
+
+Al ejecutar Listing [resizable_window], se muestra el círculo a mitad pantalla, si se pincha en la esquina o el borde de la ventana y se arrastra el ratón, el programa recibe un evento *VIDEORESIZE*, en el loop de eventos que lo gestiona hay una llamada a *set_mode* en respuesta que crea una nueva *surface* que se ajusta a las nuevas dimensiones, de manera que el círculo siempre está centrado. El evento de tipo  *VIDEORESIZE* recibe los siguientes valores.
+
+- *size* - Es una tupla que contiene las nuevas dimensiones de la ventana, *size[0]* es la anchura y *size[1]* es la altura.
+
+- *w* - Es la anchura de la ventana, el mismo valor que en *size[0]*.
+
+- *h* - Es la altura de la ventana, el mismo valor que en *size[1]*.
+
+La mayoria de los juegos funcionan a pantalla completa, con lo cual, las ventanas redimensionables no son muy comunes.
+
+## Ventanas sin Bordes
+
+Normalmente cuando se crea una ventana de juego se quiere una ventana standard con título y bordes, pero es posible crearla de manera que no tengas esas características y el usuario no sea capaz de moverla, redimensionarla o cerrarla con el botón de cerrar. Suele ser habitual para pantallas de *splash*. Algunos juegos pueden tardar un tiempo en cargar, pueden tener muchos ficheros de imagen o sonido. Si no hay nada visible en pantalla mientras esto ocurre, el jugador puede pensar que el juego no está funcionando e intentar volver a lanzarlo. Para crear una ventana sin bordes se usa el flag *NOFRAME* al llamar a *set_mode*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+screen = pygame.display.set_mode([640, 480], pygame.NOFRAME, 32)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [noframe_window]: Ventana sin Bordes]
+
+## Flags Adicionales
+
+Hay algunas flags más que se pueden usar al llamar a *set_mode*. Se consideran de uso avanzado, puesto que pueden perjudicar el rendimiento o causar problemas de incompatibilidad en algunas plataformas si se usan incorrectamente.
+
+Si se usa el flag *HWSURFACE*, crea una *surface* de hardware, es una *surface* especial que se almacena en la memoria de la tarjeta de video, y por tanto con aceleración por hardware, pero solo se puede usar con el flag de pantalla completa *FULLSCREEN*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+screen = pygame.display.set_mode([640, 480], pygame.HWSURFACE | pygame.FULLSCREEN, 32)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [window_hwsurface]: Ventana con Aceleración por Hardware]
+
+Las *surfaces* en la tarjeta de video suelen ser mucho más rápidas que las creadas en la memoria convencional, estas se pueden beneficiar de la potencia de las tarjetas gráficas para acelerar las operaciones de *blitting*. La desventaja es que en ciertas plataformas no están soportadas este tipo de *surfaces*. Estas también pueden usar el flag de *DOUBLEBUF*, esto crea dos *surfaces* de hardware, pero solo una es visible en cada frame.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+screen = pygame.display.set_mode([640, 480], pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.FULLSCREEN, 32)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [window_doblebuf]: Ventana con Doble Buffer]
+
+Normalmente, cuando se llama a la función *update* al final del *main loop* toda una *surface* se copia de la memoria hacia la pantalla, lo cual lleva un tiempo. Las *surfaces* de doble buffer permiten cambiar a una nueva pantalla inmediatamente y hace que el juego vaya un poco más rápido. Si se usa una pantalla de doble buffer se debería llamar a *flip* en lugar de *update* al final del *main loop*, puesto que esto hace el cambio del *front* al *back buffer* de manera inmediata en lugar de copiar los datos de la pantalla.
+
+El último *flag* que se puede usar es *OPENGL*. OpenGL es una librería gráfica que usa aceleración de la tarjeta gráfica para 3D, disponible en casi cualquier plataforma moderna. El problema de usar este *flag* es que se dejan de poder usar las funciones de PyGame para gráficos en 2D.
+
+# Fuentes
+
+La capacidad de dibujar texto en la pantalla puede ayudar mucho con el desarrollo del videojuego mientras se están probando cosas, también se puede usar para mostrar instrucciones del juego, opciones de menú,... El módulo *font* usar las fuentes *True Type TTFs*, que son usadas en la mayoría de sistemas para pintar texto de alta calidad. Hay muchas fuentes instaladas en cualquier ordenador que se pueden usar desde este módulo.
+
+Para usar una fuente, antes hay crear un objeto *Font*. La forma más sencilla es a través de *pygame.font.SysFont*, que usa una de las fuentes instaladas en el sistema.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+my_font = pygame.font.SysFont("arial", 16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_font_load]: Cargar la Fuente Arial del Sistema]
+
+El primer parametro es el nombre de la fuente que se quiere crear, y el segundo el tamaño de la fuente en píxels. PyGame buscará una fuente con el nombre "arial" entre las fuentes instaladsa, y si no la encuentra se devolverá la fuente por defecto. Se puede conseguir una lista de todas las fuentes instaladas en el sistema llamando a *pygame.font.get_fonts()*.
+
+Las fuentes instaladas en el sistema varian entre ordenadores, no se puede confiar en tener una fuente instalada para pintar con ella. Si no se encuentra la que se pide, PyGame devuelve una por defecto, que seguramente se verá muy diferente. La solución suele pasar por distribuir los ficheros *.ttf* de las fuentes junto al juego.
+
+Se pueden crear objetos *Font* directamente desde archivos *.ttf* llamando a *pygame.font.Font*, que en lugar de un nombre de fuente de sistema, recibe como primer parametro la ruta donde está la fuente *ttf* a usar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+my_font = pygame.font.Font("shmup/assets/fonts/Sansation.ttf", 16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [font_load]: Cargar la Fuente *my_font.ttf*]
+
+Una vez creado el objeto *Font*, se puede usar para pintar un texto a una nueva *surface*. Para hacerlo hay que usar el método *render* de los objetos *Font*, esto devuelve una nueva *surface* que tiene pintado el texto, sobre la que se puede hacer *blit* para pintarla en pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+text = my_font.render("Hello World!!!", True, (0,0,0), (255,255,255))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [render_text]: Pintar un Texto]
+
+El primer parámetro de *render* es el texto que se quiere pintar, tiene que ser una sola línea, si se quieren usar multiples líneas, hay que romper la cadena y hacer varias llamadas de pintado. El segundo parámetro es un boolean (True o False), usado para habilitar el texto antialias. Si se pone a True tendrá un aspecto más suave, en caso contrario, un aspecto mucho más pixelado. Los siguientes dos parámetros son el color del texto y el color del fondo. El color de fondo es opcional, y si se omite, o se pasa *None* el fondo será transparente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import pygame
+import os
+
+SCREEN_SIZE = (640, 480)
+
+pygame.init()
+
+screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE, 32)
+
+my_font = pygame.font.SysFont("arial", 16)
+text = my_font.render("Hello World!!!", True, (0,0,0), (255,255,255))
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+    screen.fill((0, 0, 0))
+
+    screen.blit(text, (screen.get_width()/2 - text.get_width()/2, screen.get_height()/2 - text.get_width()/2))
+
+    pygame.display.update()
+
+pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [render_text]: Pintar un Texto]
+
+El programa Listing [render_text] carga la fuente *arial* a tamaño 16, con ella pinta el texto "Hello World!!!" en negro sobre fondo blanco, y en el *main loop* hace *blit* sobre la pantalla centrado.
+
+El módulo *font* tiene muchas más funciones y objetos *Font*, que pueden ser útiles. Son mayormente proveedoras de información, diseñadas para obtener información acerca de las fuentes. Hay funciones que simulan texto en negrita o itálica, pero es mejor en ese caso usar una fuente dedicada que ya esté en negrita o itálica. Más detalles del módulo en la [documentación oficial](http://www.pygame.org/docs/ref/font.html)
+
+# Ejercicios Propuestos
+
+- Programa que muestre un texto largo scrollable en pantalla.
+- Programa que muestre un circulo en pantalla, que se mueva con el ratón, cuando se haga click con el botón izquierdo aumente de tamaño y con el derecho lo reduzca.
+- Programa que cada vez que se pulsa una tecla muestre esa letra en pantalla cayendo desde la parte superior a la inferior, cada vez a una velocidad distinta, y cuando alcance la parte inferior desaparezca. Usar el miembro *unicode* del evento, o bien el método *pygame.key.name(event.key)* para obtener la representación en texto de las teclas.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

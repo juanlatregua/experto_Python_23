@@ -1,0 +1,676 @@
+<meta charset="utf-8">
+**02EPPY - 002 - Packages y Modules**
+    <small>©2023 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Programación Modular
+
+Este concepto se refiere al proceso de romper una tarea de programación en otras separadas más pequeñas y manejables. Todos estos módulos individuales se pueden aglutinar como bloques de construcción para crear una aplicación más grande.
+
+Modularizar el código en una aplicación grande tiene varias ventajas:
+
+- **Simplicidad**. En lugar de centrarse en el problema completo, un módulo normalmente se centra en una pequeña parte del problema. Si se trabaja en un sólo módulo, se puede mantener la mente del programador en el dominio de un problema pequeño y fácilmente manejable. Esto hace que el desarrollo sea más simple y menos propenso a errores.
+
+- **Mantenimiento**. Los módulos suelen estar diseñados de manera que imponen límites lógicos entre diferentes dominios de problemas. Si están escritos de manera que minimicen interdependencias, se minimiza la posibilidad que las modificaciones que se realicen a un sólo módulo afecten a las otras partes del programa. Incluso se pueden llegar a realizar modificaciones a un módulo sin tener ningún conocimiento de la aplicación fuera del mismo. Esto hace mucho más factible a un equipo de muchos programadores trabajar de manera colaborativa en una aplicación de gran tamaño.
+
+- **Reusabilidad**. La funcionalidad definida en un módulo puede ser fácilmente reusable, a través de un interfaz convenientemente definido, por otras partes de la aplicación. Esto elimina la necesidad de duplicar código.
+
+- **Ámbito**. Los módulos normalmente suelen definir un espacio de nombres separado, lo que ayuda a evitar colisiones entre identificadores en diferentes áreas de un programa.
+
+# Módulos
+
+Hay tres maneras de definir un módulo en Python:
+
+- Puede estar escrito en Python
+- Puede estar escrito en C y cargado de manera dinámica en tiempo de ejecución.
+- Puede estar incorporado en el propio lenguaje o intérprete.
+
+A los contenidos de los módulos se accede de igual manera en los tres casos, a través de la sentencia `import`.
+
+Aquí nos vamos a centrar en los módulos escritos en Python, que son extremadamente sencillos de construir. Todo lo que hace falta es crear un fichero que contenga código en Python y darle al fichero un nombre con la extensión `.py`. Eso es todo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+some_numbers = [1, 2, 3]
+a = 20
+
+def add(x, y):
+    return x+y
+
+class Something:
+    pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod.py]: Fichero `my_mod.py`]
+
+En este fichero `my_mod.py` se han definido varios objetos, una lista de números (`some_numbers`), una variable con un entero (`a`), una función que suma dos números (`add`) y una clase (`Something`).
+
+Si se guarda dicho fichero y se abre el intérprete de Python en esa misma ruta, se pueden acceder a dichos objetos importando el módulo de la siguiente manera:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod
+>>> print(my_mod.a)
+20
+>>> my_mod.some_numbers
+[1, 2, 3]
+>>> my_mod.add(10, 30)
+40
+>>> obj =  my_mod.Something()
+>>> obj
+<my_mod.Something object at 0x0000025D7137E9A0>
+>>>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [using_my_mod.py]: Usando el módulo `my_mod.py` desde el intérprete de Python]
+
+## Ruta de Búsqueda de los Módulos
+
+Para importar un módulo se usa la sentencia `import`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import my_mod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_my_mod.py]: Importar móudlo `my_mod.py`]
+
+Cuando Python ejecuta una sentencia de `import`, busca el fichero `my_mod.py` en una lista de directorios formada por los siguientes:
+
+- El directorio desde el que se está lanzando el script principal o el directorio actual si el interprete se está ejecutando de manera interactiva.
+
+- La lista de directorios contenido en la variable de entorno `PYTHONPATH`, si está inicializada. El formato de esta variable depende de cada sistema operativo, pero funciona de manera parecida a la variable de entorno `PATH`.
+
+- Una lista de directorios que se configuran cuando se instala Python.
+
+El resultado de la suma de todos estos directorios es accesible a través de la variable de Python `sys.path`, que se puede obtener a través del módulo `sys`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import sys
+>>> sys.path
+['', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\DLLs', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\lib', ...]
+>>>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_path]: Verificar los directorios de búsqueda]
+
+Obviamente, todos esos directorios son dependientes de la instalación, es decir, en cada equipo e instalación el resultado es distinto.
+
+Así que, para asegurarse que un módulo es encontrado por Python cuando se quiera usar, hay que:
+
+- Poner `my_mod.py` en el mismo directorio donde esté el programa que va a usarlo, o en el directorio actual si se ejecuta de manera interactiva.
+
+- Modificar la variable de entorno `PYTHONPATH` para que contenga el directorio donde está `my_mod.py` antes de lanzar el interprete. O dejar el fichero `my_mod.py` en uno de los directorios que ya estén contenidos en la variable `PYTHONPATH`.
+
+- Dejar el fichero `my_mod.py` en uno de los directorios de la instalación de Python, sobre los cuales a veces no se tienen permisos para escribir.
+
+Hay otra manera adicional, que es poner el fichero con el módulo en cualquier directorio que se quiera, y modificar la variable `sys.path` en tiempo de ejecución para que contenga a dicho directorio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> sys.path.append(r'c:\my_folder')
+>>> sys.path
+['', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\DLLs', 'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\lib', 'c:\\my_folder']
+>>> import my_mod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sys_path_append]: Añadir la ruta del módulo a `sys.path`]
+
+En este caso se ha puesto el módulo `my_mod.py` en la ruta `c:\my_folder`, y luego se añade dicha carpeta a `sys.path`. A partir de ese momento, en este interprete el módulo ya está accesible.
+
+Una vez el módulo ha sido importado, se puede determinar la localización donde se encuentra a través del atributo `__file__` del módulo. Desde este punto de vista, la parte del directorio que devuelve `__file__` debería ser uno de los directorios presentes en ´sys.path´.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import myt_mod
+>>> my_mod.__file__
+'c:\\my_folder\\my_mod.py'
+>>> import os
+>>> os.__file__
+'C:\\Users\\ifuertes\\AppData\\Local\\Programs\\Python\\Python39\\lib\\os.py'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [__file__]: Localización de módulos con `__file__`]
+
+## La sentencia `import`
+
+Los contenidos de los módulos son disponibles para los consumidores a través de la sentencia `import`, de distintas maneras.
+
+### `import <module_name>`
+
+La forma más simple es la mostrada anteriormente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import my_mod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_my_mod.py]: Importar módulo `my_mod.py`]
+
+Esto no hace que todos los contenidos del módulo sean directamente accesibles para quien lo llama. Cada módulo tiene su propia tabla de símbolos privados, que funciona como la tabla de símbolos globales para todos los objetos definidos en el módulo. Así pues, un módulo crea un espacio de nombres separado.
+
+La sentencia `import <module_name>` tan solo pone <module_name> en la tabla de símbolos del que lo llama. Los objetos que están definidos en el módulo siguen en la tabla de símbolos privada del módulo.
+
+Desde el consumidor, los objetos en el módulo solo son accesibles poniéndoles el prefijo <module_name> mediante la notación con puntos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod
+>>> my_mod.add(10, 30)
+40
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dot_notation_my_mod]: Notación con puntos accediendo a un objeto dentro del módulo `my_mod.py`]
+
+Una vez importado el módulo a través de la sentencia `import`, el módulo es colocado dentro de la tabla de símbolos local. Así pues, el módulo tiene significado dentro del contexto local del consumidor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod
+>>> my_mod
+<module 'my_mod' from 'c:\\my_folder\\my_mod.py'>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_local]: Módulo `my_mod.py` en el contexto local]
+
+Pero los objetos del módulo, como la función `add` o la lista `some_numbers`, siguen estando en la tabla de símbolos privada del módulo, que no tienen significado en el contexto local.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> add(3,4)
+NameError: name 'add' is not defined
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [error_private_symbols]: Objetos del módulo `my_module.py` no están en el contexto local]
+
+Para poder ser accesibles en el contexto local, los nombres de los objetos definidos en el módulo tienen que llevar el prefijo con el nombre del módulo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> my_mod.add(5,2)
+7
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [prefix_private_symbols]: Objetos del módulo `my_mod.py` con prefijo]
+
+Se pueden importar varios módulos en una sola sentencia `import`, separándolos por comas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import my_mod, other_mod, yet_another_mod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_varios_modulos]: Importar varios módulos separados por comas]
+
+### `from <module_name> import <name>`
+
+Una forma alternativa de la sentencia `import` permite que que se puedan importar directamente objetos individuales de un módulo hacia la tabla de símbolos del consumidor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from my_mod import add
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [from_import]: Importar función `add` del módulo `my_mod.py`]
+
+A partir de esta sentencia, la función `add` puede ser referenciada directamente en el entorno del consumidor sin usar el prefijo `my_mod.add(3,4)`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from my_mod import add
+>>> add(6,2)
+8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [from_import_add]: Importar función `add` del módulo `my_mod.py`]
+
+Puesto que esta manera de importar pone los nombres de los objetos directamente en la tabla de símbolos del consumidor, cualquier objeto que exista con el mismo nombre será sobreescrito.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> some_numbers = [9, 8, 7]
+>>> some_numbers
+[9, 8, 7]
+>>> from my_mod import some_numbers
+>>> some_numbers
+[1, 2, 3]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [overwrite_symbols]: Objeto que se sobreescribe al importar otro con el mismo nombre]
+
+Es incluso posible importar de manera indiscriminada todos los objetos desde un módulo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from my_mod import *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [from_import_all]: Importar todos los objetos del módulo `my_mod.py`]
+
+Esto traerá todos los objetos del módulo a la tabla de símbolos local, con la excepción de aquellos que empiezan por el carácter barra baja `_`.
+
+Esta práctica no está recomendada en código de producción, es un poco peligroso, puesto que se están introduciendo nombres en la tabla de símbolos local en masa. A menos que se tenga un conocimiento perfecto y se tenga confianza que no vaya a haber un conflicto, hay bastantes posibilidades de sobreescribir algún nombre sin darse cuenta.
+
+### `from <module_name> import <name> as <alt_name>`
+
+También es posible importar objetos individuales pero introducirlos en la tabla de símbolos local con un nombre alternativo. Esto hace posible traer objetos directamente al contexto local, pero evita conflictos con nombres que ya existan.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> some_numbers = [9,8,7]
+>>> from my_mod import some_numbers as some_other_numbers
+>>> some_numbers
+[9, 8, 7]
+>>> some_other_numbers
+[1, 2, 3]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [from_import_as]: Importar un objeto cambiando su nombre]
+
+### `import <module_name> as <alt_name>`
+
+Se puede importar un módulo bajo un nombre alternativo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import my_mod as m_m
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_as]: Importar el módulo con un nombre alternativo]
+
+A partir de ese momento, los objetos del módulo se pueden referenciar a través del nuevo nombre alternativo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod as m_m
+>>> m_m.add(20,40)
+60
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_as_sample]: Importar el módulo con un nombre alternativo]
+
+## La función `dir`
+
+La función `dir` devuelve una lista de todos los nombres definidos dentro de un espacio de nombres. Sin pasar ningún argumento, produce una lista ordenada alfabéticamente con los nombres en la tabla de símbolos local desde donde se ejecute.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__']
+>>> a = 23
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'a']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dir]: Lista de nombres en el espacio local]
+
+La primera llamada a `dir()` devuelve varios nombres que están automáticamente definidos y ya están por defecto en el espacio de nombres cuando arranca el intérprete. Cuando se van creando nuevos objetos, van apareciendo en sucesivas invocaciones a `dir()`. Esto puede ser útil para identificar exactamente lo que se ha añadido al espacio de nombres local tras un `import`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__']
+>>> import my_mod
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'my_mod']
+>>> from my_mod import add, some_numbers
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'add', 'my_mod', 'some_numbers']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dir_import]: Lista de nombres en el espacio local tras importar `my_mod`]
+
+A esta función `dir` se le puede pasar como argumento el nombre de un módulo, en ese caso devuelve la lista con los nombres definidos en ese módulo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> dir(my_mod)
+['Something', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'a', 'add', 'some_numbers']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dir_my_mod]: Lista de nombres del módulo `my_mod`]
+
+## Ejecutando un módulo como un script
+
+Cualquier fichero `.py` que contenga un módulo es también en esencia un script de Python, y no hay ninguna razón por la que no se pueda ejecutar de esta manera.
+
+Se le añade al módulo creado antes algunas funciones para imprimir cosas por pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print(f"Root Number = {a}")
+print(f"Number List = {some_numbers}")
+print(f"Adding both = {[add(a, number) for number in some_numbers]}")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_print]: Añadir sentencias `print` al módulo `my_mod`]
+
+Esto ahora puede ser ejecutado como script desde la consola, y se puede ver que se ejecuta correctamente y muestra lo esperado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python my_mod.py
+
+Output:
+Root Number = 20
+Number List = [1, 2, 3]
+Adding both = [21, 22, 23]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_exec]: Ejecución del módulo `my_mod` desde la consola]
+
+El problema es que también genera esa salida cuando se importa como módulo desde el intérprete de Python.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod
+Root Number = 20
+Number List = [1, 2, 3]
+Adding both = [21, 22, 23]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_import]: Importar el módulo `my_mod` desde el intérprete]
+
+Esto no suele ser lo deseado, no es normal que un módulo genere ninguna salida cuando es importado. Lo ideal es que se pudiera distinguir cuando el módulo es importado o cuando es ejecutado como un script.
+
+Cuando un fichero `.py` es importado como módulo, Python establece una variable especial `__name__` con el nombre del módulo. Sin embargo, si un fichero es ejecutado como un script independiente, esa variable `__name__` se rellena con la cadena `__main__`. Usando este hecho, se puede averiguar cual es el caso en tiempo de ejecución y alterar el comportamiento para reaccionar a ello.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+if (__name__ = '__main__'):
+    print(f"Root Number = {a}")
+    print(f"Number List = {some_numbers}")
+    print(f"Adding both = {[add(a, number) for number in some_numbers]}")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_name]: Incorporar la verificación en `my_mod`]
+
+Ahora si se ejecuta el fichero `.py` desde la consola, muestra la salida esperada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY> python my_mod.py
+
+Output:
+Root Number = 20
+Number List = [1, 2, 3]
+Adding both = [21, 22, 23]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_exec2]: Ejecución del módulo `my_mod` desde la consola]
+
+Pero si se importa como módulo ya no lo hace.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_import2]: Importar el módulo `my_mod` desde el intérprete]
+
+La mayoría de los módulos se diseñan con la capacidad de ser ejecutados como scripts autónomos para probar la funcionalidad que está contenida en el propio módulo. Esto es conocido como **unit testing**.
+
+Se crea un módulo llamado `fact.py`, que contenga una función para crear el factorial de un número usando una función recursiva.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def fact(n):
+    return 1 if n == 1 else n * fact(n-1)
+
+if (__name__ == '__main__'):
+    import sys
+    if len(sys.argv) > 1:
+        print(fact(int(sys.argv[1])))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fact]: Módulo `fact.py`]
+
+Este fichero puede ser tratado como un módulo, y usar la función `fact` dentro de él una vez importada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from fact import fact
+>>> fact(4)
+24
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fact_import]: Módulo `fact.py` importado y usado desde el intérprete]
+
+Pero también puede ser ejecutado desde la consola de manera autónoma pasándole un número entero como argumento en la linea de comandos para probar su comportamiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\> python fact.py 4
+
+Output:
+24
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fact_exec]: Módulo `fact.py` ejecutado desde la consola]
+
+## Recargar un módulo
+
+Los módulos solo se cargan una vez por sesión del intérprete, esto se hace por razones de eficiencia. Eso está bien para definiciones de funciones y clases, que normalmente suelen ser la mayor parte de los módulos. Pero un módulo puede contener también sentencias que se pueden ejecutar, normalmente para la inicialización. Hay que tener cuidado, puesto que estas sentencias solo se ejecutarán una vez, la primera vez que el módulo es importado.
+
+Con un módulo que ejecute alguna sentencia, por ejemplo, imprimir algo por pantalla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+some_numbers = [1, 2, 3]
+print(some_numbers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_alt]: Módulo `my_mod_alt.py`]
+
+Si se importa varias veces desde el intérprete se puede observar que la sentencia `print` solo se ejecuta la primera vez, no en los sucesivos imports (y tampoco lo hace la sentencia de asignación, pero eso no importa mucho, una vez se hace una asignación, se mantiene).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod_alt as mm
+[1, 2, 3]
+>>> import my_mod_alt as mm
+>>> import my_mod_alt as mm
+>>> import my_mod_alt as mm
+>>> print(mm.some_numbers)
+[1, 2, 3]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_alt_import]: Módulo `my_mod_alt.py` importado varias veces desde el intérprete]
+
+Si se ha realizado un cambio al módulo y se necesita recargar, hay que reiniciar el intérprete o bien usar la función `reload` del módulo `importlib`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_mod_alt as mm
+[1, 2, 3]
+>>> import my_mod_alt as mm
+>>> import importlib
+>>> importlib.reload(mm)
+[1, 2, 3]
+<module 'my_mod_alt' from 'c:\\my_folder\\my_mod_alt.py'>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [my_mod_alt_reload]: Módulo `my_mod_alt.py` recargado]
+
+# Paquetes
+
+Cuando se crea una aplicación grande, se tiende a dividir el código en módulos, y al final se tiene una aplicación que está compuesta por multitud de módulos, y puede ser difícil llevar un seguimiento de todos ellos si están amontonados en una sola localización. Esto es particularmente complicado si tienen nombres o funcionalidad similares. Se necesita una manera de agruparlos y organizarlos.
+
+Los paquetes permiten una estructura jerárquica del espacio de nombres de los módulos usando la notación de puntos. De igual manera que los módulos ayudan a evitar la colisión entre los nombres de las variables globales, los paquetes evitan colisiones entre los nombres de los módulos.
+
+Crear un paquete es muy sencillo, puesto que hace uso de la estructura de ficheros jerárquica inherente del propio sistema operativo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── my_pkg
+    ├── mod_1.py
+    └── mod_2.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [package_structure]: Estructura de ficheros de un paquete]
+
+Se crea un directorio con el nombre del paquete, en este caso `my_pkg`, que contiene dos módulos, `mod_1.py` y `mod_2.py`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def foo():
+    print("from mod_1, you called foo()")
+
+class Foo:
+    pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mod_1]: Contenido del módulo `mod_1.py`]
+
+El módulo `mod_1.py` define una función `foo` y una clase `Foo`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+def bar():
+    print("from mod_2, you called bar()")
+
+class Bar:
+    pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mod_2]: Contenido del módulo `mod_2.py`]
+
+El módulo `mod_2.py` define una función `bar` y una clase `Bar`.
+
+Dada esta estructura, si el directorio `my_pkg` está en un sitio donde se pueda encontrar, esto es, en uno de los directorios contenidos en `sys.path` (como se ha visto anteriormente), se puede referenciar a los dos módulos con la notación de puntos, `my_pkg.mod_1` y `my_pkg.mod_2`, e importarlos con la sintaxis habitual.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from my_pkg.mod_1 import foo
+>>> foo()
+from mod_1, you called foo()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mod_1_from_my_pkg]: Importar el módulo `mod_1.py` desde el paquete `my_pkg`]
+
+Incluso se pueden importar de la siguiente manera desde el paquete.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from my_pkg import mod_1 as m1
+>>> m1.foo()
+from mod_1, you called foo()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mod_1_from_my_pkg_alt]: Importar el módulo `mod_1.py` desde el paquete `my_pkg`]
+
+Incluso se puede importar el paquete, aunque no aporta gran cosa. Aunque sintácticamente sea correcto, no hay nada útil, no pone ninguno de los paquetes en el espacio de nombres local.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_pkg as pkg
+>>> pkg.mod_1
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: module 'my_pkg' has no attribute 'mod_1'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_my_pkg]: Importar el paquete `my_pkg` desde el intérprete]
+
+Para importar los módulos o sus contenidos, hay que usar alguna de las formas vistas anteriormente.
+
+## Inicializar paquetes
+
+Si existe un fichero llamado `__init__py` en el directorio del paquete, éste es invocado cuando el paquete o un módulo del paquete es importado. Esto se puede usar para ejecutar algún código de inicialización del paquete.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print(f"calling __init__.py for {__name__}")
+init_data = [40, 20, 10]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [__init__.py]: Fichero `__init__.py` en la carpeta `my_pkg`]
+
+Se añade el fichero `__init__.py` en el directorio de `my_pkg`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── my_pkg
+    ├── __init__.py
+    ├── mod_1.py
+    └── mod_2.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [package_structure_init]: Estructura de ficheros de un paquete]
+
+Ahora, cuando el paquete se importa, la variable global del paquete `init_data` es inicializada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_pkg as pk
+calling __init__.py for my_pkg
+>>> pk.init_data
+[40, 20, 10]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [inicializar_pkg]: Inicializar `my_pkg`]
+
+Y a partir de ese momento cualquier módulo dentro del paquete puede acceder a dicha variable global al paquete.
+
+## Subpaquetes
+
+Los paquetes pueden contener subpaquetes sin límite de profundidad.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── my_pkg
+    ├── __init__.py
+    ├── sub_pkg_1
+    │   ├── mod_1.py
+    │   └── mod_2.py
+    └── sub_pkg_2
+        ├── mod_3.py
+        └── mod_3.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subpackages_structure]: Estructura de ficheros de un paquete y sus subpaquetes]
+
+En esta estructura, hay un paquete principal `my_pkg`, que contiene dos subpaquetes `sub_pkg_1` y `sub_pkg_2`, que a su vez contienen cada uno dos módulos diferentes. La importación funciona de la misma manera, solo hay que añadir un punto extra para separar los paquetes de los subpaquetes para acceder a los módulos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> import my_pkg.sub_pkg_1.mod_1 as m1
+>>> m1.foo()
+from mod_1, you called foo()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [subpackages_imported]: Importar un módulo dentro de un subpaquete]
+
+## Crear e instalar un paquete local
+
+Cuando se instala un paquete desde [PyPI](https://pypi.org/), este paquete está disponible para todos los scripts en el entorno del sistema. Pero, también se pueden instalar paquetes desde el ordenador local, y estarán disponibles de la misma manera.
+
+Crear un paquete local e instalarlo no es complicado. Se crea un fichero `setup.py` en el directorio externo del paquete.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── PKgFolder
+    ├── classes
+    ├── diagrams
+    ├── docs
+    └── my_pkg
+    │   ├── __init__.py
+    │   ├── sub_pkg_1
+    │   │   ├── mod_1.py
+    │   │   └── mod_2.py
+    │   └── sub_pkg_2
+    │       ├── mod_3.py
+    │       └── mod_3.py
+    └── setup.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fichero_setup]: Estructura de ficheros de un paquete con el fichero `setup.py`]
+
+Este fichero contendrá información acerca del paquete en cuestión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from setuptools import setup
+
+setup(
+    name="my_pkg",
+    version="0.0.1",
+    packages=["my_pkg"],
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fichero_setup.py]: Contenido del fichero `setup.py`]
+
+Se usa la librería de Python `setuptools`, el nombre y la versión se ponen para que luego el instalador de paquetes de Python `pip` pueda referirse correctamente al paquete. En el parámetro `packages` se debe poner el directorio que contiene el código fuente del paquete.
+
+Entonces ya se puede instalar el paquete localmente usando `pip`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+E:\Dev\VIU\EPPY\PKgFolder> pip install -e .
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [instalar_paquete_local]: Instalar paquete local con `pip`]
+
+Este comando instalará el paquete en el sistema, el paquete `my_pkg` se encontrará a través de la ruta de importación de Python, con lo cual, se puede usar desde cualquier punto sin tener que preocuparse del directorio donde esté, rutas de importación relativas, o cualquier otra complicación. La opción `-e` es para hacer editable el paquete, lo cual es importante, porque permite realizar cambios en el paquete sin tener que reinstalarlo.
+
+Ahora que ya está instalado se puede importar desde cualquier sitio.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import my_pkg
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import_installed]: Importar el paquete `my_pkg`]
+
+## Guía de estilo
+
+Como siempre pasa con Python, mantener el código legible y mantenible es muy importante. Algunas reglas generales para el uso de los `import`:
+
+- Mantener los `import` en la parte superior del fichero.
+- Escribir `import` en líneas separadas.
+- Organizar los `import` en grupos, primero los de la librería standard, luego los de terceros y finalmente los de la aplicación o librería local.
+- Ordenar los `import` alfabéticamente dentro de cada grupo.
+- Preferir `import` absolutos frente a los relativos.
+- Evitar importar módulos completos con `from module import *`.
+
+## Importar recursos
+
+Muy a menudo, se tiene código que depende de ficheros de datos (imágenes, csv,...). A partir de Python 3.7 se introdujo el módulo `importlib.resources` para manejar estos de una manera standard estos ficheros de recursos.
+
+Un recurso es cualquier fichero que se encuentre dentro de un paquete que se pueda importar. Además de dar acceso a esos recursos desde dentro del propio paquete, también lo da a los que usan dicho paquete.
+
+Los ficheros de recursos deben estar contenidos dentro de un paquete normal, es decir tienen que estar en un directorio dentro del paquete general, pero deben constituir un paquete propio con su propio fichero `__init__.py` en su carpeta.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bash
+└── PKgFolder
+    ├── docs
+    └── my_pkg
+    │   ├── assets
+    │   │   ├── __init__.py
+    │   │   ├── image.png
+    │   │   └── apuntes.txt
+    │   ├── __init__.py
+    │   ├── sub_pkg_1
+    │   │   ├── mod_1.py
+    │   │   └── mod_2.py
+    │   └── sub_pkg_2
+    │       ├── mod_3.py
+    │       └── mod_3.py
+    └── setup.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [resource_package]: Paquete con carpeta de recursos]
+
+El fichero `__init__.py` en este caso puede ser un fichero en blanco, que simplemente designa a la carpeta `assets` como un paquete válido.
+
+A partir de ese momento se puede acceder a dichos ficheros directamente a través de la librería `importlib.resources`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from importlib import resources
+
+with resources.open_text('my_pkg.assets', 'apuntes.txt')) as apuntes:
+    print(apuntes.readlines())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [resources_open_text]: Leer el fichero de texto dentro de un paquete de recursos]
+
+Usando la función `open_text` del módulo `resources` se puede abrir directamente un fichero de texto, como primer parámetro recibe el nombre del paquete donde se encuentran los recursos, en este caso `my_pkg.assets`, y como segundo parámetro el nombre del fichero a cargar dentro de ese paquete.
+
+También existe la función `open_binary` para abrir ficheros de tipo binario, y las funciones `read_text` y `read_binary` para leer textos y binarios directamente. De manera similar se tiene la función `path` que devuelve la ruta a un fichero dentro de un paquete de recursos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from importlib import resources
+
+viu_image_path, viu_image_filename = "my_pkg.assets", "image.png"
+
+with resources.path(viu.image_path, viu_image_filename) as image_path:
+    print(image_path)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [resources_open_path]: Conseguir la ruta de un fichero dentro de un paquete de recursos]
+
+Todo esto tiene especial relevancia porque los paquetes, una vez distribuidos e instalados, no garantizan que los ficheros existan físicamente en el sistema de ficheros, así que con estos métodos se delega en Python la responsabilidad de encontrar dichos ficheros.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

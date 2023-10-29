@@ -1,0 +1,353 @@
+<meta charset="utf-8">
+**03EPPY - 03 - Modelo Entidad-Relación**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# Modelo entidad-relación
+
+El modelo Entidad-Relación (E/R) es el modelo más utilizado para el diseño conceptual de bases de datos. Fue introducido por Peter Chen en 1976 y se basa en la existencia de objetos a los que se les da el nombre de **entidades**, y asociaciones entre ellos, llamadas **relaciones**.
+
+![Peter Chen](res/03/peterchen.jpg)
+
+Es una herramienta muy útil para dar forma a la información que queremos almacenar en nuestra base de datos. Se comienza dividiendo esta información en categorías para luego representarlas en un diagrama.
+
+![](res/03/03_mer_a_mr.png)
+
+# Simbología
+
+## Entidades
+
+Una entidad es cualquier objeto o elemento acerca del cual se pueda **almacenar información** en la base de datos. Las entidades se representan gráficamente mediante rectángulos y su nombre aparece en el interior. Un nombre de entidad sólo puede aparecer una vez en el esquema conceptual.
+
+- **Fuerte**. Para existir no depende de otra entidad.
+- **Débil**. Su existencia depende de la existencia de una entidad fuerte.
+
+    ![](res/03/ent_fue_deb.png)
+
+    ![Ejemplo entidades fuerte y debil](res/03/ent_fue_deb_ej.png)
+
+## Atributos
+
+Los atributos representan las **características** de la entidad (propiedades o campos). Pueden tomar un conjunto de valores permitidos al que se le conoce como **dominio** del atributo. Los atributos se representan gráficamente mediante elipses y su nombre aparece en el interior.
+
+- **Identificadores de entidad** (también llamados clave primaria o clave principal): son atributos que identifican de manera unívoca cada ocurrencia de una entidad.
+- **Descriptores de entidad**: son atributos que muestran unas características de la entidad.
+
+### Tipos de atributos
+
+- **Atributos identificativos**. Son atributos cuyos valores no se repiten dentro de una misma entidad o relación. Sirven para identificar de forma unívoca cada ocurrencia. Actúan como clave principal o primaria. Por ejemplo CCC que identifica cada cuenta bancaria o ISBN que identifica cada libro que se publica. 
+
+- **Atributos descriptivos**: Son los atributos que describen diversas propiedades de una entidad o relación. Son los más frecuentes.
+
+- **Atributos derivados**. Son atributos cuyos valores se calculan a partir de los valores de otros atributos. Por ejemplo podemos disponer de un atributo fecha_nac que sería un atributo descriptivo normal y calcular el valor del atributo edad a partir de él. 
+
+- **Atributos multivaluados**: Son atributos descriptores que poseen varios valores de un mismo dominio. Por ejemplo, si necesitamos almacenar varios e-mail de una misma persona entonces deberemos utilizar un atributo multivaluado. Igual sucede con el teléfono. Si sólo necesitamos almacenar un sólo valor utilizaremos un atributo descriptivo normal.
+
+- **Atributos compuestos**: Son atributos que pueden ser descompuestos en otros atributos. Por ejemplo, una dirección completa puede ser descompuesta en otros atributos como calle, código postal y localidad.
+
+![](res/03/atributos_ej.png)
+
+También se puede encontrar otro tipo de simbología para los atributos:
+
+![](res/03/atr_otros.png)
+
+![Ejemplo atributos](res/03/atr_otros_ej.png)
+
+## Relaciones
+
+Una relación es la **asociación** que existe entre dos a más entidades. Cada relación tiene un nombre que describe su función. Las relaciones se representan gráficamente mediante rombos y su nombre aparece en el interior. 
+
+![Ejemplo Relación](res/03/relacion.png)
+
+También es habitual la forma de nombrar la relación poniendo de nombre la primera o primeras letras de las entidades que relaciona.
+
+![](res/03/03_coche_cliente.png)
+
+Observa que el nombre que ponemos a la relación usa las primeras letras de cada entidad. En este caso como ambas empiezan por «C» se añade algunas letras más para hacer referencia a *CLIENTE*. También podríamos haber puesto como nombre de la relación uno más descriptivo de la misma, por ejemplo *Compra* (CLIENTE compra COCHE).
+
+Las entidades que están involucradas en una determinada relación se denominan entidades **participantes**.
+
+- **Papel** o **Rol** de una entidad en una relación. Es la función que tiene en una relación. Se especifican los papeles o roles cuando se quiera aclarar el significado de una entidad en una relación.
+
+![](res/03/03_coche_cliente_roles.png)
+
+- **Grado**. Es el número de entidades que están relacionadas. Por ejemplo, la imagen anterior es de grado 2.
+
+    ![Ejemplo de relación de grado 3](res/03/rel_grado3.png)
+
+    Cuando una entidad está relacionada consigo misma, hablamos de relación **reflexiva**.
+
+    ![Ejemplo de relación reflexiva](res/03/03_empleado_jefe.png)
+
+- **Cardinalidad**. Es el número de ocurrencias de una entidad asociadas a una ocurrencia de la otra entidad. 
+
+    - **Uno a Uno** (1:1) A cada elemento de la primera entidad le corresponde no más de un elemento de la segunda entidad, y a la inversa.
+
+        ![Ejemplo 1:1](res/03/card_1_1.png)
+
+    - **Uno a Muchos** (1:N) Cada elemento de una entidad del tipo A puede relacionarse con cualquier cantidad de elementos de una entidad del tipo B, y un elemento de una entidad del tipo B solo puede estar relacionado con un elemento de una entidad del tipo A.
+
+        ![Ejemplo 1:N](res/03/card_1_n.png)
+
+    - **Muchos a Muchos** (N:M) Establece que cualquier cantidad de elementos de una entidad del tipo A pueden estar relacionados con cualquier cantidad de elementos de una entidad del tipo B.
+
+        ![Ejemplo N:M](res/03/card_n_m.png)
+
+    - **Cardinalidad mínima y máxima**. Necesitamos conocer estas para obtener la cardinalidad de la relación y saber así las restricciones que se deben aplicar. 
+
+        - **Mínima**. Es el mínimo número de asociaciones que una instancia de una entidad puede presentar en una relación conocida con otra entidad.
+        
+        - **Máxima**. Misma definición que la mínima pero calculando el máximo número de asociaciones.
+
+            En ambos casos, los valores pueden ser 0, 1 o N, y se expresan entre paréntesis separados por una coma: (mínima,máxima); por lo que las posibles cardinalidades son (0,1), (1,1), (0,n), (1,n), (n,m).
+
+            No olvidemos que las condiciones de las relaciones vendrán especificadas en el análisis de requisitos y cada caso tendrá sus propias características concretas, por lo que se aplicará la cardinalidad en función de estas. Por ejemplo, para la siguiente relación:
+
+            ![](res/03/card_n_m_ej1.png)
+
+            **Ejemplo (0,1)**: un alumno puede pertenecer a una clase o no pertenecer a ninguna: Mín: 0, Máx: 1 -> (0,1)
+
+            **Ejemplo (1,1)**: un alumno debe pertenecer solo a una clase: Mín: 1, Máx: 1 -> (1,1)
+            
+            **Ejemplo (0,n)**: un alumno puede pertenecer a varias clases o no pertenecer a ninguna: Mín: 0, Máx: n -> (0,n)
+
+            **Ejemplo (1,n)**: un alumno debe pertenecer a una clase como mínimo: Mín: 1, Máx: n -> (1,n)
+
+            **Ejemplo (n,n)**: un alumno debe pertenecer a varias clases: Mín: n, Máx: n -> (n,n)
+
+    - **Cálculo**
+    
+        1. Se debe fijar una ocurrencia concreta de una entidad y averiguar cuántas ocurrencias de la otra entidad le corresponden como mínimo y como máximo. 
+        2. Estas ocurrencias mínima y máxima se representarán entre paréntesis y con letras minúsculas **en el lado de la relación opuesto a la entidad cuyas ocurrencias se fijan**. 
+        3. Después realizar lo mismo en el otro sentido.
+        4. Para determinar la cardinalidad *nos quedamos con la  máxima de cada una* y se representa con letras mayúsculas separadas por dos puntos junto al símbolo de la relación. 
+        
+            La mejor manera de entender este proceso es utilizando ejemplos. 
+
+            - **Ejemplo (1:1)** 
+
+                ![Ejemplo (1:1) Paso 1](res/03/card_1_1_ej1.png)
+
+                1. Primero cogemos la entidad *Presidente* y averiguamos para cada ocurrencia (cada presidente) cuantas ocurrencias pueden existir en la entidad *Pais*, como máximo y como mínimo. Para ello consultamos en los requisitos cuantos paises puede gobernar un presidente como mínimo y como máximo:
+                    - Mínimo: un presidente puede gobernar solo un país, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: un presidente puede gobernar solo un país, por lo tanto, la cardinalidad máxima es 1.
+
+                2. Ponemos (1,1) en la parte opuesta de la entidad *Presidente*, que es la que hemos calculado.
+
+                    ![Ejemplo (1:1) Paso 2](res/03/card_1_1_ej2.png)
+
+                3. Hacemos lo mismo en el otro sentido. Cogemos la entidad *Pais* y calculamos para cada ocurrencia (cada país) cuantas ocurrencias pueden existir en la entidad *Presidente*:
+                    - Mínimo: a un país puede gobernarlo un único presidente, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: a un país puede gobernarlo un único presidente, por lo tanto, la cardinalidad máxima es 1.
+                
+                        Ponemos (1,1) en la parte opuesta de la entidad *Pais*, que es la que hemos calculado.
+
+                        ![Ejemplo (1:1) Paso 3](res/03/card_1_1_ej3.png)
+                
+                4. Cogemos la cardinalidad máxima de cada lado de la relación y la ponemos junto al símbolo de la relación.
+                    - Máx. de *Presidente*: 1  
+                    - Máx. de *Pais*: 1      
+                    - (1:n) -> La cardinalidad de la relación *gobierna* es *Uno a Uno* (1:1)   
+
+                        ![Ejemplo (1:1) Paso 4](res/03/card_1_1_ej4.png)            
+            
+            - **Ejemplo (1:N)** 
+
+                ![Ejemplo (1:N) Paso 1](res/03/card_1_n_ej1.png)
+
+                1. Primero cogemos la entidad *Trabajador* y averiguamos para cada ocurrencia (cada trabajador) cuantas ocurrencias pueden existir en la entidad *Departamento*, como máximo y como mínimo. Para ello consultamos en los requisitos a cuantos departamentos puede pertenecer un trabajador como mínimo y como máximo:
+                    - Mínimo: un trabajador debe pertenecer como mínimo a un departamento, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: un trabajador debe pertencer como máximo a un departamento, por lo tanto, la cardinalidad máxima es 1.
+
+                2. Ponemos (1,1) en la parte opuesta de la entidad *Trabajador*, que es la que hemos calculado.
+
+                    ![Ejemplo (1:N) Paso 2](res/03/card_1_n_ej2.png)
+
+                3. Hacemos lo mismo en el otro sentido. Cogemos la entidad *Departamento* y calculamos para cada ocurrencia (cada departamento) cuantas ocurrencias pueden existir en la entidad *Trabajador*:
+                    - Mínimo: a un departamento debe pertenecer al menos un trabajador, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: a un departamento pueden pertenecer varios trabajadores, por lo tanto, la cardinalidad máxima es n.
+                
+                        Ponemos (1,n) en la parte opuesta de la entidad *Departamento*, que es la que hemos calculado.
+
+                        ![Ejemplo (1:N) Paso 3](res/03/card_1_n_ej3.png)
+                
+                4. Cogemos la cardinalidad máxima de cada lado de la relación y la ponemos junto al símbolo de la relación.
+                    - Máx. de *Trabajador*: 1  
+                    - Máx. de *Departamento*: n      
+                    - (1:n) -> La cardinalidad de la relación *trabaja* es *Uno a Muchos* (1:N)   
+
+                        ![Ejemplo (1:N) Paso 4](res/03/card_1_n_ej4.png)
+
+            - **Ejemplo (N:M)** 
+
+                ![Ejemplo (N:M) Paso 1](res/03/card_n_m_ej1.png)
+
+                1. Primero cogemos la entidad Alumno y averiguamos para cada ocurrencia (cada alumno) cuantas ocurrencias pueden existir en la entidad Clase, como máximo y como mínimo. Para ello debemos preguntarnos a cuantas clases puede pertenecer un alumno como mínimo y como máximo:
+                    - Mínimo: un alumno debe pertenecer como mínimo a una clase, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: un alumno puede pertencer como máximo a muchas clases, por lo tanto, la cardinalidad máxima es n.
+
+                2. Ponemos (1,n) en la parte opuesta de la entidad Alumno, que es la que hemos calculado.
+
+                    ![Ejemplo (N:M) Paso 2](res/03/card_n_m_ej2.png)
+
+                3. Hacemos lo mismo en el otro sentido. Cogemos la entidad Clase y calculamos para cada ocurrencia (cada clase) cuantas ocurrencias pueden existir en la entidad Alumno:
+                    - Mínimo: a una clase debe pertencer al menos un alumno, por lo tanto, la cardinalidad mínima es 1.
+                    - Máximo: a una clase puede pertenecer muchos alumnos, por lo tanto, la cardinalidad máxima es n.
+                
+                        Ponemos (1,n) en la parte opuesta de la entidad Clase, que es la que hemos calculado.
+
+                        ![ [res/card_n_m]: Ejemplo (N:M) Paso 3](res/03/card_n_m_ej3.png)
+                
+                4. Cogemos la cardinalidad máxima de cada lado de la relación y la ponemos junto al símbolo de la relación.
+                    - Máx. de Alumno: n  
+                    - Máx. de Clase: n      
+                    - (n:n) -> La cardinalidad de la relación *pertenece* es *Muchos a Muchos* (N:M)   
+
+                        ![Ejemplo (N:M) Paso 4](res/03/card_n_m_ej4.png)
+
+- **Participación de una entidad**
+
+        Es la cardinalidad de la entidad dentro de una relación. Una misma entidad puede tener distinta cardinalidad dentro de distintas relaciones. 
+ 
+        ![](res/03/participacion.png)
+
+- **Atributos propios de la relación**
+
+        Son atributos que pertenecen a la propia relación. Su valor sólo se puede obtener en la relación, puesto que dependen de todas las entidades que participan en la relación.
+
+        ![](res/03/03_cli_prod.png)
+
+        Tenemos la relación *compra* entre *CLIENTE* y *PRODUCTO*. Así un cliente puede comprar uno o varios productos, y un producto puede ser comprado por uno o varios clientes. Encontramos una serie de atributos propios de cada una de las entidades CLIENTE (Cod_Cliente, Nombre, Dirección, edad, teléfono) y PRODUCTO (Cod_Producto, Nombre, Descripción, Precio_Unidad)], pero también podemos observar como el atributo **Cantidad** es un atributo de la relación. ¿Por qué? Porque un mismo cliente puede comprar distintas cantidades de distintos productos y un mismo producto puede ser comprado en distintas cantidades por distintos clientes. Es decir el atributo **Cantidad** depende del cliente y del producto de que se traten.
+
+# Ejemplo
+
+    * A partir del siguiente enunciado se desea realiza el modelo entidad-relación.
+
+        “Una empresa vende productos a varios clientes. Se necesita conocer los datos
+        personales de los clientes (nombre, apellidos, dni, dirección y fecha de
+        nacimiento).
+
+        Cada producto tiene un nombre y un código, así como un precio unitario. Un
+        cliente puede comprar varios productos a la empresa, y un mismo producto puede
+        ser comprado por varios clientes.
+
+        Los productos son suministrados por diferentes proveedores. Se debe tener en
+        cuenta que un producto sólo puede ser suministrado por un proveedor, y que un
+        proveedor puede suministrar diferentes productos. De cada proveedor se desea
+        conocer el NIF, nombre y dirección”.
+
+    * Solución:
+
+        Del análisis de requerimientos se obtiene las entidades, los atributos y las relaciones. En la siguiente imágen se pueden distinguir por colores. 
+        
+        ![](res/03/mer_enunc1.png)
+
+        A partir de estos, creamos el modelo:
+
+        ![](res/03/mer_sol1.png)
+
+
+# Ejercicios
+
+    Ejercicio 1
+
+    * A partir del siguiente enunciado se desea realizar el modelo entidad-relación.
+
+        “Se desea informatizar la gestión de una empresa de transportes que reparte
+        paquetes por toda España. Los encargados de llevar los paquetes son los
+        camioneros, de los que se quiere guardar el dni, nombre, teléfono, dirección,
+        salario y población en la que vive.
+
+        De los paquetes transportados interesa conocer el código de paquete, descripción,
+        destinatario y dirección del destinatario. Un camionero distribuye muchos
+        paquetes, y un paquete sólo puede ser distribuido por un camionero. De las
+        provincias a las que llegan los paquetes interesa guardar el código de provincia y
+        el nombre. Un paquete sólo puede llegar a una provincia. Sin embargo, a una
+        provincia pueden llegar varios paquetes.
+
+        De los camiones que llevan los camioneros, interesa conocer la matrícula, modelo,
+        tipo y potencia. Un camionero puede conducir diferentes camiones en fechas
+        diferentes, y un camión puede ser conducido por varios camioneros”.
+
+    Ejercicio 2
+
+    * A partir del siguiente enunciado diseñar el modelo entidad-relación.
+
+        “Se desea diseñar la base de datos de un Instituto. En la base de datos se desea
+        guardar los datos de los profesores del Instituto (DNI, nombre, dirección y
+        teléfono).
+
+        Los profesores imparten módulos, y cada módulo tiene un código y un nombre.
+        Cada alumno está matriculado en uno o varios módulos.
+        
+        De cada alumno se desea guardar el nº de expediente, nombre, apellidos y fecha
+        de nacimiento. Los profesores pueden impartir varios módulos, pero un módulo
+        sólo puede ser impartido por un profesor.
+
+        Cada curso tiene un grupo de alumnos, uno de los cuales es el delegado del
+        grupo”.
+
+    Ejercicio 3
+
+    * A partir del siguiente supuesto diseñar el modelo entidad-relación:
+
+        “Se desea diseñar una base de datos para almacenar y gestionar la información
+        empleada por una empresa dedicada a la venta de automóviles, teniendo en
+        cuenta los siguientes aspectos:
+
+        La empresa dispone de una serie de coches para su venta. Se necesita conocer la
+        matrícula, marca y modelo, el color y el precio de venta de cada coche.
+        Los datos que interesa conocer de cada cliente son el NIF, nombre, dirección,
+        ciudad y número de teléfono: además, los clientes se diferencian por un código
+        interno de la empresa que se incrementa automáticamente cuando un cliente se
+        da de alta en ella. 
+        
+        Un cliente puede comprar tantos coches como desee a la  empresa. 
+        Un coche determinado solo puede ser comprado por un único cliente.
+
+        El concesionario también se encarga de llevar a cabo las revisiones que se
+        realizan a cada coche. Cada revisión tiene asociado un código que se incrementa
+        automáticamente por cada revisión que se haga. De cada revisión se desea saber si se ha hecho cambio de filtro, si se ha hecho
+        cambio de aceite, si se ha hecho cambio de frenos u otros. Los coches pueden
+        pasar varias revisiones en el concesionario”.
+
+    Ejercicio 4
+
+    * A partir del siguiente supuesto diseñar el modelo entidad-relación:
+
+        “Una clínica necesita llevar un control informatizado de su gestión
+        de pacientes y médicos. De cada paciente se desea guardar el código, nombre, apellidos, dirección,
+        población, provincia, código postal, teléfono y fecha de nacimiento.         
+        De cada médico se desea guardar el código, nombre, apellidos, teléfono y especialidad.
+
+        Se desea llevar el control de cada uno de los ingresos que el paciente hace en el
+        hospital. Cada ingreso que realiza el paciente queda registrado en la base de
+        datos. De cada ingreso se guarda el código de ingreso (que se incrementará
+        automáticamente cada vez que el paciente realice un ingreso), el número de
+        habitación y cama en la que el paciente realiza el ingreso y la fecha de ingreso.
+        
+        Un médico puede atender varios ingresos, pero el ingreso de un paciente solo
+        puede ser atendido por un único médico. Un paciente puede realizar varios
+        ingresos en el hospital”.
+
+    Ejercicio 5
+
+    * A partir del siguiente supuesto diseñar el modelo entidad-relación:
+    
+        "Se desea informatizar la gestión de una tienda informática. La tienda dispone de
+        una serie de productos que se pueden vender a los clientes.
+        De cada producto informático se desea guardar el código, descripción, precio y
+        número de existencias. De cada cliente se desea guardar el código, nombre,
+        apellidos, dirección y número de teléfono.
+
+        Un cliente puede comprar varios productos en la tienda y un mismo producto
+        puede ser comprado por varios clientes. Cada vez que se compre un artículo
+        quedará registrada la compra en la base de datos junto con la fecha en la que se
+        ha comprado el artículo.
+
+        La tienda tiene contactos con varios proveedores que son los que suministran los
+        productos. Un mismo producto puede ser suministrado por varios proveedores. De
+        cada proveedor se desea guardar el código, nombre, apellidos, dirección,
+        provincia y número de teléfono”.
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

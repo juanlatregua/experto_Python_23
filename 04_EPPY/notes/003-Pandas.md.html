@@ -1,0 +1,395 @@
+<meta charset="utf-8">
+**04EPPY - 003 - Pandas**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Pandas
+==============================================================
+
+NumPy está diseñado específicamente para trabajar de forma eficiente con colecciones de datos numéricos multidimensionales. Sin embargo, cuando los datos son de varios tipos (`string`, `int`, `float`), NumPy puede llegar a ser incómodo e ineficiente. Desgraciadamente, tanto en aprendizaje automático como en análisis de datos, la situación más frecuente es tener datos heterogéneos, como la colección de datos sobre reseñas cinematográficas [MovieLens 20M Dataset](https://grouplens.org/datasets/movielens/), que incluye información como el nombre de la película, el género (`string`), el año de publicación (`int`) y la votación del usuario (`float`).
+
+Ppandas es una librería de código abierto para Python que contiene estructuras de datos y herramientas para trabajar naturalmente con datos heterogéneos (o datos tabulares, como son llamados comúnmente). Es el estándar de facto para datos tabulares en Python y, junto con NumPy, matplotlib y Scikit-learn, forma parte de la colección científica SciPy.
+
+Se puede instalar desde su paquete en [PyPI](https://pypi.org/project/pandas/) usando `pip` o `pipenv`. Para utilizarla, se ha de importar el módulo pandas con la expresión `import pandas`. La siguiente expresión importa el módulo pandas y lo hace accesible a través del alias pd:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import pandas as pd
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import]: Importar Pandas]
+
+Si se desea ser más específico, se puede importar exclusivamente una parte de pandas, por ejemplo:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from pandas import Series, DataFrame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import]: Importar Pandas `Series` y `DataFrames`]
+
+Importar directamente partes de una librería evita tener que repetir el alias múltiples veces. Así, se puede utilizar `Series`, en vez de `pd.Series`. `Series` y `DataFrame` son las dos estructuras de datos básicas en pandas. Las veremos con detalle en las próximas secciones.
+
+Series
+--------------------------------------------------------------
+
+Las `Series` son estructuras unidimensionales similares a los `ndarray` de NumPy, en las que cada elemento posee también un índice único. La forma más sencilla de crear una serie es con el constructor `pd.Series(<lista>,index=<lista de índices>)`. El argumento `index` es opcional y, si no se pasa, pandas asume índices de 0 a n-1 (donde n es el tamaño de la `<lista>` de elementos).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+serie = pd.Series(['Barcelona', 'Madrid', 'Valencia', 'Sevilla'], index=['a', 'b', 'c', 'd'])
+series.name = 'Al menos dos equipos en primera'
+series.index.name = 'Id'
+print(series)
+
+Output:
+Id
+a   Barcelona
+b   Madrid
+c   Valencia
+d   Sevilla
+Name: Al menos dos equipos en primera, dtype: object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [series]: Ejemplo de uso de `Series`]
+
+Este ejemplo imprime un objeto `Series`, muestra el nombre del índice, el nombre de la serie, el tipo de objeto de cada elemento y los elementos incluidos (junto a sus índices).
+
+Como se puede ver en el ejemplo anterior, tanto la serie `serie.name` como la columna de índices `serie.index.name` pueden nombrarse para facilitar su introspección.
+
+El acceso a los elementos de una serie se puede hacer a través del índice explícito o en listas, por orden. En el ejemplo, `serie['d'] == serie[3]`. En general se puede trabajar con `Series` de la misma forma que con `ndarrays`.
+
+- Listado de índices para acceso a múltiples elementos, tanto a través del índice explícito `serie[ [‘a’,’c’] ]` como el ordinal `serie[ [0,2] ]`
+- Índice condicional para filtrar elementos, `serie[serie > 10]` retorna una serie solo con los elementos mayores de 10
+- Slicing, `serie[:-1]` retorna una serie con todos los elementos menos el último
+- Funciones aplicadas a todos los elementos, `np.sqrt(serie)` retorna una serie en la que cada elemento es la raíz cuadrada del original
+
+Como cualquier otra colección, se puede iterar sobre los valores de una serie con un simple `for loop`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for index, value in enumerate(serie):
+    pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [series_for]: Usando un bucle sobre `Series`]
+
+En cada iteración, `index` toma el valor del índice del elemento, y `value` es el elemento en sí. Si solo interesa iterar sobre los valores, se puede hacer directamente sin `enumerate` en la forma simplificada  `for value in serie`.
+
+Como las `Series` son estructuras con índice explícito, se pueden entender como simples diccionarios Python en que la clave es el índice y el valor es el elemento. Como tales, se pueden aplicar operaciones de diccionarios.
+
+- Averiguar si un índice está presente, `'b' in serie`
+- Convertir un diccionario en una serie, `serie = pd.Serie( { 'Carlos' : 100, 'Marcos': 98} )`. Dado que un set es un diccionario de claves sin valores, también se puede convertir un set en una serie de la misma forma.
+
+pandas hace posible la unión de dos `Series` con el operador `+`. Cuando se unen dos `Series`, el resultado es una serie cuyos elementos se determinan en función de los índices.
+
+- Los elementos cuyo índice está en ambas series se suman
+- Los elementos cuyo índice solo aparece en una serie se añaden con el valor `NaN`
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+serie1 = pd.Series([10,20,30,40],index=range(4) )
+serie2 = pd.Series([1,2,3],index=range(3) )
+serieComb = (serie1 + serie2)
+print(serieComb)
+
+Output:
+# serieComb contiene lo siguiente
+0	11.0
+1	22.0
+2	33.0
+3 	NaN
+dtype: float64
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [series_+]: Operador + sobre `Series`]
+
+El operador `–` funciona de forma similar, pero restando los valores de los elementos cuyo índice aparece en ambas series.
+
+Con ambos operadores, es posible acabar con valores perdidos (missing values) si hay elementos únicos en cualquiera de las series. Para estos casos, y para el caso general de filtrar los datos, pandas ofrece funciones para detectar dichos valores. `pd.isnull(<serie>)` retorna una serie cuyos valores corresponden a `True` si el valor de la `<serie>` es nulo, y `False` si no lo es. Un caso práctico es sustituir los valores perdidos de una serie con un valor fijo. Para ello, se utiliza el resultado de `pd.isnull()` para filtrar elementos de una serie y asignar un valor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+serie1 = pd.Series([1,2,3,np.NaN])
+serie1[ pd.isnull(serie1) ] = 0
+print(serie1)
+
+Output:
+0     1.0
+1     2.0
+2     3.0
+3     0.0
+dtype: float64
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [series_isnull]: Uso de `pd.isnull` para filtrar y reemplazar valores nulos en una serie]
+
+La función `pd.notnull(<serie>)` es equivalente pero contraria (retorna `True` cuando el elemento no es nulo).
+
+DataFrame
+--------------------------------------------------------------
+
+Para trabajar con datos tabulares (filas y columnas), pandas incluye la versátil estructura `DataFrame`. Un `DataFrame` o `frame` se puede entender como una colección de `Series` (columnas), todas compartiendo un listado de índices únicos. La forma más común de crear un frame es con un diccionario en el que cada clave se asocia a un listado de elementos de igual longitud.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+diccionario = { "nombre" : ["Marisa","Laura","Manuel"], "edad" : [34,29,11] }
+frame = pd.DataFrame(diccionario)
+
+Output:
+   nombre  edad
+0  Marisa	34
+1   Laura	29
+2  Manuel   11
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe]: Crear `DataFrame` desde un diccionario]
+
+Como se puede observar, la clave se utiliza como nombre de cada columna (`serie`), y cada elemento se asocia a una fila en función del índice. Cada columna puede tener un tipo de elemento (en este caso, `nombre` tiene tipo string y `edad` el tipo int).
+
+Como ocurre con `Series`, en las que se puede especificar el listado a utilizar como índice, en `DataFrames` se puede pasar un listado de nombres para columnas con el argumento `columns` en el constructor. Esto sirve también para determinar el orden de las columnas en el `frame`, `pd.DataFrame(<diccionario>,columns=<listado de columnas>)`.
+
+Implícitamente, pandas automáticamente detecta si una clave en el diccionario aparece en el listado de columnas, cuando el nombre de la columna no aparece como clave, pandas crea una nueva columna en el `frame` con valores `NaN` para todas las filas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+diccionario = {"nombre" : ["Marisa","Laura","Manuel"], "edad" : [34,29,11] }
+frame = pd.DataFrame(diccionario, columns = ['Nacionalidad', 'nombre', 'edad', 'profesion'] )
+
+Output:
+# frame contiene lo siguiente
+  Nacionalidad  nombre  edad profesion
+0 NaN           Marisa  34   NaN
+1 NaN           Laura   29   NaN
+2 NaN           Manuel  11   NaN
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_index]: Crear `DataFrame` desde un diccionario con columna extra en índices]
+
+Una vez creado el `frame`, se puede acceder a cada una de sus columnas por separado utilizando como índice el nombre de la columna, bien con corchetes (`<frame>['columna']`) o directamente (`<frame>.columna`). En el ejemplo anterior, se puede acceder a la columna edad con `frame['edad']` o `frame.edad`.
+
+Con frecuencia, los `DataFrames` pueden tener miles o millones de entradas, por lo que a veces es conveniente, para explorar los datos, observar solo los primeros casos, con '<frame>.head()'.
+
+Añadir datos a un `frame` es sencillo y análogo a como se hace en diccionarios o `ndarrays`.  Para cambiar los elementos de una columna, se asigna directamente con `<frame>['columna'] = <valor>`. Si la columna no existe, se creará una nueva. Si ya existe, los elementos se sustituyen con `<valor>` (si la columna ya existe, también se puede asignar directamente con `<frame>.columna`). Nótese que el valor puede ser un elemento simple (numérico, texto, etc.), pero también puede ser una `Series`, de modo que se puede inicializar el valor de cada fila en la tabla.
+
+Para eliminar columnas, se puede utilizar el comando `del <frame>[‘columna’]` o utilizar el método `<objeto>.drop(<índices>)`, válido tanto para `Series` como para `DataFrame`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+d_and_d_characters = {'Name' : ['bundenth','theorin','barlok'], 'Strength' : [10,12,19], 'Wisdom' : [20,13,6]}
+character_data = pd.DataFrame(d_and_d_characters)
+print(‘Original data’)
+print(character_data)
+vitality_data = pd.Series([11,10,14])
+character_data['vitality'] = vitality_data
+character_data['alive'] = True
+print(‘Modified data’)
+print(character_data)
+del character_data['alive']
+print(‘Final data’)
+print(character_data)
+
+Output:
+Original data
+   Name     Strength  Wisdom
+0  bundenth 10        20
+1  theorin 12         13
+2  barlok  19         6
+Modified data
+   Name     Strength  Wisdom  vitality  alive
+0  bundenth 10        20      11        True
+1  theorin  12        13      10        True
+2  barlok   19        6       14        True
+Final data
+   Name     Strength  Wisdom  vitality
+0  bundenth 10        20      11
+1  theorin  12        13      10
+2  barlok   19        6       14
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_data]: Creación y manipulación de un `DataFrame`]
+
+`<frame>.values` retorna los datos del `frame` en formato lista; cada elemento es una fila de la tabla original, cada elemento de la cual toma el valor de la fila en la columna correspondiente. En el ejemplo de los personajes de `Dungeons and Dragons`, `character_data.values[0]` retorna `['bundenth',10,20,11]`. Acceder a los values puede ser útil para iterar sobre todos los elementos de una fila.
+
+Como si de una matriz se tratara, se puede acceder al `DataFrame inverso` (cambiar filas por columnas y viceversa) con `<frame>.T`.
+
+Trabajo con Series y DataFrame
+--------------------------------------------------------------
+
+En esta sección se van a ver funcionalidades en pandas que se pueden aplicar tanto a objetos `Series` como `DataFrame`, como búsqueda de elementos, eliminación de datos, indexación, slicing y reindexación.
+
+### Búsqueda
+
+El método `<objeto>.isin(<lista>)` retorna una `serie` o `frame` (dependiendo del tipo de `<objeto>`) máscara, de las mismas dimensiones que `<objeto>` pero con el valor de cada elemento siendo `True` si el valor original se encuentra dentro de `<lista>` y `False` si no está presente. De forma más específica, se puede obtener una máscara con los elementos que son nulos (`<objeto>.isnull()`) o `NaN` (`<objeto>.isna()`).
+
+También se pueden formular `queries` para determinar si una fila (búsqueda por índice) o columna (búsqueda por columna) existe, del mismo modo que se hace con los diccionarios o las listas. Por ejemplo, `'Carlos' in obj.index` retorna `True` si hay una entrada con índice Carlos en `obj`. Para buscar columnas, se puede hacer a través del listado `<frame>.columns`, por ejemplo, `'age' in frame.columns`.
+
+### Indexación y slicing
+
+Como se mencionó en la sección de `Series`, tanto indexación como slicing en pandas funcionan de forma análoga a como lo hacen en NumPy. En el caso de `Series`, es posible indexar por posición (como en NumPy o colecciones Python) o por referencia (utilizando el índice semántico de la serie). Por ejemplo, en la `serie = pd.Series([3,43,12],index=['first','second','third'])`, se puede acceder al primer valor con `serie[0]` y con `serie['first']`.
+
+En el caso de `DataFrame`, solo es posible indexar por referencia (por nombre de la columna), retornando una serie con los valores de la columna especificada.
+
+Tanto en `DataFrame` como en `Series`, es posible que haya lugar a ambigüedades cuando se indexa con números enteros, `objeto[0]` puede ser interpretado como índice posicional (acceder al primer valor) o índice semántico (acceder al valor con índice 0). Por ello, pandas siempre interpreta un número entero como índice posicional. Para desambiguar estas situaciones, pandas ofrece dos métodos, `<objeto>.loc[X]` accede al elemento con índice semántico X, mientras que `<objeto>.iloc[X]` accede al elemento con índice posicional X.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+frame = pd.DataFrame({"Name" : ['Carlos','Pedro'], "Age" : [34,22]}, index=[1,0])
+print(‘Frame’)
+print(frame)
+print(‘Primera fila’)
+print(frame.iloc[0])
+print(‘Elemento con index 0’)
+print(frame.loc[0])
+
+Output:
+Frame
+   Name    Age
+1  Carlos  34
+0  Pedro   22
+Primera fila
+Name Carlos
+Age  34
+Name: 1, dtype: object
+Elemento con index 0
+Name  Pedro
+Age   22
+Name: 0, dtype: object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_loc]: El output es diferente para `loc` e `iloc` cuando el índice semántico y el posicional no coinciden]
+
+Listing [dataframe_loc] muestra la diferencia de resultados con ambos métodos. Nótese que a través del método `iloc` es posible indexar posicionalmente un `DataFrame`. En el caso de `DataFrame`, es posible definir a qué eje `iloc` o `loc` hacen referencia mediante el argumento axis (0 para filas, 1 para columnas). Así, `frame.iloc(axis=1)[0]` retorna los datos de la primera columna de frame.
+
+De la misma forma que se puede indexar por posición o referencia, pandas permite hacer slicing con índices ordinales y semánticos. El slicing con índices posicionales funciona de manera idéntica al resto de colecciones en Python. Slicing con índices semánticos es similar, pero con la peculiaridad de que se incluyen ambos extremos del rango (al contrario que con los posicionales, en los que el elemento de la derecha no se incluye). La forma general de slicing con índices semánticos es `<objeto>[<index1>:<index2>:<step>]`.
+
+Slicing con índices semánticos funciona directamente con `Series` pero no con `DataFrame`. Para `DataFrame`, se puede hacer slicing posicional o semántico empleando los métodos `loc` e `iloc`, pero, en vez de utilizar un solo índice como en Listing [dataframe_loc], se define una slice. Por ejemplo, en el `frame` definido en Listing [dataframe_loc], los siguientes comandos obtienen los siguientes resultados definidos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+frame.iloc(axis=1)[0]     # primera columna (nombres)
+frame.loc(axis=1)["Name"] # primera columna (nombres)
+frame.iloc(axis=0)[1:]    # segunda fila (“pedro”, 22)
+frame.loc(axis=0)[1:]     # filas a partir del índice semántico 1 (“carlos” y “pedro”)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_iloc]: Slicing sobre Dataframe]
+
+`loc` e `iloc` son útiles para filtrar columnas si se desea trabajar solo con un subconjunto de ellas. En general, se utiliza `<frame>.iloc[X,Y]` para obtener los elementos con filas X y columnas Y (ambos pueden ser listas). `<frame>.loc[X,Y]` funciona de manera análoga pero con índices semánticos. Por ejemplo, en el frame de D&D de Listing [dataframe_data], se pueden obtener solo las columnas Strength y Vitality con `character_data.loc[:,['Strength', 'Vitality']]`, o todas las columnas desde Name hasta Wisdom con `character_data.loc[:, 'Name':'Wisdom']`.
+
+Como en NumPy, es posible la indexación condicional, muy útil para la filtración o detección de datos. Por ejemplo, se pueden obtener las filas de los elementos mayores de edad con el comando `frame[ frame[“Age”] > 18]`. En general, al utilizar índices condicionales, Python retorna los elementos para los que la condición es True.
+
+Por último, es posible utilizar índices posicionales y semánticos para eliminar datos de una `serie` o `frame` a través del método ya mencionado `<objeto>.drop(<índices>)`.
+
+### Ordenación de Series y DataFrame
+
+Hay diversas formas de ordenar `series` y `frames`:
+
+- `<objeto>.sort_index()` ordena el objeto alfabéticamente según el índice de cada elemento. Argumentos opcionales `axis=0` o 1 y `ascending=True` o `False`
+- `<serie>.sort_value()` es similar a `sort_index()`, pero se utiliza el valor de cada elemento para ordenar
+- `<frame>.sort_values(by=<columna>)` ordena las filas con respecto al valor en la `<columna>` de cada elemento. Acepta `ascending`.
+
+Además de reordenar las estructuras, pandas puede ordenar categóricamente objetos asignando un valor ordinal a cada elemento. Esto es de utilidad cuando se desea hacer un ranking de valores. El método `<objeto>.rank()` retorna un objeto (`frame` o `serie`) en el que cada elemento es la posición que este ocupa en relación con el resto de su columna.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+rand_matrix = np.random.randint(6,size=(2,3))
+frame = pd.DataFrame(rand_matrix , columns=list('ABC'))
+print(frame)
+print(frame.rank())
+
+Output:
+A  B  C
+0  4  4  1
+1  1  3  5
+
+A    B    C
+0  2.0  2.0  1.0
+1  1.0  1.0  2.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_rank]: Rank de un Dataframe]
+
+Como en todas las funciones de ordenación, `rank()` acepta el argumento opcional `ascending`.
+
+Operaciones con Series y DataFrame
+--------------------------------------------------------------
+
+Los objetos en pandas (`series` y `frames`) incluyen métodos aritméticos para sumar, restar, dividir, multiplicar, elevar a potencia,... entre objetos del mismo tipo. Este es un listado de algunos de los métodos aritméticos más comunes y su símbolo equivalente.
+
+- `<objeto1>.add(<objeto2>) == <objeto1> + <objeto2>`
+- `<objeto1>.sub(<objeto2>) == <objeto1> - <objeto2>`
+- `<objeto1>.mul(<objeto2>) == <objeto1> * <objeto2>`
+- `<objeto1>.div(<objeto2>) == <objeto1> / <objeto2>`
+
+Internamente, pandas compara los elementos de los objetos de la operación y, si está presente en ambos, el resultado es la aplicación del operando. Si el elemento solo aparece en uno, se añade un nuevo elemento al resultado con valor `NaN`. Si se prefiere, se puede cambiar el comportamiento por defecto de rellenar con `NaN`. Para ello, se pasa el argumento `fill_value=<valor>` a cualquiera de los métodos. Por ejemplo, `serie1.add(serie2,fill_value=0)` rellenará las casillas donde no se puede aplicar la suma con 0.
+
+Nótese que, al aplicar una operación a un `frame` o una `serie`, la operación debe estar definida y, por lo tanto, ser válida para el tipo de elemento contenido en el objeto. Es decir, para sumar dos `Series`, el operador `+` debe estar definido para el tipo de elemento en la `Series`. Si el tipo de objeto es string, nótese que el signo `+` está definido como concatenación y es válido, pero el signo `-` no lo es, de modo que Python retornará un error `unsupported operand type(s) for -: 'str' and 'str'`.
+
+A los operadores aritméticos se les suman otros operadores, como los operadores lógicos.
+
+- `<objeto1> or <objeto2>`
+- `<objeto1> not <objeto2>`
+
+Es técnicamente posible aplicar operaciones aritméticas entre `Series` y `DataFrame`, para lo que pandas alinea basándose en el índice para ejercer la operación. Un uso común es, por ejemplo, ver la diferencia de una fila en un `DataFrame` respecto al resto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+rand_matrix = np.random.randint(10, size=(3, 4))
+print(rand_matrix)
+df = pd.DataFrame(rand_matrix , columns=list('ABCD'))
+print(df - df.iloc[0])
+
+Output:
+[[5 4 2 8]
+ [5 1 1 3]
+ [6 3 3 7]]
+
+   A  B  C  D
+0  0  0  0  0
+1  0 -3 -1 -5
+2  1 -1  1 -1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_minus]: Ejemplo de operación aritmética entre un `frame` y una `serie`]
+
+Se puede ver un ejemplo de ello en Listing [dataframe_minus]. Como se vió en el capítulo sobre NumPy, este tipo de operaciones entre elementos bidimensionales y unidimensionales es posible gracias al broadcasting.
+
+Como pandas está construido sobre NumPy, todas las operaciones unarias y binarias descritas anteriormente son aplicables a series y frames.
+
+Otra herramienta muy versátil es la aplicación de funciones `lambda` a `series` y `frames` mediante el método `<objeto>.apply(<función_lambda>)`. Por defecto, la función `lambda` será aplicada columna por columna, aunque se puede pasar el argumento `axis` para definir el objetivo (0 para filas, 1 para columnas).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+rand_matrix = np.arange(12).reshape(3, 4)
+frame = pd.DataFrame(rand_matrix , columns=list('ABCD'))
+print(frame)
+frame.apply(lambda x : x.max() - x.min())
+print(frame)
+
+Output:
+A  B   C   D
+0  0  1   2   3
+1  4  5   6   7
+2  8  9  10  11
+
+A  8
+B  8
+C  8
+D  8
+dtype: int64
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dataframe_lambda]: Uso de `lambda` para averiguar la diferencia entre valores en cada columna de un `frame`]
+
+En Listing [dataframe_lambda] se muestra un ejemplo de la utilización de funciones `lambda` para calcular la diferencia entre el valor máximo y mínimo en cada columna.
+
+Estadística con Series y DataFrame
+--------------------------------------------------------------
+
+Para entender mejor los datos que se poseen, es muy útil la exploración. pandas ofrece varios métodos de estadística sumaria para `Series` y `DataFrame` que ayudan a ver los datos en su conjunto.
+
+- `<objeto>.sum()` retorna el valor acumulado de todos los valores (en `series`) o por columna (en `frames`). Acepta el argumento `axis` para determinar si la suma se hace por fila o columna
+- `<objeto>.mean()` retorna lo mismo que sum pero con la media de valores
+- `<objeto>.cumsum()` retorna una suma acumulativa por elementos. Cada elemento es el valor acumulado de los elementos precedentes
+- `<objeto>.idxmin()` y `<objeto>.idxmax()` retorna el índice semántico (fila) del elemento menor o mayor de cada columna
+
+Algunos de los métodos de estadística sumaria más importantes para `series` y `dataframes` son:
+
+| Operación | Descripción |
+|:----------|:------------|
+| `count` | Número de valores no `NaN` |
+| `describe` | Conjunto de estadísticas sumarias|
+| `min`, `max` | Valores mínimo y máximo |
+| `argmin`, `argmax` | Índices posicionales del valor mínimo y máximo |
+| `idxmin`, `idxmax` | Índices semánticos del valor mínimo y máximo |
+| `sum` | Suma de los elementos |
+| `mean` | Media de los elementos |
+| `median` | Mediana de los elementos |
+| `mad` | Desviación absoluta media del valor medio |
+| `var` | Varianza de los elementos |
+| `std` | Desviación estándar de los elementos |
+| `cumsum` | Suma acumulada de los elementos |
+| `diff` | Diferencia aritmética de los elementos |
+[Table [pandas_stats]: Métodos más comunes de estadística descriptiva para `Series` y `DataFrame`]
+
+Además de la estadística descriptiva, pandas reúne métodos para entender la relación matemática entre dos conjuntos de valores.
+
+- `<serie1>.corr(serie2)`, correlación entre las dos `series` [-1,1]
+- `<frame>.corr()`, matriz de correlación en el frame. Mide la variación entre columnas
+- `<frame1>.corrwith(<frame2>)`, grado de correlación entre `frames`. Acepta el argumento `axis` para determinar la base de la comparación (0 filas, 1 columnas).
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

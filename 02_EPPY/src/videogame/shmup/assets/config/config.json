@@ -1,0 +1,66 @@
+{
+    "game" : {
+        "screen_size" : [480, 640],
+        "title" : "Shmup Videogame",
+        "background_color" : [0, 101, 200],
+        "foreground_color" : [255,255,255]
+    },
+    "timing" : {
+        "fps" : 60,
+        "time_per_frame" : 16,
+        "fps_pos" : [0,0],
+        "refresh_stats_time" : 1000
+    },
+    "font" : {
+        "name" : "Sansation",
+        "file" : ["shmup.assets.fonts", "Sansation.ttf"],
+        "size" : 20
+    },
+    "entities" : {
+        "name" : "entities",
+        "image_file" : ["shmup.assets.images", "entities.png"],
+        "data_file" : ["shmup.assets.images", "entities.json"],
+
+        "hero" : {
+            "speed" : 0.4,
+            "name" : "eagle",
+            "name_left" : "eagle_left",
+            "name_right" : "eagle_right",
+            "percent_collider" : [-0.60, -0.20],
+            "cool_down_time" : 300
+        },
+        "projectiles" : {
+            "allied" : {
+                "name" : "allied_bullet",
+                "velocity" : [0.0, -0.2]
+            },
+            "enemy" : {
+                "name" : "enemy_bullet",
+                "velocity" : [0.0, 0.3]
+            }
+        },
+        "enemies" : {
+            "percent_collider" : [-0.30, -0.30],
+            "spawn_prob" : 0.01,
+            "avenger" : {
+                "name" : "avenger",
+                "speed" : 0.2,
+                "fire_rate" : 0.01
+            },
+            "raptor" : {
+                "name" : "raptor",
+                "speed" : 0.1,
+                "fire_rate" : 0.05
+            }
+        }
+    },
+    "debug" : {
+        "collider_color" : [255,0,0],
+        "render_color" : [0,255,0]
+    },
+    "intro" : {
+        "pos_label" : [100,100],
+        "pos_key" : [140,200]
+    }
+
+}

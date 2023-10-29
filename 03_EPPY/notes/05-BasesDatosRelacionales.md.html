@@ -1,0 +1,416 @@
+<meta charset="utf-8">
+**03EPPY - 05 - Bases de Datos Relacionales**
+    <small>©2022 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# ¿Qué es una base de datos relacional?
+
+Una base de datos relacional es un tipo de base de datos que almacena datos relacionados entre sí. Cumple con el modelo relacional, por lo que tiene una forma intuitiva y directa de representar datos sin necesidad de jerarquizarlos.
+
+La **tabla**, concepto clásico de la organización de la información, es el formato que utiliza el modelo relacional para explicar de un modo visual la ordenación de los valores de una tupla en función de los atributos definidos en la relación. Una base de datos relacional no es otra cosa, entonces, que un conjunto de tablas interrelacionadas.
+
+Las filas de la tabla se denominan **tuplas** y las columnas se denominan **atributos**, denominándose al conjunto de estos, **esquema**. Cada registro almacenado en una tupla generalmente tiene un **valor** para cada atributo. Así mismo, cada uno de estos registros tiene un id único denominado **clave**. El nombre de la tabla o **relación** es el conjunto de tuplas que comparten los mismos atributos.
+
+![](res/05/bdr_estruc_db_rel.png)
+
+En el ejemplo sencillo de una tabla con los datos de los clientes de una empresa se vería así:
+
+![](res/05/bdr_ej_estruc_db_rel.png)
+
+A cada cliente se le asigna un ID (o registro), que a su vez contiene información sobre cada cliente individual.
+
+La idea principal de una base de datos relacional es tener una colección de datos organizados en un conjunto de tablas formalmente descritas, desde donde se puede trabajar sobre los datos de maneras diferentes sin tener que reorganizar las tablas, gracias a la relación que existe entre ellas.
+
+Siguiendo el ejemplo anterior, supongamos que un cliente tiene dos direcciones. En tal caso la tabla quedaría de la siguiente manera:
+
+![](res/05/bdr_ej_cl_2dir.png)
+
+Si, por ejemplo, tuvieramos que cambiar el dato del nombre, habría que cambiarlo en todas las tuplas que guarden información de este cliente. Para evitar esto, una organización más óptima de esta base de datos sería la siguiente:
+
+![](res/05/bdr_ej_dos_tablas.png)
+
+## Características 
+
+- Una de las principales características de la base de datos relacional es que **evitar la duplicidad** de registros y a su vez garantizar la **integridad referencial**, es decir, que si se elimina uno de los registros, la integridad de los registros restantes no será afectada. 
+
+- La relación entre tablas se lleva a cabo a través de claves primarias y claves ajenas.
+
+- Para poder almacenar, administrar, consultar y recuperar los datos guardados en la base de datos relacional es necesario emplear un software específico, denominado **sistema de gestión de bases de datos relacionales** (RDBMS). Este software proporciona una interfaz entre los usuarios y/o las aplicaciones y la base de datos, además de contar con funciones administrativas para gestionar el acceso, almacenamiento y rendimiento. 
+
+# Modelo Relacional
+
+La mayoría de los SGBD comerciales actuales están basados en el modelo relacional. Los motivos del éxito del modelo relacional son fundamentalmente dos: 
+
+1. Se basan en el álgebra relacional que es un modelo matemático con sólidos fundamentos. Ofrecen sistemas simples y eficaces para representar y manipular los datos. 
+
+2. La estructura fundamental del modelo relacional es precisamente esa, la *relación*, siendo esta una tabla bidimensional constituida por filas y columnas.
+
+En realidad, una *RELACIÓN* es sólo la definición de la estructura de la tabla, es decir, su nombre y la lista de los atributos que la componen. Por ejemplo:   
+
+    ![](res/05/bdr_estruc.png)
+
+## Historia del Modelo Relacional
+
+El modelo relacional para las bases de datos nació en 1969 y fue creada por el matemático y teórico de bases de datos Edgar Frank Codd cuando trabajaba para IBM.
+
+![](res/05/bdr_edgar_codds.png)
+
+Se dió a conocer en 1970 en un artículo llamado “A Relational Model of Data for Large Shared Data Banks” en la revista Communications of the ACM(Vol. 13, No. 6, Junio de 1970, pp. 377–87).
+
+A partir de ese momento poco a poco fue cambiando la forma de establecer las bases de datos y en la actualidad la mayoría del software de bases de datos utiliza este modelo. 
+
+Para definir los atributos de una relación y el tipo de dato (dominio) permitido para estos valores, se utiliza un esquema con esta sintaxis:
+
+*R = (A1:D1, A2:D2,… , An:Dn)*
+
+Aquí, la relación R comprende de los atributos A1 a An y cada atributo corresponde a un tipo de dato o dominio (D1, D2 , etc.).
+
+Veámos un ejemplo concreto. El siguiente esquema define los atributos de la relación *Empleados*:
+    
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Empleados = ( e_ID : integer, 
+                  1er apellido : string
+                  2º apellido : string, 
+                  nombre : string, 
+                  nº SS : string, 
+                  calle : string, 
+                  CP : string,
+                  municipio : string  
+                )
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A cada atributo le corresponde un tipo de dato, *string* o *integer*, lo que indica que hay atributos que esperan cómo valor una secuencia de caracteres (string) y otros que solo aceptan números enteros (integer).
+
+Una relación con el esquema explicado arriba podría contener la siguiente tupla (fila):
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(1, García, Fernández, Antonio, 32 12345678 12, Calle Principal 1, 11111, Villarriba)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+En el siguiente ejemplo se muestra una tabla tal como resultaría:
+
+![](res/05/dbrel_ej.png)
+
+    ### Las 12 reglas de Codd
+    
+    Preocupado por los productos que decían ser sistemas gestores de bases de datos relacionales (RDBMS) sin serlo, en 1985 Codd publica 12 reglas que debe cumplir todo Sistema Gestor de Bases de Datos para ser considerado relacional.
+
+    Las doce reglas en la práctica las cumplen pocos sistemas relacionales, pero sí los mejores. El interés actual de estas reglas, cuando el propio modelo relacional se está revisando, es que permiten detallar la manera de funcionar de un sistema de bases de datos relacional.
+
+    Las reglas son:
+
+    **[1] Información**. Toda la información de la base de datos (metadatos) debe estar almacenada explícitamente en el esquema lógico. Es decir, todos los datos se almacenan en las tablas base del sistema. Dicho de otro modo: no pueden existir datos a los que tengamos que acceder por una vía diferente a la de las tablas del modelo relacional.
+
+    **[2] Acceso garantizado**. Todo dato en la base de datos es accesible sabiendo el valor de su clave principal y el nombre de la columna o atributo que contiene el dato. No hace falta saber, por ejemplo, ni el número de fila ni el de columna. Esto implica que todas las tablas tienen que tener identificador y eso nos permite acceder a una fila concreta; la columna es accesible por su nombre y no por el orden que tiene.
+
+    **[3] Tratamiento sistemático de los valores nulos**. El DBMS (Sistema Gestor de bases de datos) debe permitir el tratamiento adecuado de estos valores. Esto significa que los valores nulos se manejan como una información más de la base de datos; se podrá utilizar como información en sí y por lo tanto operar con estos valores no producirá error alguno. Se permitirá realizar operaciones lógicas y de todo tipo con ellos, haciendo que el resultado sea coherente.
+
+    **[4] Catálogo en línea basado en el modelo relacional**. El catálogo en línea es otro nombre para el diccionario de datos. Esta regla indica que los metadatos deben de ser accesibles usando un esquema relacional. Es decir la forma de acceder a los metadatos es la misma que la forma de acceder a los datos. Dicho de otra forma, también los metadatos se almacenan en tablas.
+
+    **[5] Sublenguaje de datos completo**. Al menos, debe de existir un lenguaje que permita el manejo completo de la base de datos. Mediante este lenguaje podremos realizar cualquier operación sobre la base de datos, sea del tipo que sea.
+
+    **[6] Actualización de vistas**. El SGBD debe encargarse de que las vistas muestren la última información. En ningún caso las vistas mostrarán información obsoleta. Esto implica una enorme potencia por parte del Sistema Gestor de Bases de Datos.
+
+    **[7] Inserciones, modificaciones y eliminaciones de alto nivel**. Cualquier operación de modificación debe actuar sobre conjuntos de filas o registros, nunca deben actuar registro a registro. Por lo tanto los lenguajes no pueden ser lenguajes que normalmente utilizarían recorridos fila a fila y bucles para modificar los datos, provocando un manejo menos humano de la base de datos.
+
+    **[8] Independencia física**. El esquema lógico y los externos (las aplicaciones de usuario) no se deben modificar por los cambios que se realicen en la base de datos física. Es decir aunque, por ejemplo, cambiemos el nombre de un fichero de la base de datos, por ejemplo, no tendremos que modificar ni los programas de los usuarios ni siquiera la lógica (las tablas) de la base de datos.
+
+    **[9] Independencia lógica**. Los cambios en la lógica de la base de datos (en las tablas), no afectan a la forma en la que el usuario accede a la base de datos. Es decir, las aplicaciones de usuario son independientes de la propia lógica. Esta independencia en la práctica no se consigue tan fácilmente como la anterior.
+
+    **[10] Independencia de integridad**. Las reglas de integridad deben almacenarse en la base de datos (en el diccionario de datos), no en los programas de aplicación. Eso permite que dichas reglas sobre los datos se cumplan siempre independientemente de la forma de acceder a los mismos.
+
+    **[11] Independencia de la distribución**. El sublenguaje de manipulación de datos (DML) debe permitir que sus instrucciones funcionen igualmente en una base de datos distribuida que en una que no lo es. Los programas y aplicaciones de usuarios se crean de la misma forma. Es decir las bases de datos distribuidas permiten trabajar en ellas como si fueran una base de datos normal y local.
+
+    **[12] No subversión**. Si el SGBD dispone de un lenguaje de bajo nivel, este lenguaje no se puede saltar ninguna regla de las anteriores. Puede que facilite la realización de tareas este tipo de lenguaje, pero en ningún caso podrá trabajar con los datos de forma incompatible con el modelo relacional.
+
+    ## Elementos y propiedades del modelo relacional
+
+    - **Relación**: representan las entidades de las que se quiere almacenar información en la base de datos. Esta formada por:
+
+        - **Registros** o **Tuplas**: corresponden a cada ocurrencia de la entidad.
+
+        - **Atributos** o **Campos**: corresponden a las propiedades de la entidad. 
+
+        - Las relaciones tienen las siguientes **propiedades**:
+            - No existen dos relaciones con el mismo nombre.
+            - No hay dos atributos que se llamen igual en la misma relación.
+            - Los atributos no están ordenados, el orden no importa.
+            - No hay tuplas duplicadas (como mínimo se diferenciarán en la clave principal).
+            - Las tuplas no están ordenadas.
+
+    - **Clave Candidata**: atributo que identifica unívocamente una tupla. Cualquiera de las claves candidatas se podría elegir como clave principal.
+
+    - **Clave Principal** o **Primaria** (Primary Key -> PK): clave candidata que elegimos como identificador de la tuplas.
+
+    - **Clave Alternativa**: toda clave candidata que no es clave primaria (las que no hayamos elegido como clave principal).
+
+    - **Integridad de la entidad**: una clave principal no puede asumir el valor nulo.
+
+    - **Dominio de un atributo**: Conjunto de valores que pueden ser asumidos por dicho atributo.
+
+    - **Clave Externa** o **Foránea** o **Ajena** (Foreign Key -> FK): el atributo o conjunto de atributos que forman la clave principal de otra relación. Que un atributo sea clave ajena en una tabla significa que para introducir datos en ese atributo, previamente han debido introducirse en la tabla de origen (Integridad Referencial).
+    
+    ![](res/05/bdr_prop_mod.png)    
+
+    ## Términos formales del modelo relacional
+
+    Existen una serie de términos formales que se corresponden con expresiones informales. Conviene conocerlos para así familiarizarse con ellos. En la práctica suelen usarse las expresiones sencillas, más fáciles de entender.
+    
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        TÉRMINO FORMAL ---> TÉRMINO INFORMAL 
+              relación ---> tabla  
+                 tupla ---> fila/registro
+              atributo ---> columna/campo
+          cardinalidad ---> número de filas/registros 
+                 grado ---> número de columnas/campos
+        clave primaria ---> identificador único
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# De Modelo Entidad-Relación a Modelo Relacional
+
+Recordemos que el diseño de una base de datos consiste en extraer todos los datos relevantes de un problema y que sus fases son:
+
+    1. **Análisis de requerimientos**. Se recopila información como los datos que se quieren almacenar, los usuarios de la base datos y sus necesidades a la hora de acceder a dichos datos. El posterior análisis de esta información determinará el diseño de la base de datos.
+        
+    2. **Diseño conceptual**. Se crea una descripción a alto nivel de la base de datos, siguiendo el modelo entidad-relacion y definiendo las entidades, atributos y relaciones.
+
+    3. **Diseño lógico**. Traduce el diseño conceptual en la que va a ser la estructura de la base de datos, definiendo las tablas, con sus filas y columnas, y las relaciones en nuestro caso, ya que vamos a seguir un modelo relacional.
+
+    4. **Diseño físico**. Define la estructura de la base de datos de forma física, es decir, en forma de código. En nuestro caso, SQL.
+
+    5. **Implementación**. Creación y compilación para generar los ficheros y aplicaciones que permiten el uso práctico de la base de datos.
+
+En este punto nos vamos a centrar en la fase 3. Para realizar esta fase se recorren los elementos del modelo obtenido en la fase anterior de diseño conceptual y se van transformando en su correspondiente elemento en el nuevo modelo relacional que hay que construir.
+
+## Paso 1. Entidades
+
+Cada una de las entidades (fuertes y débiles) del diagrama E/R genera una tabla.
+
+Ejemplo: las entidades del siguiente diagrama E/R: 
+      
+    ![](res/05/bdr_ej_modrel.png)
+
+generan las siguientes tablas en el Modelo Relacional:
+
+    ![](res/05/bdr_mr_entidad.png)
+
+## Paso 2. Atributos
+
+- El **atributo identificativo** (o identificadores) de la entidad pasa a ser la **clave principal** de la relación y aparece subrayada o con la indicación: **PK** (Primary Key). 
+
+![](res/05/bdr_mr_pk.png)
+
+- Cada uno de los **atributos descriptivos** pasa a ser un **campo**/**columna** de la tabla.
+
+![](res/05/bdr_mr_cols.png)
+
+- **Atributos compuestos**: Se transforma en los atributos simples (campos) que componen el atributo compuesto, desapareciendo este como tal de la relación.
+
+![](res/05/bdr_mr_comp.png)
+
+- Por cada **atributo multivaluado** (ya sea de entidad o de relación) se crea una **tabla**.
+    - Se crea un atributo para el multivaluado.
+    - Se agregan atributos que representan la clave primaria de la tabla o relación a la cual pertenece el multivaluado.
+    - La clave primaria está formada por todos sus atributos.
+
+![](res/05/bdr_mr_multiv.png)
+
+- **Atributos derivados**: No formaran parte del modelo relacional resultante, quedando eliminados en esta parte del diseño.
+
+    - **Ejemplo**: en el modelo E/R del ejemplo el campo *Edad* puede calcularse a partir del campo *Fecha Nacimiento*, por lo que no es necasario incluirlo en el modelo relacional. 
+
+- Si existe una **entidad débil** se incluyen como atributos los de la clave primaria de la tabla que representa a la entidad fuerte. Su clave primaria la conforman la clave primaria de la tabla que representa a la entidad fuerte + atributo/s identificativos de esta entidad débil.
+
+![](res/05/05_mr_entdeb.png)
+
+## Paso 3. Relaciones
+
+Se deben elaborar los diagramas relacionales de tal forma que, posteriormente al introducir datos, no quede ninguna clave foránea a valor nulo (NULL). Para ello se siguen las reglas que se muestran a continuación.
+
+### Cardinalidad 1:1
+
+La relación 1:1, la cual relacionará cada ocurrencia de una entidad con una ocurrencia de la otra entidad y viceversa. En este caso se seleccionará una de las entidades y se le añadirá, como clave ajena, la clave primaria de la otra entidad.
+
+![.](res/05/bdr_mr_01_11_mer.png) 
+
+![](res/05/bdr_mr_11.png)
+
+<!--
+Por lo general no generan tabla. La clave primaria de una entidad pasará a formar parte de la tabla de la otra como un atributo.
+
+Se dan 3 casos:
+
+- Caso 1: Si **las dos entidades tienen participación (0,1)**, entonces se crea una nueva tabla para la relación. Poniendo una de las claves primarias como clave primaria de la nueva tabla y la otra clave primaria con restricción de valor único (UNIQUE: el valor de cada registro para este campo solo puede aàrecer una vez en la tabla).
+
+    ![](res/bdr_mr_01.png)
+
+    - En este caso *HOMBRE* tiene participación (0,1) y también *MUJER* tiene participación (0,1). En este caso se establece como clave primaria el campo que identifica a *MUJER* y una restricción de valor único en el campo que identifica a *HOMBRE*.
+
+- Caso 2: Si **alguna entidad, pero no las dos, participa con participación mínima 0 (0,1)**, entonces se pone la clave ajena en dicha entidad, para evitar en lo posible, los valores nulos.
+
+    ![](res/bdr_mr_01_11_mer.png)
+
+    Como *ALUMNOS* tiene participación mínima 0, incorporamos en ella, como clave foránea (FK), la clave de *ALUMNOS*.
+
+    ![](res/bdr_mr_01_11.png)
+
+- Caso 3: Si **tenemos una relación 1:1 y ninguna tiene participación mínima 0**, elegimos la clave principal de una de ellas y la introducimos como clave ajena en la otra tabla. Se elegirá una u otra forma en función de como se quiera organizar la información para facilitar las consultas. Los atributos propios de la relación pasan a la tabla donde se introduce la clave ajena.
+
+    ![](res/bdr_mr_11_mer.png)     ![](res/bdr_mr_11.png)
+-->
+
+### Cardinalidad 1:N
+
+En las relaciones 1:N, es decir, aquellas en las que cada ocurrencia de una entidad se relaciona con más de una de la otra entidad, pero las ocurrencias de la otra entidad sólo se relacionan con una de la primera entidad. La solución pasará por añadir, a la entidad que se encuentra al lado del **1** del vínculo, la clave primaria de la otra entidad como una clave ajena. Los atributos propios de la relación si los hubiera pasan a la tabla donde se ha incorporado la clave ajena.
+
+![.](res/05/bdr_mr_111nmer.png)
+
+![](res/05/bdr_mr_111n.png)
+
+
+<!--
+Por lo general no generan tabla. La clave primaria de la entidad que participa con cardinalidad 1 pasará a formar parte de la tabla de entidad que participa con cardinalidad N, y además pasará como un atributo.
+
+Se dan 2 casos:
+
+- Caso 1: Si la entidad del lado *1* presenta participación (0,1), entonces se crea una nueva tabla para la relación que incorpora como claves ajenas las claves de ambas entidades. La clave principal de la relación será sólo la clave de la entidad del lado *N*.
+
+    ![](res/bdr_mr_011n.png) 
+
+- Caso 2: Para el resto de situaciones, la entidad del lado *N* recibe como clave ajena la clave de la entidad del lado *1*. Los atributos propios de la relación pasan a la tabla donde se ha incorporado la clave ajena.
+
+    ![.](res/bdr_mr_111nmer.png)
+    
+    ![](res/bdr_mr_111n.png) 
+
+-->
+
+### Cardinalidad N:M 
+
+Las relaciones N:M, es decir, aquel en el que cada ocurrencia de una entidad se corresponde con varias de la otra entidad y viceversa. Es el caso más sencillo. Siempre generan tabla donde que incorpora como claves ajenas cada una de las claves primarias de las entidades que participan en la relación. 
+
+La **clave principal de esta nueva tabla está compuesta por las claves primarias de ambas entidades**. Es importante resaltar que no se trata de 2 claves primarias, sino de **una clave primaria compuesta por 2 campos**. Si hay atributos propios, pasan a la tabla de la relación.
+
+![](res/05/bdr_nm_mer_mr_teoria.png) 
+
+#### Posible problema
+
+Las reglas de transformación de Entidad-Relación a Modelo Relacional nos dicen que la relación *Comprar* genera una nueva tabla porque es una relación de cardinalidad N:M. Y que esta nueva tabla tiene como clave primaria las claves primarias de las dos entidades que participan en la relación.
+
+Pero, con esta solución podemos tener un problema en el caso de que un cliente compre el mismo producto en fechas diferentes. En este caso no podríamos almacenar esta información en la tabla porque se produciría un error de clave primaria.
+
+|   DNI     |   COD     |
+|-----------|-----------|
+|    1X     |    P1     |
+|    2A     |    P2     |
+|    1X     |    P1     |
+
+![](res/05/bdr_nm_error_pk.png) 
+
+Para solucionarlo podemos incluir el **atributo fecha** como parte de la clave primaria de la tabla, de modo que la clave primaria estaría compuesta por (*DNI*, *Codigo* y *Fecha*).
+
+o
+
+Creando un nuevo *atributo identificador* que sea un valor numérico con autoincremento y añadirlo a la clave primaria. Aunque sería suficiente dejar este identificador como único atributo de la clave primaria porque no dará error en ningún caso. 
+
+o
+
+Si fuese necesario registrar que el mismo *cliente* puede comprar *piezas* con el mismo código en *diferentes horas del mismo día*, habría que añadir el atributo **hora** a la clave primaria quedando esta (*DNI*, *Codigo*, *Fecha*,*Hora*), o reemplazar la columna fecha por **FechaHora**.
+
+![](res/05/bdr_nm_mer_mr.png) 
+
+En conclusión, para un mismo problema pueden haber diferentes posibles soluciones. La finalidad es que el modelo relacional resultante cumpla con las reglas de las bases de datos relacionales.
+
+El siguiente ejemplo muestra un caso en el que siendo cardinalidad N:M a priori no nos encontramos con este problema:
+
+![](res/05/bdr_nm_mer_mr_sinprob.png) 
+
+Pero, ¿qué pasa si un alumno repite curso?
+
+La finalidad del planteamiento de estos escenarios es entender que influye la interpretación del contexto en la solución final. Hay que tener en cuenta al Análisis de Requerimientos, peculiaridades del proyecto, ..., en resumidas cuentas, variables que pueden determinar que una solución deje de ser la más apropiada cuando en un principio lo era.
+
+### Relaciones Reflexivas. 
+
+#### 1:1
+
+No genera tabla. En la entidad se introduce dos veces el identificador, una como clave principal y otra como clave ajena. Se suele introducir una modificación en el nombre por diferenciarlas. 
+
+    ![.](res/05/05_11_reflex_mer.png) 
+
+    ![.](res/05/05_11_reflex_mr.png)  
+
+#### 1:N
+
+No genera tabla. El comportamiento es similar a la cardinalidad 1:N reflexiva, apareciendo el atributo identificador como clave principal y como clave ajena, con nombres diferentes. 
+
+    ![.](res/05/05_1n_reflex_mer.png) 
+
+    ![.](res/05/05_1n_reflex_mr.png)
+
+#### N:M
+
+Se genera tabla. La clave primaria estará formada por dos veces la clave principal de la tabla que se genera de la entidad, con dos nombres diferentes. Al mismo tiempo, serán claves ajenas a dicha tabla.
+
+![.](res/05/05_nm_reflex_mer.png) 
+
+![](res/05/05_nm_reflex_mr.png)
+
+<br>
+<br>
+
+Finalmente, el Modelo Relacional resultante del Modelo Entidad-Relación mostrado como ejemplo más arriba puede quedar de la siguiente manera:
+
+![](res/05/bdr_mr_teoria_alumnos.png) 
+
+# Simbología Alternativa
+
+![](res/05/05_simbol_mr.png)
+
+![](res/05/bdr_mr_card_altern.png)
+
+# Ejemplo - Biblioteca
+
+![.](res/05/05_ej_biblio_mer.png)
+
+![](res/05/05_ej_biblio_mr.png)
+
+# Ejercicios
+
+## Ejercicio 1 - Fábrica
+
+Obtener el Modelo Relacional a partir del Modelo E/R mostrado a continuación: 
+
+Una fábrica necesita resolver el almacenamiento de datos de su sistema de gestión de la producción. 
+
+La fábrica se compone de una serie de plantas, cada una identificada por un color. De las plantas conocemos la superficie en metros cuadrados y la lista de procesos que se llevan a cabo dentro de ellas; de estos procesos sólo conocemos su nombre y un grado de complejidad asociado.
+
+Dentro de cada planta se encuentran las máquinas. Cada máquina es de una marca y un modelo, y se identifica por un número; este número es único en toda la fábrica.
+
+Cada máquina es operada por técnicos, debemos conocer en qué rango de fechas los técnicos estuvieron asignados a esa máquina, y además en qué turno (mañana, tarde o noche). De los técnicos conocemos su DNI, nombre, apellido y fecha de nacimiento, aparte de una serie de números telefónicos de contacto.
+
+Existen situaciones en las que una máquina sale de servicio y debe ser reparada, lo único que nos interesa conocer aquí es cuál otra máquina está asignada para tomar el trabajo que ella no puede realizar y en que fecha.
+
+![](res/05/bdr_ej_fabrica.png)
+
+
+## Ejercicio 2 - Blog
+
+Obtener el Modelo Relacional a partir del Modelo E/R mostrado a continuación: 
+
+Una radio decide realizar un sistema de blogs para que cada uno de sus programas escriba notas que puedan resultar de interés a los oyentes. 
+
+En primer lugar contamos con los programas, de los mismos conocemos el nombre (único), descripción, la lista de conductores y un horario compuesto por las horas de inicio y fin. Estos programas son los que escriben las notas, de ellas conocemos su titulo (único), contenido, una imagen y un resumen de la misma para mostrar en los listados de notas. Un programa puede escribir muchas notas pero cada una esta escrita solo por un programa.
+
+Para diferenciar las notas en distintos grupos, el sistema cuenta con la posibilidad de asignar categorías a las mismas, pudiendo tener cada nota más de una categoría. De ellas conocemos el nombre (único), descripción y una imagen que la identifica. Una ventaja que tiene el sistema de categorías es que se pueden crear jerarquías muy fácilmente, esto quiere decir que una categoría puede pertenecer a otra, por ejemplo, podría existir la categoría “Arte” y esta a su vez contener dos categorías hijas “Música” y “Pintura”.
+
+Para lograr interacción con los oyentes, el sistema permite que los mismos se registren y comenten las notas. De los usuarios conocemos su username, password, fecha de registro, avatar y un email el cual solo puede registrarse una vez. Los comentarios poseen un numero de id y el texto que lo compone.
+
+![](res/05/bdr_ej_blog.png)
+
+## Propuesta 
+
+- Realizar el Modelo Relacional a partir de los Modelos E/R de los ejercicios resueltos en el tema anterior.
+
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

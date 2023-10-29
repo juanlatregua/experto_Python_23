@@ -1,0 +1,22 @@
+{
+    "game" : {
+        "screen_size" : [640, 480],
+        "title" : "Marquee",
+        "background_color" : [0, 0, 0]
+    },
+    "scroll" : {
+        "text" : "Lorem ipsum dolor sit amet. consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ",
+        "speed" : 0.1
+    },
+    "timing" : {
+        "fps" : 60,
+        "time_per_frame" : 16
+    },
+    "font" : {
+        "url" : "https://raw.githubusercontent.com/ianhan/BitmapFonts/main/AGENTS2.png",
+        "file" : ["marquee","assets","fonts", "AGENTS2.png"],
+        "total_letters" : 45,
+        "letter_size" : [20, 28],
+        "letters_per_line" : 15
+    }
+}

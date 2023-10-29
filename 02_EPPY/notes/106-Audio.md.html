@@ -1,0 +1,315 @@
+<meta charset="utf-8">
+**02EPPY - 106 - Audio**
+    <small>©2021 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Audio
+
+El audio es un componente esencial de cualquier videojuego, puesto que da un feedback inmediato de lo que sucede en el mundo virtual. Si se juega a un videojuego con al sonido apagado, la experiencia se convierte en algo muy pasivo, se espera continuamente que los eventos vayan acompañados de sonido. Como cualquier otro aspecto de la creación de un juego, los buenos efectos de sonido requiere mucha creatividad. Seleccionar un conjunto apropiado de efectos de sonido para la acción dentro del juego puede marcar la diferencia entre que los efectos visuales funcionen o no.
+
+El sonido es esencialmente una vibración, normalmente viajando a través del aire, pero potencialmente a través del agua u otras sustancias. Casi cualquier cosa puede vibrar y pasar esas vibraciones al aire en forma de sonido. Por ejemplo, al escribir en un teclado, se escucha un sonido 'clak-clak', producido por las teclas de plástico golpeando con la superficie de debajo. El plástico vibra muy rápido y empuja las moléculas de aire de alrededor, que empujan otras moléculas, y desencadenan una reacción en cadena que luego llegan a los oídos de quien escucha, y eso se interpreta como un sonido. Cuanta más energía exista en una vibración más alto será el sonido producido.
+
+También se producen variaciones en el tono (pitch), que es la velocidad de las vibraciones en el aire. Algunos materiales, como el metal, tienen a vibrar muy rápidamente y producen ruidos con tonos muy altos cuando se golpean con algo. Otros materiales vibran a ritmos diferentes produciendo tonos distintos.
+
+La mayoría de los sonidos son un mezcla compleja de variaciones en tonos y volúmenes. Un vaso de cristal que cae sobre un suelo de piedra, primero produce un ruido alto con el impacto inicial, seguido de varios sonidos de los trozos de cristal rotos mientras vibran y golpean a su vez el suelo. La combinación de todos esos sonidos producen un ruido que se puede reconocer como el de un cristal rompiéndose.
+
+Incluso los sonidos se pueden alterar antes de que lleguen al oído de quien escucha. Una pared entre la fuente del ruido y el oído de quien escucha, lo amortigua y dificulta su escucha. Esto es porque el sonido puede viajar a través de la pared, tal como lo hace por el aire, pero reduce su volumen y cambia sus vibraciones en su camino. El sonido también rebota en algunas superficies y crea efectos como el eco. Replicar dichos efectos físicos en un videojuego, es una gran manera de mejorar la ilusión producida por los efectos visuales. Si el personaje del juego, entra en una gran caverna, será mucho más convincente si el sonido de sus pasos tiene cierto eco conforme anda. Pero como pasa en muchos aspectos del diseño de juegos, se permiten ciertas licencias artísticas. No hay sonido en el espacio, puesto que no hay atmósfera a través de la cual viajar, pero se espera que los cañones láser de una nave espacial produzcan cierto ruido al disparar.
+
+## Almacenamiento de Sonidos
+
+Los primeros videojuegos usaban chips especiales que creaban tonos simples para producir pitidos electrónicos, pero eran incapaces de producir sonidos complejos. Hoy en día, el hardware disponible puede almacenar y reproducir sonidos similares a los de la vida real para crear una experiencia extra a la experiencia de juego. La tarjeta de audio de cualquier ordenador puede tanto grabar como reproducir audio de alta calidad.
+
+El sonido se puede representar como una onda. En Figure [res/007_000] se puede apreciar una onda que representa una pequeña porción de un sonido, un sonido completo será una onda mucho más compleja y larga. Esta onda muestra como la energía, o amplitud del sonido varia con el tiempo. Las ondas de audio forman picos y valles, cuanto más grande sea la diferencia en la amplitud de esos picos y valles, mayor será el volumen del sonido. El tono del sonido viene determinado por la frecuencia de las ondas (la distancia entre los picos), cuanto más juntos estén los picos en el tiempo, el sonido tendrá un tono más alto.
+
+![Figure [res/106_000]: Onda de Sonido](res/106_000.png)
+
+Para almacenar un sonido en un ordenador, primero hay que convertirlo a forma digital, lo que se puede realizar usando un micrófono conectado a la tarjeta de sonido (por USB o entrada mic). Cuando un micrófono recoge un sonido, la onda es convertida a una señal eléctrica, la cual es muestreada a intervalos regulares por la tarjeta de sonido para producir una secuencia de números que se pueden guardar en un fichero. Estas muestras son valores que representan la amplitud de la onda en un momento concreto del tiempo, y se usan para reconstruir la onda cuando se reproduce. Cuantas más muestras se tengan, el sonido se podrá reproducir más fielmente.
+
+![Figure [res/106_001]: Onda de Sonido Muestreada](res/106_001.png)
+
+La frecuencia del muestreo se mide en hertzios (Hz), lo que implica cuantas muestras se toman por segundo, o kilohertzios, cuantos miles de muestras se toman por segundo. La calidad telefónica suele tener unos 6Khz y calidad CD supone 44Khz, 44000 muestras por segundo. La frecuencia de muestreo puede ir mucho más alto de eso, pero a partir de esas frecuencias el oído humano no puede distinguirlas.
+
+### Formatos de Audio
+
+Como las imágenes, hay muchos formatos de fichero distintos para el audio digital, que afectan la calidad y al tamaño de fichero. PyGame soporta dos formatos de audio para los efectos de sonido, *Wav* (sin comprimir) y *Ogg*. La mayoría de programas que manipulan sonido pueden leer y escribir ficheros *Wav*. El soporte para el formato *Ogg* no es tan universal, pero es bastante común, si alguna aplicación no lo soporta directamente, suele poder hacerlo a través de algún plugin.
+
+Hay algunos atributos de sonido que pueden afectar la calidad y el tamaño del fichero.
+
+- Formato de la muestra, el tamaño de una única muestra, que suele ser de 8 o 16 bits de números enteros, aunque algunos formatos soportan muestras en coma flotante. Generalmente se suelen usar 16 bits al almacenar ficheros de sonido, puesto que se puede reproducir el sonido con calidad CD y es mejor soportado por las tarjetas de sonido.
+
+- Frecuencia de muestreo, el número de muestras por segundo almacenadas. Los valores más habituales son 11Khz, 22Khz y 44Khz, pero hay muchos otros valores posibles. Valores altos producen sonidos con más calidad pero los ficheros son más grandes.
+
+- Canales, los ficheros de sonido pueden ser mono (un solo canal de sonido) o stereo (un canal individual para los altavoces izquierdo y derecho). El sonido stereo suena mejor, pero usa el doble de memoria en ficheros no comprimidos.
+
+- Compresión, un minuto de audio stereo a 44Khz y 16 bits, aproximadamente ocupará unos 10MB de datos. Afortunadamente, el audio puede ser comprimido de manera que ocupe mucho menos espacio. PyGame no soporta ficheros *Wav* comprimidos, pero soporta el formato *Ogg*, que tiene un buen factor de compresión.
+
+Decidir la combinación de estos atributos suele venir definido por los canales de distribución del juego, si se hace a través de CD o DVD, hay espacio de sobra y se pueden almacenar sonidos de alta calidad. Pero si se hace a través de descargas u otros medios que penalicen el tamaño, se puede balancear el sacrificar un poco la calidad a cambio de ficheros más pequeños.
+
+### Crear Efectos de Sonido
+
+Una forma de crear efectos de sonido es grabarlos. Si se necesita el ruido de un motor, la mejor manera puede ser grabar el sonido de un motor real en funcionamiento. Otros sonidos son complicados o incluso imposibles de grabar, y se puede usar un poco de creatividad para crear una aproximación (un disparo de bala puede ser recreado con un globo explotando y un poco de edición para profundizar el sonido).
+
+Para grabar sonidos se necesita un micrófono, suele ser mejor idea no usar los micrófonos de los auriculares, puesto que estos están diseñados para grabar voz más que efectos de sonido. Además de un micrófono, se necesita algún software para muestrear el sonido y almacenarlo en el disco. La mayoría de sistemas operativos llevan un programa muy básico que puede grabar sonido, pero se pueden obtener mejores resultados usando un software específico como *Audacity*, que es una aplicación open source para edición de audio, [Audacity](https://www.audacityteam.org/).
+
+![Figure [res/106_002]: Audacity](res/106_002.png)
+
+Para grabar audio con Audacity se pulsa el botón de grabación (círculo rojo) para empezar y el de stop (cuadrado amarillo) para finalizar. La forma de onda del sonido entonces se muestra en la ventana principal, que tiene varios controles para examinar la onda y seleccionar algunas partes.
+
+Este programa tiene muchas características que se pueden usar para editar los sonidos. Se pueden mezclar varios juntos, se puede cortar y pegar entre ellos, se pueden aplicar diversos efectos para mejorar la calidad de los sonidos, o cambiarlos completamente. Para aplicar alguno, se selecciona el trozo de audio que se quiere modificar y se selecciona uno de los efectos del menu *Effect*.
+
+- Amplificar, hace el sonido más fuerte. Generalmente se suelen almacenar los sonidos tan fuerte como es posible, sin recortes. Estos recortes ocurren cuando la amplitud de la onda es mayor que el rango que se puede almacenar, y reduce drásticamente la calidad del sonido y debe evitarse. Si la parte superior o inferior de la onda es una línea horizontal, entonces se ha recortado.
+
+- Cambiar el tono, hace el tono del sonido más alto o más bajo. Si se aumenta el tono de una voz, parece como hecha con helio, y si se baja el tono, suena más profunda. Cambiar el tono es una buena manera de transformar sonidos, dos cucharas chocando con un tono más bajo, puede simular una espada chocando contra una armadura.
+
+- Eco, añadir eco a un sonido puede hacer que el efecto suceda en una habitación vacía o una gigantesca cueva.
+
+- Eliminación de ruido, si no se tiene acceso a un estudio de sonido y equipo profesional, las grabaciones tendrán un molesto ruido de fondo, que es el resultado de ruido e imperfecciones del micrófono y la tarjeta de sonido. El efecto de eliminación de ruido limpia los sonidos de dichos defectos.
+
+Una vez se ha finalizado la edición de los efectos de sonido, se pueden exportar a muchos formatos distintos, entre ellos *Wav* y *Ogg*. Es buena idea guardar los ficheros originales para editarlos posteriormente.
+
+Se pueden comprar efectos de sonido en CD o descargarlos de Internet. Estos suelen ser de muy alta calidad, puesto que han sido producidos en estudios de sonido y editados profesionalmente. Hay muchos sitios online donde encontrar efectos de sonido gratuitos, PyGame tiene un pequeño [directorio](https://www.pygame.org/wiki/resources).
+
+## Reproducir Sonidos
+
+Se pueden reproducir efectos de sonido en PyGame a través del módulo *pygame.mixer*. Antes de usarlo, hay que inicializarlo con una serie de parámetros que definirán que tipo de sonido se reproducirá. Esto se realiza con la función *init* del módulo *mixer*, pero en algunas plataformas esto se realiza automáticamente al inicializar PyGame con *init*. En cualquier caso, PyGame tiene una función *pre_init* dentro del módulo *mixer* que se puede usar para establecer dichos parámetros antes de esta inicialización automática. Ambos modos reciben los mismos cuatro parámetros.
+
+- *frequency*, la frecuencia de muestreo de la reproducción de audio, tiene el mismo significado que la frecuencia de los ficheros de sonido. Una frecuencia alta potencialmente puede reducir el rendimiento, pero incluso tarjetas de sonido viejas pueden manejar fácilmente una frecuencia de 44Khz, que es más que suficiente, otra frecuencia habitual es 22Khz.
+
+- *size*, el tamaño en bits de las muestras del audio para la reproducción. Puede ser 8 o 16. Un valor de 16 es mejor, puesto que la calidad del sonido es más alta que con 8 con el mismo rendimiento. Esto valor puede ser negativo, lo que indica al mixer que debe usar muestras con signo (requerido por algunas plataformas). No hay diferencia de calidad de sonido entre muestras con o sin signo.
+
+- *stereo*, este parámetro deberá ser 1 para audio mono, y 2 para stereo. Se recomienda stereo puesto que de esta manera, se puede crear la ilusión que el sonido viene de un punto particular de la pantalla.
+
+- *buffer*, indica el número de muestras que se guarda como memoria intermedia al reproducir. Valores bajos resultan en bajas latencias, que es el tiempo que pasa entre pedir a PyGame reproducir un sonido y oírlo físicamente. Valores altos incrementan la latencia, pero puede ser necesario para evitar pérdida de audio, que puede causar molestos *clicks*. Un valor de 4096 suele funcionar bien para sonidos stereo a 44Khz y 16 bits. Este valor siempre debe ser una potencia de 2.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+pygame.mixer.pre_init(44100, 16, 2, 4096)
+pygame.init()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [mixer_init]: Inicialización de *mixer*]
+
+La llamada a *pre_init* establece los parámetros para el *mixer*, que se inicializa en la llamada a *init* de *pygame*. Si se necesita cambiar algunos de los parámetros tras la inicialización, hay que eliminar antes el *mixer* llamando a *pygame.mizer.quit*, antes de llamar a *pygame.mixer.init* para reinicializarlo.
+
+### Objetos *Sound*
+
+Estos son objetos que se usan para almacenar y reproducir datos de audio, leidos de ficheros *Wav* u *Ogg*. Se puede construir un objeto *Sound* con la clase *pygame.mixer.Sound*, que recibe como parámetro el nombre del fichero de sonido, o un objeto fichero de Python que contenga los datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+missile_sound = pygame.mixer.Sound("missile.ogg")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sound_object]: Cargar Objeto *Sound*]
+
+Se puede reproducir un objeto *Sound* a través del método *play*, que recibe tres parámetros opcionales, *loop*, *maxtime* y *fade_ms*. Darle un valor a *loop* hace que el sonido se repita después de haberse reproducido una vez, si se pone el valor a 5, por ejemplo, el sonido se reproducirá una vez, y luego 5 veces más, para un total de 6 veces. Si este parámetro se pone a -1, entonces el sonido se reproducirá de manera continua, hasta que se llame el método *stop*.
+
+El parámetro *maxtime* se usa para parar la reproducción tras un número de milisegundos, lo cual suele ser util para sonidos que están diseñados para reproducirse en loop continuamente, puesto que se puede especificar cuanto tiempo se estarán reproduciendo.
+
+Con el parámetro *fade_ms* se le indica a PyGame que aumente el volumen del sonido desde 0.0 en una cantidad determinada de milisegundos.
+
+Si la llamada a *play* se realiza con éxito, entonces se devolverá un objeto *Channel*, en caso contrario devolverá un valor *None*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+channel = missile_sound.play(-1, 5000)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sound_play]: Reproducir un Sonido en Loop Durante 5 Segundos]
+
+Algunos métodos interesantes de los objetos *Sound* pueden ser:
+
+Método | Proposito
+-------|-----------
+fadeout | Reduce gradualmente el volumen del sonido en todos los canales, solo recibe un parámetro, la longitud del desvanecimiento en milisegundos
+get_length | Devuelve la longitud del sonido, en segundos
+get_num_channels | Devuelve en cuantos canales se está reproduciendo el sonido
+get_volume | Devuelve el volumen del sonido, un número en coma flotante entre 0.0 y 1.0, donde 0.0 es silencio y 1.0 es volumen máximo
+play | Reproduce el sonido, devuelve un objeto *Channel*, o *None* si no ha podido reproducirse
+set_volume | Establece el volumen del sonido al reproducirse, un número en coma flotante entre 0.0 y 1.0, donde 0.0 es silencio y 1.0 es volumen máximo
+stop | Detiene la reproducción del sonido
+[Table [methods_sound_objects]: Métodos de los Objetos *Sound*]
+
+### Canales
+
+Un canal es una de las fuentes de sonido que se mezclan por la tarjeta de sonido, y se representan en PyGame a través de objetos *Channel*. El método *play* de los objetos *Sound* devuelve un objeto *Channel* para el canal que reproducirá el sonido, o *None* si están todos los canales ocupados. Se puede obtener el número de canales disponibles a través del método *get_num_channels*, si no se tienen suficientes para reproducir todos los sonidos simultáneos que se necesitan, se puede intentar crear más canales con la función *set_num_channels*.
+
+Si se quiere reproducir el sonido entero a máximo volumen, se puede ignorar el valor de retorno de la función *play*, en caso contrario hay ciertos efectos que se pueden crear con algunos métodos de los objetos *Channel*. Uno de los más útiles es la capacidad de cambiar el volumen de los altavoces izquierdo y derecho de manera independiente, lo cual se puede usar para crear la ilusión de un sonido que proviene de algún punto en particular de la pantalla (stereo panning). El método *set_volume* de los objetos *Channel* puede recibir dos parámetros, el volumen del altavoz izquierdo y el del derecho, ambos como valores en coma flotante entre 0.0 y 1.0.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def stereo_pan(x_coord, screen_width):
+    right_volume = float(x_coord) / screen_width
+    left_volume = 1.0 - right_volume
+
+    return (left_volume, right_volume)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [stereo_panning]: Función para Calcular *Stereo Panning*]
+
+Sabiendo el ancho de la pantalla y la coordenada en x del evento que produce el sonido, se pueden calcular los volúmenes para el altavoz izquierdo y derecho fácilmente. Cuanto más lejos esté la coordenada x del altavoz (en teoría en los extremos de la pantalla), más bajo será el volumen en dicho altavoz y más alto en el otro.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+gunfire_channel = gunfire_sound.play()
+if gunfire_channel is not None:
+    left, right = stereo_pan(fire.x, screen_size[0])
+    gunfire_channel.set_volume(left, right)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [stereo_panning_practice]: Uso de *Stereo Panning*]
+
+Usando dicha función al reproducir un sonido, se puede usar el *stereo panning* para ajustar el volumen del mismo y poder situarlo espacialmente en el altavoz izquierdo o derecho. Si este valor se actualiza en cada frame en un objeto que se mueve se puede obtener un efecto que simula el movimiento del sonido en tiempo real.
+
+Generalmente es buena idea dejar a PyGame el trabajo de encontrar un canal libre, pero es posible forzar a objeto *Sound* a reproducirse en un canal en particular llamando al método *play* de un objeto *Channel*, que recibe como parámetro el sonido que se quiere reproducir junto a las veces que se quiere repetir o el máximo tiempo que se quiere reproducir. Una razón para hacer esto, es reservar algunos canales para sonidos de alta prioridad. Por ejemplo, se puede querer que el ruido de fondo no bloquee el sonido del arma del jugador porque no hayan canales disponibles. Para reservar canales, se usa el método *set_reserved* del módulo *mixer*, que deja un número de canales fuera de los disponibles para el método *play* de los objetos *Sound*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+pygame.mixer.set_reserved(2)
+reserved_channel_0 = pygame.mixer.Channel(0)
+reserved_channel_1 = pygame.mixer.Channel(1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reserve_channel]: Reserva de 2 Canales]
+
+En Listing [reserve_channel] se reservan dos canales, y luego se obtiene una referencia a los dos primeros canales, 0 y 1, que corresponden con los reservados. Estos dos canales no serán usados por PyGame cuando se llame a *play* de cualquier objeto *Sound*, para usarlos habrá que hacerlo explícitamente, llamando al método *play* del canal reservado y pasando como parámetro el objeto *Sound* a reproducir.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+reserved_channel_1.play(gunfire_sound)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [use_reserved_channel]: Reserva de 2 Canales]
+
+A continuación se muestran el resto de métodos que se pueden usar sobre objetos *Channel*.
+
+Método | Proposito
+-------|-----------
+fadeout | Reduce gradualmente el volumen del sonido en todos los canales, solo recibe un parámetro, la longitud del desvanecimiento en milisegundos
+get_busy | Devuelve *True* si un sonido se está reproduciendo en ese momento en el canal
+get_endevent | Devuelve el evento que será lanzado cuando un sonido acabe de reproducirse, o *NOEVENT* si no hay ninguno establecido
+get_queue | Devuelve los sonidos que estén encolados para reproducirse, o *None* si no hay ninguno en la cola
+get_volume | Obtiene el volumen actual del canal como un valor entre 0.0 y 1.1, no tiene en cuenta el volumen stereo establecido por *set_volume*
+pause | Pausa temporalmente la reproducción de cualquier sonido en este canal
+play | Reproduce un sonido en un canal específico, recibe un objeto *Sound* y opcionalmente valores para el loop y tiempo máximo, con el mismo significado que en el método *play* de objetos *Sound*
+queue | Reproduce un sonido después de que acabe el sonido que está en reproducción, recibe el objeto *Sound* a encolar
+set_endevent | Pide que se lance un evento cuando el sonido que está actualmente en reproducción acabe. Recibe el *id* del evento a enviar, que debe estar por encima de *USEREVENT* para evitar conflictos con otros eventos. Si no se rellena el parámetro, se dejan de enviar eventos de finalización
+set_volume | Determina el volumen para este canal. Si recibe un sólo valor se usa para ambos altavoces, si recibe dos, se establece el volumen para los dos altavoces de manera independiente. Ambos sistemas reciben el volumen como un valor entre 0.0 y 1.0, donde 0.0 es el silencio y 1.0 el máximo volumen
+stop | Para instantáneamente la reproducción de cualquier sonido en este canal
+unpause | Reanuda la reproducción de un canal que ha sido previamente pausado
+[Table [methods_channel_objects]: Métodos de los Objetos *Channel*]
+
+### *Mixer*
+
+El módulo *mixer* tiene más funcionalidad de la vista hasta ahora.
+
+Método | Proposito
+-------|-----------
+Channel | Crea un objeto que representa un canal de reproducción para un índice determinado
+fadeout | Gradualmente reduce el volumen de todos los canales a 0, recibe el tiempo en milisegundos para ese desvanecimiento
+find_channel | Encuentra un canal que no esté en uso y devuelve su índice
+get_busy | Devuelve *True* si hay algún sonido o algún canal se están reproduciendo
+get_init | Devuelve *True* si el sistema de audio ha sido inicializado
+get_num_channels | Devuelve el número de canales disponibles
+init | Inicializa el módulo *mixer*
+pause | Temporalmente pausa toda la reproducción en todos los canales
+pre_init | Determina todos los parámetros para la inicialización del módulo cuando se hace automáticamente a través de la llamada a *pygame.init*
+quit | Cierra el *mixer*, esto se hace automáticamente cuando acaba la ejecución, pero se puede querer realizar para reiniciar el *mixer* con distintos parámetros
+set_num_channels | Determina el número de canales disponibles
+Sound | Crea un objeto que representa un sonido, recibe un nombre de fichero o un objeto fichero de Python que contiene los datos de audio
+stop | Detiene la reproducción de todos los sonidos en todos los canales
+unpause | Reanuda la reproducción de todos los sonidos pausados
+[Table [methods_mixer]: Métodos del Módulo *mixer*]
+
+## Reproducir Música
+
+El módulo *mixer* puede reproducir cualquier tipo de audio, pero no suele ser buena idea usarlo para reproducir música, puesto que los ficheros de música suelen ser más largos que los ficheros de efectos de sonido y por ello, tienen más impacto en los recursos del ordenador. En PyGame existe el sub módulo *music* dentro del módulo *mixer* que puede leer y reproducir ficheros de música a trozos en lugar de todo de una vez, lo que se conoce como *streaming* de audio.
+
+Suele ser habitual recurrir a páginas web que ofrecen canciones completas y poder descargar dichos ficheros de música, de pago o gratuitas. PyGame tiene un pequeño [directorio](https://www.pygame.org/wiki/resources). Se debe intentar siempre crear dichos ficheros de música, pero si no se dispone de un compositor en el equipo de desarrollo, se debe usar siempre música con licencia.
+
+El módulo *music* puede reproducir ficheros de música en formato *Mp3* y *Ogg*. El soporte para *Mp3* varía entre plataformas, con lo cual, es mejor idea usar *Ogg*, que se soporta en todas las plataformas. Se puede convertir de *Mp3* (que es un formato mucho más popular para intercambio de canciones) fácilmente con Audacity o cualquier otro software de edición de audio.
+
+Para reproducir un fichero de música, primero se carga el fichero con la función *load*, pasando el nombre y ruta del fichero a cargar, y luego se llama a *play* para empezar la reproducción. La diferencia principal de este módulo *music* con el de *mixer* es que en este caso no hay objetos *Music* que repliquen el funcionamiento de los objetos *Sound*, puesto que solo hay un fichero de música simultaneo sobre el que se esté haciendo *streaming*, no puede haber más de uno. Así que todas las funciones de dicho módulo hacen referencia al fichero en reproducción en ese momento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+pygame.mixer.music.load("main_theme.ogg")
+pygame.mixer.music.play()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [load_play_music]: Carga y Reproducción de Música]
+
+El módulo *music* tiene una serie de funciones para trabajar con los ficheros de música.
+
+Método | Proposito
+-------|-----------
+get_busy | Devuelve *True* si hay alguna música en reproducción
+fadeout | Gradualmente reduce el volumen a 0, recibe el tiempo en milisegundos para ese desvanecimiento
+get_endevent | Devuelve el evento que será lanzado cuando la música acabe de reproducirse, o *NOEVENT* si no hay ninguno establecido
+get_volume | Obtiene el volumen actual de la música como un valor entre 0.0 y 1.1.
+load | Carga un fichero de música, recibe el nombre del fichero como parámetro
+pause | Pausa temporalmente la reproducción de la música
+play | Reproduce un fichero de música previamente cargado, recibe el número de veces que se repite una vez reproducido completamente, si se le pasa un -1 lo reproducirá en bucle hasta que se llame a *stop*, también recibe el punto en segundos donde se quiere empezar la reproducción
+rewind | Reinicia el fichero de música al inicio
+set_endevent | Pide que se lance un evento cuando la música que está actualmente en reproducción acabe. Recibe el *id* del evento a enviar, que debe estar por encima de *USEREVENT* para evitar conflictos con otros eventos. Si no se rellena el parámetro, se dejan de enviar eventos de finalización
+set_volume | Determina el volumen para este canal, recibe el volumen como un valor entre 0.0 y 1.0, donde 0.0 es el silencio y 1.0 el máximo volumen. Cuando se carga nueva música el volumen se pone a 1.0
+stop | Para instantáneamente la reproducción de la música
+unpause | Reanuda la reproducción de la música que ha sido previamente pausada
+get_pos | Devuelve cuanto tiempo en milisegundos que la música se ha estado reproduciendo
+pause | Pausa temporalmente la reproducción de la música
+queue | Encola una pista de música para reproducirse una vez acabe la que está en reproducción, recibe el nombre del fichero de música a reproducir
+[Table [methods_mixer]: Métodos del Módulo *music*]
+
+## Sound Manager
+
+Un buen caso de uso del patrón *singleton* es la creación de un sistema para gestionar el uso de sonidos y música en videojuegos. Se quiere tener un sistema que sea capaz de proveer un punto común donde almacenar todos los sonidos y músicas posibles, donde se pueda controlar su reproducción de manera global. Por ejemplo, es común en los videojuegos durante su ejecución ofrecer al usuario unos botones para pausar el juego, para apagar la música o los efectos de sonido, o para subir o bajar el volumen de manera global para todos ellos. Y esto, solo se puede realizar convenientemente si se tienen todos esos sonidos y sus reproducciones centralizados en algún sitio.
+
+Para ello se va a construir un gestor de sonido, usando el patrón *singleton*, es decir, asegurando que solo existe una instancia de dicho gestor de sonido y además ofreciendo un punto global donde el resto del código del videojuego pueda acceder a él, tanto para cargar sonidos, para reproducirlos o para cambiar las condiciones de la reproducción en cualquier momento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+self.__sounds = {}
+self.__music = {}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [audio_dicts]: Diccionarios para Sonidos y Música]
+
+En el constructor del manager se crean un par de diccionarios inicialmente vacíos, uno para la lista de sonidos que se pueden reproducir dentro del juego y otro para las canciones. Siguiendo esta lógica se crean dos funciones para añadir tanto efectos de sonido como música.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def add_sound(self, filename, name):
+    self.__sounds[name] = pygame.mixer.Sound(path.join(*filename))
+
+def add_music(self, filename, name):
+    self.__music[name] = filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [audio_add]: Funciones para Añadir Sonido y Música]
+
+Ambas reciben como parámetros la ruta del fichero a cargar y el nombre con el cual se quiere asociar dicho recurso. La primera de ellas se encarga de cargar efectos de sonido, y crea directamente el objeto *Sound* cargando del disco el fichero y lo guarda en el diccionario usando el nombre como clave. La función para añadir canciones simplemente se guarda la ruta del fichero en el diccionario con el nombre como clave, puesto que se va a usar el sistema de *streaming* de audio no es necesario cargar todo el fichero de antemano.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def play_sound(self, name):
+    self.__sounds[name].set_volume(self.__sound_volume)
+    self.__sounds[name].play()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [play_sound]: Reproducir un Sonido]
+
+Cuando se quiere reproducir un sonido, solo hay que indicarle al manager el nombre del mismo, que debería haber sido cargado previamente. Primero se establece el volumen a un valor global al manager y luego se llama a *play* para reproducirlo.
+
+En el caso de la música se ha diseñado un sistema un poco más complejo que permite el caso de uso de cambiar la reproducción de la música actual a una nueva pasando por un periodo de fade. Para ello hay que primero encolar la nueva canción, realizar el *fade out* sobre la que está reproduciéndose, y al acabar esta reproducir la nueva. Esa lógica se implementa en el método *update* del manager, que deberá recibir esa llamada del *main loop* del juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def play_music(self, name):
+    if name is self.__current_music:
+        return
+
+    pygame.mixer.music.load(self.__music[name])
+    pygame.mixer.music.set_volume(self.__music_volume)
+    self.__current_music = name
+    pygame.mixer.music.play(-1)
+
+def play_music_fade(self, name):
+    if name is self.__current_music:
+        return
+
+    self.__next_music = name
+    pygame.mixer.music.fadeout(500)
+
+def update(self, delta):
+    if self.__next_music is not None and not pygame.mixer.music.get_busy():
+        self.__current_music = None
+        self.play_music(self.__next_music)
+        self.__next_music = None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [play_music]: Reproducir una Canción]
+
+El método *play music* primero verifica que la canción que se solicita no esté ya en reproducción, carga el fichero con el módulo *music* de *mixer*, establece el volumen global, se guarda el nombre y la reproduce en bucle. El método para hacerlo con un *fade*, simplemente se guarda el nombre de la nueva canción a reproducir, y hace que la canción en reproducción empiece un *fade out* de 500 milisegundos. En el método *update*, que será llamado por el *main loop*, se verifica siempre que haya una canción encolada y si el canal de música no está ocupado, en caso que el canal esté libre quiere decir que la canción que se estaba reproduciendo ya acabado el *fade out* y el canal puede empezar a reproducir la nueva canción.
+
+# Ejercicios Propuestos
+
+- Realizar una aplicación que recoja varios ficheros de música en formato *ogg* en una carpeta, y que implemente un pequeño reproductor de música. Que muestre el nombre de la canción, el progreso de reproduccion,... Con los típicos botones de Reproducir, Pausar, Parar, Siguiente, Anterior, Subir/Bajar Volumen. Para los gráficos de los botones se pueden usar formas simples pintadas con el módulo *draw*.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

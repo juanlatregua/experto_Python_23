@@ -1,0 +1,842 @@
+<meta charset="utf-8">
+**02EPPY - 007 - Strings**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Strings
+
+Los strings son cadenas de carácteres, es decir, objetos que contienen secuencias de datos de carácteres. Procesar estos carácteres es algo integral a la programación, rara es la aplicación que no necesite manipular strings de una manera u otra.
+
+En su base un string no es más que una colección de carácteres, que forman un texto más complejo. En Python se delimitan usando una comilla simple o doble.
+
+## Operadores de strings
+
+Los operadores `+` y `*` aplican a operadores numéricos y realizan las operaciones matemáticas habituales asociadas a los números, pero aplicados a las cadenas de carácteres tienen un significado diferente.
+
+### Operador `+`
+
+Este operador concatena strings, devuelve una cadena que consiste en los dos operandos unidos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'foo'
+>>> t = 'bar'
+>>> s + t
+foobar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operador_+]: Operador +]
+
+### Operador `*`
+
+Este operador crea varias copias del string, es decir, multiplicar un string por un número resulta en un nuevo string que consiste en tantas copias concatenadas del mismo string como indique el número.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'foo'
+>>> i = 3
+>>> s * i
+foofoofoo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operador_+]: Operador *]
+
+Uno de los dos operadores tiene que ser un número entero, puesto que la operación es conmutativa. Incluso ese número puede ser un valor negativo o cero, en cualquiera de ambos casos, el resultado es una cadena vacia.
+
+### Operador `in`
+
+Es un operador de pertenencia, que se puede usar con strings. Éste devuelve `True` si el primer operando está contenido dentro del segundo, o `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> 'fox' in s
+True
+>>> 'chicken' in s
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operador_in]: Operador `in`]
+
+Se puede incluso negar el operador, con `not`, para verificar la no pertenencia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> 'fox' not in s
+False
+>>> 'chicken' not in s
+True
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operador_not_in]: Operador `not in`]
+
+## Funciones del lenguaje
+
+Python tiene varias funciones integradas dentro del lenguaje y del propio intérprete que siempre están disponibles, que pueden trabajar con strings.
+
+Función | Descripción
+--------|-------------
+ord() | Convierte un entero a un carácter
+chr() | Convierte un carácter a un entero
+len() | Devuelve la longitud de una cadena
+str() | Devuelve la representación como string de un objeto
+[Table [built-in_string_funcs]: Funciones integradas para strings]
+
+### ord()
+
+Devuelve un valor numérico entero para un carácter. En su nivel más básico, los ordenadores almacenan toda su información como números. Para representar los datos de un carácter, se usa una plantilla de traducción que mapea cada carácter con el número que lo representa.
+
+![Figure [res/007_000]: Tabla ASCII de 7 bits](res/007_000.png)
+
+El sistema más usado para eso es el llamado código `ASCII`, cubre la mayor parte de los carácteres que se usan en el alfabeto occidental. Para estos carácteres, la función `ord()` devuelve el valor de la tabla `ASCII` para un carácter.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> ord('a')
+97
+>>> ord('A')
+65
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [ord]: Función `ord`]
+
+`ASCII` funciona bien para la mayoría de los usos habituales, pero hay muchos lenguajes distintos en el mundo e infinidad de símbolos y glifos que aparecen en los medios digitales. El conjunto completo de carácteres que potencialmente se necesitaría representar es muy superior al del alfabeto occidental que se suele ver. Para solucionar este problema, se creó el standard `Unicode`, que intenta proveer un código numérico para cada posible carácter, en todos los lenguajes del mundo, en todas las plataformas posibles. Python soporta este standard dentro del lenguaje, [Unicode](https://docs.python.org/3/howto/unicode.html).
+
+Mientras se esté dentro del dominio de los carácteres más comunes no es necesario diferenciar entre `ASCII`  y `Unicode`. Pero la función `ord()` devolverá los valores numéricos también para los carácteres `Unicode`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> ord('€')
+8364
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [ord_unicode]: Función `ord` con carácter `Unicode`]
+
+### chr()
+
+Esta función hace lo contrario que `ord()`, dado un valor numérico, devuelve una cadena representando el carácter que corresponde a dicho valor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> chr(97)
+'a'
+>>> chr(65)
+'A'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [chr]: Función `chr`]
+
+Y por supuesto, también maneja carácteres `Unicode`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> chr(8364)
+'€'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [chr_unicode]: Función `chr` con carácter `Unicode`]
+
+### len()
+
+Con esta función se puede preguntar por la longitud del string, es decir, el número de carácteres que tiene.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> len(s)
+43
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [len]: Función `len()`]
+
+### str()
+
+Virtualmente, cada objeto en Python puede ser representado a través de un string. Esta función devuelve dicha representación del objeto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> str(14 * 2)
+'28'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [str]: Función `str()`]
+
+Si dicho objeto es uno definido por el usuario, debe implementar el método de clase `__str__`, donde se especificará como se construye dicha representación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> class Car:
+... def __init__(self, name):
+...     self.name = name
+...
+... def __str__(self):
+...     return f"Car name is {self.name}"
+...
+>>> my_car = Car("Lamborghini")
+>>> str(my_car)
+Car name is Lamborghini
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [__str__]: Función `str()` para un objeto custom]
+
+## Indexado
+
+A menudo, se puede acceder a los elementos individuales en un conjunto ordenado de datos directamente usando un índice numérico o valor clave. Este proceso se denomina indexado.
+
+En Python, los strings son secuencias ordenadas de datos de carácteres, y por tanto, pueden ser indexados. Se puede acceder a los carácteres individuales en una cadena de texto especificando el nombre del string seguido por un número entre corchetes. El indexado está basado en cero, es decir, el primer carácter tiene índice 0, el siguiente 1,... El índice del último carácter será la longitud de la cadena menos uno.
+
+![Figure [res/007_001]: String con sus índices](res/007_001.png  width="350px")
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[0]
+'T'
+>>> s[4]
+'q'
+>>> s[len(s) - 1]
+'g'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [index]: Indexación de string]
+
+Tratar de indexar más allá de los límites del string da como resultado un error.
+
+Los índices de una cadena también se pueden especificar usando números negativos, en cuyo caso el indexado se produce desde el final de la cadena hacia atrás. -1 se refiere al último carácter, -2 al penúltimo,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[-1]
+'g'
+>>> s[-5]
+'y'
+>>> s[-len(s)]
+'T'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [index_neg]: Indexación negativa de string]
+
+## Slicing
+
+Python permite una forma de sintaxis para el indexado que extrae subcadenas de una cadena, conocido como `slicing`. Dada una cadena, una expresión de la forma `s[m:n]`, devuelve la porción de una cadena `s` que empieza en la posición `m` hasta la posición `n` sin incluirla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[4:9]
+'quick'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing]: Slicing de string]
+
+Hay que prestar atención al segundo elemento del índice, puesto que no está incluido en el resultado.
+
+Si se omite el primer índice, entonces el `slice` empieza en el principio de la cadena. Por tanto, `s[:m]` y `s[0:m]` son equivalentes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[:3]
+'The'
+>>> s[0:3]
+'The'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing_start]: Comienzo de slicing de string]
+
+De manera similar, si se omite el segundo índice, el `slice` llegará hasta el final de la cadena. De manera que, `s[n:]` y `s[n:len(s)]` son equivalentes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[40:]
+'dog'
+>>> s[40:len(s)]
+'dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing_end]: Final de slicing de string]
+
+Omitir ambos índices devuelve una cadena igual a la original, es decir, una referencia a la cadena original.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[:]
+'The quick brown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing_empty]: Slicing completo de string]
+
+Si el primer índice de un `slice` es mayor o igual que el segundo índice, entonces devuelve una cadena vacía. También se pueden usar índices negativos al hacer `slicing`.
+
+Se puede añadir un tercer índice al `slice` separado con un `:` extra. De esta manera, este tercer índice actúa como paso, es decir, cuantos carácteres se va a saltar tras obtener cada carácter en el `slice`. En el caso de `[31::2]`, se cogerán todos los carácteres a partir del 31 hasta el final, saltando de 2 en 2.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[31::2]
+'telz o'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing_stride]: Slicing con paso de string]
+
+Se pueden especificar números negativos en este tercer índice, en ese caso Python salta hacia atrás en la cadena. En ese caso, el primer índice debería ser mayor que el segundo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[::-1]
+'god yzal eht revo spmuj xof nworb kciuq ehT'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slicing_neg_stride]: Slicing con paso negativo de string]
+
+## F-Strings
+
+En las últimas versiones de Python aparecieron un nuevo tipo de cadenas que permiten un formateo avanzado y sencillo. Estas cadenas empiezan por un literal `f` antes de las comillas, y pueden tener en su interior expresiones contenidas en llaves `{}`, que serán reemplazadas por sus valores en la cadena final. Estas expresiones son evaluadas en tiempo de ejecución y se formatean usando el protocolo `__format__`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> a = 5
+>>> b = 10
+>>> print(f"Sumar {a} y {b} da como resultado {a + b}")
+Suamr 5 y 10 da como resultado 15
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fstring]: F-String]
+
+## Objetos inmutables
+
+Las cadenas de caracteres no se pueden modificar, son uno de esos tipos de datos que Python considera inmutables. Modificar el carácter de una cadena desencadena un error.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s[10] = 'c'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'str' object does not support item assignment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [error_modify]: Error modificando una cadena]
+
+En realidad no suele existir la necesidad de modificar cadenas de carácteres, se suele realizar fácilmente generando una copia de la cadena original que tiene los cambios realizados. Hay muchas maneras de hacer esto en Python.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s[:10] + 'c' + s[11:]
+'The quick crown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [modify_slice]: Crear una cadena nueva, cambiando un carácter]
+
+Incluso usando un método de las cadenas para realizarlo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s.replace('b', 'c')
+'The quick crown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [modify_slice]: Crear una cadena nueva, cambiando un carácter]
+
+## Métodos para cadenas
+
+En Python todo son objetos, y las cadenas también. Como tales, tienen métodos, que son funciones asociadas a un objeto que se pueden llamar para dicho objeto. Para ello hay que acceder al objeto cadena en particular y llamar a su método con la notación con punto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+object.method(<arguments>)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [method_call]: Llamar a método de un objeto]
+
+### Conversión mayúsculas/minúsculas
+
+Los métodos en este grupo convierte entre mayúsculas y minúsculas en una cadena de carácteres.
+
+#### `string.capitalize()`
+
+Devuelve una copia del string con el primer carácter en mayúsculas y el resto en minúsculas. Los carácteres que no son alfabéticos no se alteran.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The QUICK brown FOX jumps OVER the LAZY dog'
+>>> s.capitalize()
+'The quick brown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [capitalize]: `capitalize`]
+
+
+#### `string.lower()`
+
+Devuelve una copia del string con todos los carácteres convertidos a minúsculas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The QUICK brown FOX jumps OVER the LAZY dog'
+>>> s.lower()
+'the quick brown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [lower]: `lower`]
+
+#### `string.swapcase()`
+
+Devuelve una copia del string donde los carácteres alfabéticos en mayúsculas se pasan a minúsculas y viceversa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The QUICK brown FOX jumps OVER the LAZY dog'
+>>> s.swapcase()
+'tHE quick BROWN fox JUMPS over THE lazy DOG'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [swapcase]: `swapcase`]
+
+#### `string.title()`
+
+Devuelve una copia del string donde la primera letra de cada palabra está en mayúsculas y el resto en minúsculas. El algoritmo que se usa para esto es bastante simple, y no distingue entre palabras importantes u otras que lo son menos, así que no soporta apóstrofes, acrónimos,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The QUICK brown FOX jumps OVER the LAZY dog'
+>>> s.title()
+'The Quick Brown Fox Jumps Over The Lazy Dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [title]: `title`]
+
+#### `string.upper()`
+
+Devuelve una copia del string con todos los carácteres a mayúsculas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The QUICK brown FOX jumps OVER the LAZY dog'
+>>> s.upper()
+'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [upper]: `upper`]
+
+### Encontrar y reemplazar
+
+Estos métodos proporcionan medios para encontrar una subcadena dentro de una cadena. Cada método en este grupo soporta unos argumentos opcionales `start` y `end`. Estos son interpretados para realizar el `slicing` de la cadena, la acción del método es restringida a la porción de la cadena que empieza en la posición `start` hasta `end` sin incluir esta última. Si se especifica `start`, pero no `end`, aplica desde `start` hasta el final de la cadena.
+
+#### `string.count(<sub>, <start>, <end>)`
+
+Devuelve el número de ocurrencias de una subcadena en un string.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s.count('e')
+3
+>>> s.count('e', 10)
+2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [count]: `count`]
+
+#### `string.endswith(<suffix>, <start>, <end>)`
+
+Devuelve `True` si la cadena acaba con el sufijo especificado y `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s.endswith('dog')
+True
+>>> s.endswith('cat')
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [endswith]: `endswith`]
+
+#### `string.find(<sub>, <start>, <end>)`
+
+Con este método se comprueba si una cadena contiene una subcadena en particular, devuelve el índice menor donde se puede encontrar la subcadena, es decir, la primera ocurrencia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'the quick brown fox jumps over the lazy dog'
+>>> s.find('the')
+0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [find]: `find`]
+
+Si el método devuelve -1 es que la subcadena no se ha podido encontrar.
+
+#### `string.index(<sub>, <start>, <end>)`
+
+Funciona exactamente igual que `find`, pero levanta una excepción si no se ha podido encontrar la subcadena en lugar de devolver -1.
+
+#### `string.rfind(<sub>, <start>, <end>)`
+
+Devuelve el índice mayor donde se encuentra una subcadena dentro de una cadena, es decir, la última ocurrencia. En caso de no encontrarla, devuelve -1.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'the quick brown fox jumps over the lazy dog'
+>>> s.rfind('the')
+31
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rfind]: `rfind`]
+
+#### `string.rindex(<sub>, <start>, <end>)`
+
+Funciona exactamente igual que `rfind`, pero levanta una excepción si no se ha podido encontrar la subcadena en lugar de devolver -1.
+
+#### `string.startswith(<prefix>, <start>, <end>)`
+
+Devuelve `True` si la cadena empieza con el prefijo especificado y `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'The quick brown fox jumps over the lazy dog'
+>>> s.startswith('The')
+True
+>>> s.startswith('the')
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [startswith]: `startswith`]
+
+### Clasificación de carácteres
+
+Los métodos de este grupo clasifican una cadena basándose en los carácteres que contiene.
+
+#### `string.isalnum()`
+
+Determina si una cadena consiste de carácteres alfanuméricos. Devuelve `True` si la cadena no es vacía, y todos sus carácteres son alfanuméricos (letras o números), y `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '12345abcde'.isalnum()
+True
+>>> '12345abcde=-'.isalnum()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isalnum]: `isalnum`]
+
+#### `string.isalpha()`
+
+Determina si una cadena consiste de carácteres alfabéticos, devuelve `True` en caso afirmativo, o `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'ABCDEabcde'.isalpha()
+True
+>>> 'ABCDE12345'.isalpha()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isalpha]: `isalpha`]
+
+#### `string.isdigit()`
+
+Determina si una cadena consiste de carácteres numéricos, devuelve `True` en caso afirmativo, o `False` en caso contrario.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '12345'.isdigit()
+True
+>>> 'ABCDE12345'.isdigit()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isdigit]: `isdigit`]
+
+#### `string.isidentifier()`
+
+Determina si una cadena es un identificador valido de Python de acuerdo a la definición del lenguaje.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.isidentifier()
+True
+>>> '23foo'.isidentifier()
+False
+>>> 'foo+23'.isidentifier()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isidentifier]: `isidentifier`]
+
+Para asegurarse que una cadena pueda servir como un identificador valido de Python, hay que verificar que `.isidentifier()` sea `True` y además que `iskeyword()` es `False` (que no sea una palabra clave reservada del lenguaje).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> from keyword import iskeyword
+>>> 'for'.isidentifier() and 'for'.iskeyword()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [iskeyword]: `iskeyword`]
+
+#### `string.islower()`
+
+Determina si todos los carácteres alfabéticos de una cadena son minúsculas, en ese caso devuelve `True`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.islower()
+True
+>>> '23foo'.islower()
+True
+>>> 'Foo+23'.islower()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [islower]: `islower`]
+
+#### `string.isprintable()`
+
+Determina si todos los carácteres alfabéticos de la cadena son imprimibles, si existe alguno no imprimible devuelve `False`. Este método devuelve `True` si la cadena es vacía, es el único que lo hace, el resto se comportan al revés.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.isprintable()
+True
+>>> '23foo'.isprintable()
+True
+>>> 'Foo\n23'.isprintable()
+False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isprintable]: `isprintable`]
+
+#### `string.isspace()`
+
+Devuelve `True` si no está vacía y todos los carácteres son espacios en blanco. Los carácteres espacios más comúnes son ' ', tabulador '\t' y nueva linea '\n'.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '  '.isspace()
+True
+>>> '   foo    '.isspace()
+False
+>>> '   \n \t  '.isspace()
+True
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isspace]: `isspace`]
+
+#### `string.istitle()`
+
+Devuelve `True` si el primer carácter de cada palabra es mayúscula, y el resto de los carácteres alfabéticos son minúsculas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'The Quick Brown Fox'.istitle()
+True
+>>> 'The quick brown fox'.istitle()
+False
+>>> 'The Quick Brown 23 Fox'.istitle()
+True
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [istitle]: `istitle`]
+
+#### `string.isupper()`
+
+Devuelve `True` si todos los carácteres alfabéticos son mayúsculas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'The Quick Brown Fox'.isupper()
+False
+>>> 'THE QUICK BROWN FOX'.isupper()
+True
+>>> 'THE QUICK BROWN 23 FOX'.isupper()
+True
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [isupper]: `isupper`]
+
+### Formato
+
+Los métodos de este grupo modifican o mejoran el formato de una cadena.
+
+#### `s.center(<width>, <fill>)`
+
+Devuelve una cadena que consiste en la cadena centrada con la anchura proporcionada como parámetro. Por defecto, se rellenan los huecos con espacios en blanco. Si se proporciona el parámetro `fill`, este se usa como carácter de relleno. Si la cadena es al menos tan larga como `width`, entonces se devuelve sin cambios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.center(8)
+'  foo   '
+>>> 'foo'.center(8, '_')
+'__foo___'
+>>> 'foo'.center(2)
+'foo'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [center]: `center`]
+
+#### `string.expandtabs(tabsize=8)`
+
+Reemplaza cada carácter de tabulación con espacios, por defecto, los tabuladores se rellenan con 8 columnas cada uno. Con el parámetro opcional `tabsize` se proporciona un tamaño alternativo para las columnas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo\tfoo\tfoo'.expandtabs()
+'foo        foo        foo'
+>>> 'foo\tfoo\tfoo'.expandtabs(2)
+'foo  foo  foo'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [expandtabs]: `expandtabs`]
+
+#### `string.ljust(<width>, <fill>)`
+
+Devuelve una cadena con la cadena original justificada por la izquierda en un campo con el ancho provisto. Por defecto, se rellenan los huecos con espacios en blanco. Si se proporciona el parámetro `fill`, este se usa como carácter de relleno. Si la cadena es al menos tan larga como `width`, entonces se devuelve sin cambios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.ljust(8)
+'foo     '
+>>> 'foo'.ljust(8, '_')
+'foo_____'
+>>> 'foo'.ljust(2)
+'foo'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [ljust]: `ljust`]
+
+#### `string.lstrip(<chars>)`
+
+Devuelve una copia de la cadena original con los espacios en blanco eliminados desde la parte inicial. Si se proporciona el argumento opcional `chars`, se especifican que carácteres hay que eliminar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '   foo   '.lstrip()
+'foo   '
+>>> ' -_-foo-bar-_- '.lstrip(' -_')
+'foo-bar-_- '
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [lstrip]: `lstrip`]
+
+#### `string.replace(<old>, <new>, <count>)`
+
+Reemplaza las ocurrencias de una subcadena, dentro de una cadena, por otra subcadena. En el parametro `old` se proporciona la subcadena que se quiere reemplazar, en `new` la nueva subcadena con la que reemplazar. Y se provee el parámetro opcional `count`, se indican cuantas ocurrencias se van a reemplazar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> s = 'the quick brown fox jumps over the lazy dog'
+>>> s.replace('the', 'a')
+'a quick brown fox jumps over a lazy dog'
+>>> s.replace('the', 'a', 1)
+'a quick brown fox jumps over the lazy dog'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [replace]: `replace`]
+
+#### `string.rjust(<width>, <fill>)`
+
+Devuelve una cadena con la cadena original justificada por la derecha en un campo con el ancho provisto. Por defecto, se rellenan los huecos con espacios en blanco. Si se proporciona el parámetro `fill`, este se usa como carácter de relleno. Si la cadena es al menos tan larga como `width`, entonces se devuelve sin cambios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.rjust(8)
+'     foo'
+>>> 'foo'.rjust(8, '_')
+'_____foo'
+>>> 'foo'.rjust(2)
+'foo'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rjust]: `rjust`]
+
+#### `string.rstrip(<chars>)`
+
+Devuelve una copia de la cadena original con los espacios en blanco eliminados desde la parte final. Si se proporciona el argumento opcional `chars`, se especifican que carácteres hay que eliminar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '   foo   '.rstrip()
+'   foo'
+>>> ' -_-foo-bar-_- '.rstrip(' -_')
+' -_-foo-bar'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rstrip]: `rstrip`]
+
+#### `string.strip(<chars>)`
+
+Devuelve una copia de la cadena original con los espacios en blanco eliminados desde la parte inicial y final, por ambos extermos. Si se proporciona el argumento opcional `chars`, se especifican que carácteres hay que eliminar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '   foo   '.strip()
+'foo'
+>>> ' -_-foo-bar-_- '.strip(' -_')
+'foo-bar'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [strip]: `strip`]
+
+Cuando el valor de retorno de un método de las cadenas es otra cadena, como suele ser el caso, estos métodos se pueden invocar en llamadas sucesivas creando una cadena de llamadas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '   foo   '.lstrip().rstrip()
+'foo'
+>>> ' -_-foo-bar-_- '.lstrip(' -_').rstrip(' -_')
+'foo-bar'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [chain_methods]: Llamadas a métodos encadenados]
+
+#### `string.zfill(<width>)`
+
+Devuelve una copia de la cadena original rellena con carácteres '0' por la izquierda al ancho especificado. Si la cadena original tiene en su inicio un signo ('+' o '-'), este se mantiene en el borde a la izquierda una vez insertados los '0'. Si la cadena es al menos tan larga como `width`, entonces se devuelve sin cambios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '23'.zfill(6)
+'000023'
+>>> '-23'.zfill('6')
+'-00023'
+>>> '-23'.zfill('3')
+'-23'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [zfill]: `zfill`]
+
+Pese a que este método está pensado principalmente para las representaciones en strings de números, se puede usar para actuar sobre cualquier cadena.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'foo'.zfill(8)
+'00000foo'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [zfill2]: `zfill` con strings]
+
+### Conversión entre strings y listas
+
+Los métodos en este grupo convierten los datos entre una cadena de carácteres y un tipo de datos compuesto, o bien pegando objetos juntos para crear un string, o rompiendo un string en trozos más pequeños. Estos métodos operan sobre o devuelven iterables, es decir, una colección secuencial de objetos. Casi todos devuelven una lista o una tupla, que son en su esencia muy similares, y colecciones de datos iterables.
+
+#### `string.join(<iterable>)`
+
+Concatena strings a partir de un objeto iterable (lista, tupla,...). Devuelve una cadena con el resultado de la concatenación de los objetos en el iterable que recibe como parámetro, separados por la cadena original. Este método se llama sobre la cadena que va a actuar como separador, y obviamente el objeto iterable debe ser una colección de cadenas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> ','.join(['apple', 'orange', 'grapes'])
+'apple, orange, grapes'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [join]: `join`]
+
+En este ejemplo, donde se llama al método `join` sobre una cadena con solo una coma `,`, el resultado es una cadena que contiene a todos los elementos de la lista separados por coma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> '-'.join('apple')
+'a-p-p-l-e'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [join2]: `join` sobre string]
+
+Si se pasa como objeto iterable un string, entonces se interpreta como una lista de los carácteres individuales. Si un elemento de la lista no es un string, entonces se produce un error al realizar la concatenación.
+
+#### `string.partition(<sep>)`
+
+Divide una cadena basándose en un separador, parte la cadena en la primera ocurrencia del parámetro `sep`, que también tiene que ser una cadena. El valor de retorno es una tupla con tres elementos, el primero la porción de la cadena original que precede a `sep`, después el propio `sep`, y por último el trozo de cadena que sigue a `sep`. Si no se encuentra el separador, entonces la tupla que se devuelve contiene en su primer elemento la cadena completa, y los otros dos elementos vacios.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple.orange'.partition('.')
+('apple', '.', 'orange')
+>>> 'apple.orange'.partition(',')
+('apple.orange', '', '')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [partition]: `partition`]
+
+#### `string.rpartition(<sep>)`
+
+Funciona exactamente como `partition`, pero la división de la cadena se produce sobre la última ocurrencia de `sep` en lugar de la primera.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple.orange.grapes'.partition('.')
+('apple', '.', 'orange.grapes')
+>>> 'apple.orange.grapes'.rpartition('.')
+('apple.orange', '.', 'grapes')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rpartition]: `rpartition`]
+
+#### `string.rsplit(sep=None, maxsplit=-1)`
+
+Divide una cadena en una lista de subcadenas. Sin argumentos devuelve una lista de subcadenas con la cadena original dividida por espacios en blanco. Si se le provee el parámetro `sep`, se usa como delimitador para la división.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple orange grapes'.rsplit()
+['apple', 'orange', 'grapes']
+>>> 'apple.orange.grapes'.rsplit('.')
+['apple', 'orange', 'grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rsplit]: `rsplit`]
+
+Cuando se provee un `sep`, si se encuentran esos separadores de manera consecutiva en la cadena original, se asume que delimitan cadenas en blanco. Pero esto no sucede cuando se omite `sep`, en ese caso, espacios en blanco consecutivos se combinan en un solo separador, y la lista final nunca contendrá ninguna cadena en blanco.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple..grapes'.rsplit()
+['apple', '', 'grapes']
+>>> 'apple   grapes'.rsplit()
+['apple', 'grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rsplit2]: `rsplit` con espacios consecutivos]
+
+Si se provee el parámetro opcional `maxsplit`, se realizan ese número máximo de divisiones, empezando por el final de la cadena. El valor por defecto para este parámetro es -1, indicando que se realicen todas las divisiones posibles.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple.orange.grapes'.rsplit('.', maxsplit=1)
+['apple.orange', 'grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [rsplit]: `rsplit`]
+
+#### `string.split(sep=None, maxsplit=-1)`
+
+Divide una cadena en una lista de subcadenas.Se compora exactamente como `rsplit`, excepto si se especifica el parámetro `maxsplit`, en ese caso las divisiones se cuentan desde el inicio de la cadena, en lugar del final.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple.orange.grapes'.split('.', maxsplit=1)
+['apple', 'orange.grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [split]: `split`]
+
+#### `string.splitlines(<keepends>)`
+
+Divide una cadena en una lista de subcadenas usando una serie de carácteres especiales para la división. En general todos aquellos carácteres o secuencias de carácteres que se suelen usar para separar líneas en ficheros de texto.
+
+Secuencia | Carácter
+----------|----------
+\n | Nueva linea
+\r | Retorno de carro
+\r\n | Retorno de carro y nueva Linea
+\v o \x0b | Tabulación
+\f o \x0c | Formulario
+\x1c | Separador de fichero
+\x1d | Separador de grupo
+\x1e | Separador de registro
+\x85 | Siguiente linea
+\u2028 | Separador de linea unicode
+\u2029 | Separador de parrafo unicode
+[Table [line_sequences]: Carácteres separadores de línea]
+
+Si se encuentran varios carácteres de este tipo de manera consecutiva, se asume que delimitan líneas en blanco, que aparecerán en la lista final.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple\norange\ngrapes'.splitlines()
+['apple', 'orange', 'grapes']
+>>> 'apple\norange\n\ngrapes'.splitlines()
+['apple', 'orange', '', 'grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [splitlines]: `splitlines`]
+
+Si se provee el parámetro opcional `keepends` y es igual a `True`, entonces se mantienen dichos carácteres especiales en las cadenas de la lista resultante.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+>>> 'apple\norange\ngrapes'.splitlines(True)
+['apple\n', 'orange\n', 'grapes']
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [splitlines_keepends]: `splitlines` guardando los carácteres espciales]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

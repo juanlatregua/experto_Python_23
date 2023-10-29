@@ -1,0 +1,412 @@
+<meta charset="utf-8">
+**02EPPY - 201 - WebScraping**
+    <small>©2021 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# WebScraping
+
+WebScraping es el proceso de recopilar información de Internet en su concepto más general, aunque sea un proceso manual por parte del usuario descargando fotos una a una de algún sitio web. Pero habitualmente, se refiere a un proceso que suponga cierta automatización. A algunos sitios web no les gusta que estos procesos automáticos `scrapers` recopilen su información, mientras que otros lo permiten con mayor facilidad.
+
+Si se está recopilando una página por motivos educacionales, es probable que no haya problemas. En cualquier caso, es importante hacer un poco de trabajo de investigación y asegurarse de no estar violando ningún termino de servicio antes de empezar.
+
+En este ejemplo se va a trabajar con un sitio web que muestra información sobre películas. El webscraping automatizado puede ser una solución para acelerar el proceso de obtener colecciones de datos. Se escribe el código una vez, y se obtiene la información muchas veces y de varias webs.
+
+En el otro extremo, si se trata de obtener dicha información de manera manual, se pierde mucho tiempo haciendo clicks, navegando o buscando. Especialmente si se necesitan grandes volúmenes de datos de sitios web que se actualizan periódicamente con nuevos contenidos. El webscraping manual puede llevar mucho tiempo y hacer lo mismo una y otra vez.
+
+Hoy en día, hay mucha información en la web, y se añade nueva constantemente. Una parte de esos datos es probable que le interese al usuario, y la mayor parte de ella está disponible para ser usada.
+
+La web ha crecido orgánicamente a partir de muchas fuentes distintas, combina muchas tecnologías distintas, estilos, personalidades,... y continua creciendo dia a dia. La web al final del día está desordenada. Y eso puede ser un problema cuando se intenta obtener información de ella.
+
+El mayor reto es la variedad, cada sitio web es distinto. Pese a que se pueden encontrar ciertas estructuras generales que tienden a repetirse, cada sitio web es único y necesitará su propio tratamiento especializado si se quiere obtener la información que aloja.
+
+Otro problema es la durabilidad, las webs cambian constantemente. Se puede construir un scraper que automáticamente seleccione de manera precisa lo que se quiere obtener de un recurso en internet. La primera vez que se ejecuta este scraper, funciona perfectamente, pero se ejecuta unos días más tarde y falla miserablemente. El sitio web al que estaba accediendo ha cambiado, como muchas otras webs que están en desarrollo activo. Una vez ha cambiado la estructura del sitio web, el scraper no será capaz de navegar correctamente en el sitio web o encontrar la información relevante. La parte buena, es que los cambios a las páginas web suelen ser pequeños e incrementales, así que suele ser sencillo actualizar el scraper con algunos pequeños ajustes.
+
+Sin embargo, hay que tener en cuenta que internet en sí misma, es dinámica, los scrapers que se construyan necesitarán muy probablemente mantenimiento constante.
+
+## APIs
+
+Muchos sitios web ofrecen una API que permite acceder a sus datos de una manera predefinida. Con este sistema, se evita el problema de tener que analizar el código HTML, y en su lugar, acceder a los datos directamente usando formatos como JSON o XML. HTML es principalmente una manera de presentar visualmente los contenidos a los usuarios.
+
+Cuando se usa una API, el proceso suele ser mucho más estable que obtener la información a través de webscraping. Esto es porque estas APIs están hechas para ser consumidas por programas más que por el ojo humano. Si el diseño de la web cambia, eso no significa que la estructura de la API cambien también.
+
+Sin embargo, las APIs también pueden cambiar. Los problemas de variedad y durabilidad también aplican a las APIs. Y además se depende de la documentación de dichas APIs para obtener el conocimiento de como trabajar con ellas.
+
+# Inspeccionar el origen de los datos
+
+Para poder probar cosas se va a trabajar con un sitio web que es una base de datos de películas, que se llama [IMDB](https://www.imdb.com/). El webscraper analizará el código HTML para elegir los trozos relevantes de información y filtrar ese contenido buscando palabras concretas. Se puede hacer scraping sobre cualquier sitio web de internet, la dificultad de hacerlo dependerá del sitio.
+
+El primer paso es visitar el sitio del que se quiere extraer la información con un navegador. Hay que entender bien la estructura del sitio para encontrar dicha información.
+
+Se puede navegar por el sitio como cualquier usuario normal haría. Por ejemplo, buscar las películas en un rango de fechas, entre el 01/01/2020 y el 31/12/2020 usando el interfaz de búsqueda nativa de la web y solo las películas `Feature Film`.
+
+![Figure [res/201_000]: Búsqueda por fechas en IMDB](res/201_000.png  width="400px")
+
+Al ejecutar la búsqueda se puede observar que hay una lista de películas que cumplen los criterios de la búsqueda.
+
+![Figure [res/201_001]: Búsqueda por fechas en IMDB](res/201_001.png  width="400px")
+
+También se puede observar que cuando se interactúa con la web, la URL en la barra de direcciones del navegador también cambia.
+
+## Descifrar las URLs
+
+En una URL se puede codificar mucha información, en esta búsqueda en particular de la web de IMDB.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML
+https://www.imdb.com/search/title/?title_type=feature&release_date=2020-01-01,2020-12-31
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [url_imdb]: URL de la búsqueda en IMDB por fecha de lanzamiento.]
+
+Se puede deconstruir la URL en dos partes principales.
+
+- URL base, representa la ruta para la funcionalidad de búsqueda en el sitio web. En este ejemplo, la URL base es `https://www.imdb.com/search/title/`
+
+- Los parámetros de consulta, representan valores adicionales que pueden ser declarados en la página. En este caso, son `?release_date=2020-01-01,2020-12-31`.
+
+Cualquier búsqueda por películas en esta web usará la misma URL base, pero, los parámetros de la consulta cambiarán dependiendo de lo que se esté buscando.
+
+Los parámetros de consulta suelen constar de tres partes
+
+1. Inicio, el principio de los parámetros de consulta se marcan con un interrogante `?`
+2. Información, los trozos de información que constituyen un parámetro se codifican como pares clave-valor, donde las claves y valores se relacionan usando un signo igual `=`, tal como `(key=value)`
+3. Separador, una URL puede tener varios parámetros, que se separan unos de otros con el signo ampersand `&`
+
+Con esta información se pueden extraer los parámetros de la consulta en dos pares clave-valor.
+
+1. `title_type=feature`, selecciona el tipo de título que se está buscando
+2. `release_date=2020-01-01,2020-12-31`, selecciona el rango de fechas de lanzamiento de las películas
+
+Se pueden hacer cambios en la URL en el navegador directamente y se reflejarán en la página, en los cuadros de búsqueda, y de manera inversa si se cambian los valores en la búsqueda se verá actualizada la URL. Al explorar las URLs, se aprende como obtener información del servidor web.
+
+## Herramientas de desarrollador
+
+El siguiente paso es aprender más acerca de como los datos están estructurados para visualizarse. Hay que entender la estructura de la página para elegir lo que se quiere de la respuesta HTML que se recogerá.
+
+Las herramientas de desarrollo de los navegadores pueden ayudar en este propósito. Todos los navegadores modernos vienen con ellas instaladas. En Chrome, se pueden abrir las herramientas de desarrollo a través del atajo de teclado `F12` o con el botón derecho sobre la página y seleccionando la opción `Inspect`.
+
+Las herramientas de desarrollo permiten al programador explorar de manera interactiva el Modelo de Objetos del Documento [DOM](https://en.wikipedia.org/wiki/Document_Object_Model), para entender mejor el código con el que se está trabajando. Para profundizar en el DOM de la página, se selecciona la pestaña `Elements`, se verá una estructura con elementos HTML seleccionables. Se pueden expandir, colapsar, e incluso editarlos directamente en el navegador.
+
+![Figure [res/201_002]: Herramientas de desarrollo de Chrome](res/201_002.png  width="500px")
+
+Cuando se pincha con el botón derecho sobre un elemento en la página, se puede seleccionar `Inspect` para ver su localización exacta en el DOM. También se puede pasar el ratón sobre un texto HTML en la sección de la derecha y ver que elementos se iluminan en la página. Se puede encontrar más información acerca de DOM y HTML en [CSS-TRICKS](https://css-tricks.com/dom/).
+
+# Descargar contenido HTML
+
+El primer paso es conseguir el código HTML dentro del script de Python para poder interactuar con él. Para eso se usará la librería `requests`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+
+URL = 'https://www.imdb.com/search/title/?title_type=feature&release_date=2020-01-01,2020-12-31'
+page = requests.get(URL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [imdb_get]: Descargar el HTML de la búsqueda en IMDB]
+
+Usando el método `get` se hace una petición a la URL, y se obtienen todos los datos HTML que el servidor envía de vuelta y se guardan en un objeto de Python.
+
+## Páginas estáticas
+
+El sitio web IMDB que se está scrapeando sirve contenido HTML estático. En este escenario, el servidor que aloja el sitio envía documentos HTML que ya contienen todos los datos que se pueden ver como usuario.
+
+Al inspeccionar la página con las herramientas de desarrollo, se descubre que un post con una película consiste en un trozo de HTML.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<div class="lister-item mode-advanced">
+...
+</div>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_info]: Código HTML para una película]
+
+Es difícil manejar estos HTML de cabeza, para hacerlo más sencillo, se puede usar un [formateador de HTML](https://www.freeformatter.com/html-formatter.html) para automáticamente formatearlo y limpiarlo. La legibilidad ayuda a entender mejor la estructura de cualquier bloque de código. Hay que tener en cuenta que cada sitio web será diferente, por eso hay que perder un poco de tiempo en inspeccionar y entender la estructura del sitio en el que se está trabajando antes de seguir.
+
+EL HTML tiene algunas partes confusas, pero por suerte, los nombres de las clases en los elementos en los que se está interesado son relativamente sencillos.
+
+- `class="lister-item-header"`, el título de la película
+- `class="ratings-imdb-rating"`, puntuación de la película
+- `class="text-muted"`, argumento de la película
+
+## Páginas Ocultas
+
+Algunas páginas contienen información que está oculta tras un login, esto significa que se necesita una cuenta para ser capaz de ver (y descargar) cualquier cosa de la página. El proceso para realizar una petición HTTP desde Python es distinto a como se accede a una página desde el navegador. Esto significa que el hecho que se pueda iniciar sesión en la página a través del navegador, no implica que se pueda automatizar la descarga de contenidos desde Python.
+
+Sin embargo, hay algunas técnicas con la librería `requests` ya vistas con anterioridad, que permiten acceder a los contenidos tras las pantallas de login. Con ellas se puede iniciar sesión en una web y hacer peticiones HTTP desde Python.
+
+## Páginas Dinámicas
+
+Los sitios estáticos son más fáciles de trabajar puesto que el servidor envía una página HTML que ya contiene toda la información como respuesta. Se puede analizar una respuesta HTML con una librería como BeautifulSoup y ponerse a seleccionar la información relevante.
+
+Por otro lado, con un sitio dinámico el servidor puede que no envíe ningún HTML. En su lugar, se recibe código JavaScript como respuesta. Esto es algo completamente distinto de lo visto al inspeccionar la página con las herramientas de desarrollo.
+
+Para descargar el trabajo de los servidores y llevarse ese trabajo a las máquinas de los clientes, muchas webs modernas evitan grandes procesamientos en sus servidores siempre que es posible. En su lugar, mandan código JavaScript que el navegador del cliente ejecutará localmente para producir el HTML deseado.
+
+Lo que sucede en el navegador no tiene relación con lo que sucede en el script de Python. El navegador ejecutará dicho código JavaScript y crea el DOM y HTML para el usuario de manera local. Pero, hacer una petición a un sitio dinámico desde un script de Python no devolverá el contenido HTML de la página.
+
+Al usar `requests`, solo se recibe lo que el servidor manda. En el caso de una web dinámica, al final se tiene un montón de código JavaScript, que no se podrá analizar usando BeautifulSoup. La única manera de actuar con código JavaScript es ejecutar dicho código, tal como hace el navegador.
+
+Hay librerías específicas para ello, como `requests-html`, que permiten lanzar código JavaScript usando una sintaxis muy similar a la usada con `requests`. Incluso tiene algunas cosas para analizar los datos usando BeautifulSoup por debajo.
+
+Otra elección habitual para obtener datos de webs con contenido dinámico es `Selenium`, se puede usar como un navegador ligero que ejecuta código JavaScript antes de devolver el HTML generado como respuesta al script.
+
+# Parsear código HTML con BeautifulSoup
+
+Hasta ahora se ha obtenido código HTML de internet, pero cuando se observa se ve un completo desorden, hay cientos de elementos HTML por todas partes, miles de atributos dispersos, incluso código JavaScript entremezclado. Es el momento de analizar o parsear ese batiburrillo de código con una librería como BeautifulSoup para hacerla más accesible y poder seleccionar los datos interesantes.
+
+[BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) es una librería de Python para parsear datos estructurados. Permite interactuar con HTLM de la misma manera que se interactuaría con una página web usando las herramientas de desarrollo. Expone una serie de funciones intuitivas que se pueden usar para explorar el código HTML que se ha recibido. Se instala con los medios habituales `pip` o `pipenv` desde su paquete en [PyPI](https://pypi.org/project/beautifulsoup4/).
+
+Para empezar a usarla, se importa y se crea un objeto `BeautifulSoup`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import requests
+from bs4 import BeautifulSoup
+
+URL = 'https://www.imdb.com/search/title/?title_type=feature&release_date=2020-01-01,2020-12-31'
+page = requests.get(URL)
+
+soup = BeautifulSoup(page.text, 'html.parser')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [beautiful_soup_object]: Objeto `BeautifulSoup`]
+
+Se crea un objeto de tipo `BeautifulSoup` que recibe como parámetro el contenido HTML que se ha descargado antes con `requests`. Cuando se instancia el objeto, también se le dice que use el parser correcto, en este caso el de HTML.
+
+## Encontrar elementos por ID
+
+En una página web HTML, cada elemento puede tener un atributo `id` asignado. Como el propio nombre sugiere, ese atributo `id` hace al elemento identificable de manera inequívoca en la página. Se puede empezar a analizar la página seleccionando un elemento específico por su `id`.
+
+En este caso concreto analizando la estructura concreta del HTML con las herramientas de desarrollo, se puede observar que toda la parte que contiene las fichas de las películas está bajo un `div` que tiene como ´id´ el valor de ´main´.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HTML linenumbers
+<div id="main">
+
+...
+
+</div>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [id_main]: `div` con `id=main`]
+
+La librería permite encontrar un elemento específico dentro del HTML fácilmente a través de su `id`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+main = soup.find(id='main')
+print(main.prettify())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [find_main]: Encontrar el elemento con `id=main` en el HTML principal]
+
+Se puede usar `prettify` sobre cualquier objeto de BeautifulSoup al imprimirlo para visualizarlo con mayor facilidad. Si se llama a este método sobre la variable `main`, que es el resultado del `find`, se debería ver el mismo HTML contenido dentro del `div`.
+
+Cuando se usa el `id` de un elemento, se selecciona solo ese elemento de entre el resto del HTML. Esto permite trabajar solo con una parte específica de la página HTML, y así restringir el trabajo a un subconjunto más pequeño.
+
+## Encontrar elementos por nombre de clase HTML
+
+En el caso de esta búsqueda se encuentran los datos páginados con 50 elementos por página. El primer paso será averiguar que distingue a esos 50 elementos del resto de elementos de la página. A menudo, estos marcadores distintivos se pueden encontrar en el atributo `class`. Inspeccionando el HTML, dentro del `div` de `main`, se pueden observar las líneas con los contenedores de las películas, y en ellas se encuentra el atributo `class` con dos valores `lister-item` y `mode-advanced`. Esta combinación es única para estos contenedores. Se puede certificar esto, haciendo una búsqueda rápida (`CTRL+F`), y viendo que solo hay 50 ocurrencias con ese texto, que coincide con lo esperado de los 50 elementos por página.
+
+![Figure [res/201_003]: Líneas con las tarjetas de las películas](res/201_003.png)
+
+Se trabaja sobre el objeto de BeautifulSoup que se ha obtenido antes para el `main`, puesto que esas son las partes del HTML en las que se está interesado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+movie_containers = main.find_all('div', class_ = 'lister-item mode-advanced')
+print(len(movie_containers))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [find_all]: Encontrar todos los elementos de una clase]
+
+Se llama al método `find_all` del objeto BeautifulSoup, el primer parámetro índica que tipo de elemento se está buscando, en este caso un `div`, y en el segundo parámetro `class_`, el nombre de la clase. Esto devuelve un objeto iterable, que para cada elemento contiene el HTML de todas las ocurrencias que ha encontrado en el trozo de página.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for movie in movie_containers:
+    print(f"{movie.prettify()}\n\n")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_iter]: Iterar sobre todas las películas encontradas]
+
+Recorriendo este iterable con un bucle se pueden acceder a los elementos uno a uno.
+
+![Figure [res/201_004]: El título de la película](res/201_004.png)
+
+### Título
+
+Para encontrar el título de la película hay que acceder a la etiqueta `h3` y dentro de ella a la etiqueta `a`, donde se encuentra tanto el link para navegar hacia la ficha completa de la película, como su título.
+
+El método `find`, encuentra el primer elemento que cumple las condiciones que se le pasan como parámetros, que son los mismos que recibe `find_all`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for movie in movie_containers:
+    title_element = movie.find('h3', class_='lister-item-header').find('a')
+    print(title_element)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_title_element]: Encontrar el elemento donde se encuentra el título]
+
+Se hace una búsqueda sobre el trozo de HTML de la tarjeta de cada película. Primero se encuentra la etiqueta `h3` con el nombre de clase `lister-item-header`, como se ha observado en las herramientas de desarrollo. Y luego sobre esa búsqueda se hace referencia a la etiqueta `a`.
+
+Esto se podría haber realizado también usando la notación por puntos habituales de Python, tal como `movie.h3.a`, y el resultado hubiera sido el mismo. Sin embardo esta forma de acceder usando un nombre etiqueta como atributo solo selecciona la primera etiqueta con ese nombre que encuentra.
+
+## Extraer texto de elementos HTML
+
+Si se accede al atributo `text` de un objeto de BeautifulSoup, este devuelve solo el texto contenido en los elementos HTML que contiene el objeto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for movie in movie_containers:
+    title_element = movie.find('h3', class_='lister-item-header').find('a')
+    print(title_element.text.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_title_text]: Encontrar el texto del elemento donde se encuentra el título]
+
+Es conveniente usar el método `strip` de las strings para eliminar cualquier espacio en blanco que puedan contener los textos y limpiarlos antes de procesarlos o guardarlos.
+
+Es habitual que la estrúctura de una web no sea consistente, y se pueden producir errores al parsear HTML. Puede que no todas las tarjetas de las películas contengan todos los datos que se buscan, en ese caso al acceder al atributo `text`, Python mostrará un error si no se ha encontrado el elemento para ese objeto. Se suele verificar la existencia de dicho objeto antes de acceder a sus atributos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for movie in movie_containers:
+    title_element = movie.find('h3', class_='lister-item-header').find('a')
+    if title_element is not None:
+        print(title_element.text.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_title_none]: Verificar que se ha encontrado el elemento]
+
+Comprobando si el objeto es `None`, se asegura que al acceder al atributo éste exista.
+
+### Año
+
+Para acceder el año de publicación de la película hay que volver a mirar las herramientas de desarrollo, y localizar la información allí. En este caso, está bajo el mismo `h3`, pero en el segundo `span`, al cual se puede acceder por nombre de clase fácilmente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+header = movie.find('h3', 'lister-item-header')
+year_element = header.find('span', class_='lister-item-year text-muted unbold')
+print(year_element.text.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_year]: Encontrar el año de publicación]
+
+La salida tendrá paréntesis rodeando al año, sería sencillo limpiar ese string y convertirlo a un entero. Pero si se exploran los datos, se puede observar que en algunas películas, el año toma algunos valores impredecibles, como `(I) (2017)` o `(2017– )`. Es más eficiente realizar la limpieza tras la obtención de los datos en un paso posterior de tratamiento de datos, donde se conocen todos los datos de los años.
+
+### Puntuación
+
+Para encontrar la puntuación hay que acceder a otro `div`, con clase `ratings-bar`, y dentro de ese `div` acceder a la etiqueta `strong`.
+
+![Figure [res/201_005]: La puntuación de la película](res/201_005.png)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+rating_element= movie.find('div', class_='ratings-bar').find('strong')
+print(rating_element.text.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_rating]: Encontrar la puntuación de la película]
+
+## Extraer atributos de elementos HTML
+
+### Número de votos
+
+El número de votos se puede encontrar dentro de una etiqueta `p` con un nombre clase determinado. Y dentro de ella, ese dato está en la primera etiqueta `span`, con nombre `nv`. Este atributo `name` es distinto al visto hasta ahora `class`, así que hay que usar el parámetro `attrs` del método `find`, para buscar cualquier atributo pasándo un diccionario, donde la clave es el nombre de la etiqueta.
+
+![Figure [res/201_006]: El número de votos de la película](res/201_006.png)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+votes_element = movie.find('p', class_='sort-num_votes-visible').find('span', attrs={'name':'nv'})
+print(votes_element.text.strip())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_votes]: Encontrar los votos de la película]
+
+Pero en el resultado se ve que ese dato se ha extraído como string, con una `,` por medio. En las herramientas de desarrollo se observa que ese mismo `span`, también contiene ese dato sin formatear dentro del atributo `data-value`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print(votes_element['data-value'])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [movie_votes]: Encontrar los votos de la película como número]
+
+Los elementos de BeautifulSoup se pueden tratar como diccionarios, donde los atributos HTML son las claves. Así se puede acceder al elemento com un diccionario, y usando la clave `data-value` se consiguen los números de votos numéricamente.
+
+## Encontrar elementos por nombre de clase y texto
+
+En ocasiones es interesante filtrar dentro del HTML solo algunas etiquetas y con algunos valores determinados.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print(main.find_all('a', string='Christopher Nolan'))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [search_string]: Buscar un string en todas las etiquetas]
+
+En este caso, busca todos los elementos `a` y devuelve aquellos cuyo contenido corresponde con el parámetro `string` que recibe. El problema es que esta función busca exactamente la cadena de carácteres, cualquier diferencia en mayúsculas/minúsculas, espacios,... hará que no se encuentre.
+
+### Pasar una función a un método Beautiful Soup
+
+Además de pasar strings, también se pueden pasar funciones como argumentos a los métodos de Beautiful Soup, comúnmente funciones anónimas o lambdas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+print(main.find_all('a', string=lambda text: False if text is None else 'nolan' in text.lower()))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [search_lambda]: Usar una lambda para buscar un string en todas las etiquetas]
+
+Se escribe una función lambda y se le pasa como parámetro. Esta función devolverá un valor booleano, primero `False` si encuentra alguna etiqueta `a` sin texto. Y en caso de que sí haya un texto, verifica que el texto esté contenido dentro del texto en minúsculas.
+
+## Obtener información de varías páginas
+
+Obtener los datos de varías páginas es un poco más complicado. Hay que hacer tres cosas más.
+
+- Hacer todas las peticiones dentro de un bucle
+- Controlar la velocidad del bucle para evitar bombardear el servidor con peticiones
+- Monitorizar el bucle mientras se ejecuta
+
+Se van a scrapear las primeras cuatro páginas para cada año, en el intervalo entre 2000 y 2020. Esto hace un total de 84 páginas, y cada página tiene 50 películas, eso hace un total de 4200 películas.
+
+### Parámetros de la URL
+
+Para hacer las peticiones de cada bloque solo hay que variar los valores de solo dos parámetros de la URL, `release_date` y `page`. Se crea una lista con los valores que se necesitarán para estos dos parámetros en cada petición.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+pages = [str(i) for i in range(1,5)]
+years = [str(i) for i in range(2000,2021)]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [lists]: Listas con valores para las peticiones]
+
+La primera lista `pages` contiene las strings para las cuatro primeras páginas, la segunda, `years_url`, contiene los años desde el 2000 al 2020.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+URL = f'https://www.imdb.com/search/title?title_type=feature&release_date={year}&sort=num_votes,desc&page={page}'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [url_format]: La URL de la petición con los parámetros dinámicos]
+
+Se compone la URL introduciendo los parámetros para el año y la página.
+
+### Controlando la velocidad de scrapping
+
+Controlar la velocidad a la que se hacen las peticiones es importante, tanto para el usuario, como para el servidor. Si se evita machacar al servidor con docenas de peticiones por segundo, es mucho menos probable que se banee la IP del que realiza la petición, y se pueda dejar de obtener información. Y además, se le da tiempo al servidor a que atienda a las peticiones de otros usuarios.
+
+Se puede controlar la velocidad a la que se realizan las peticiones, usando el método `sleep` del módulo `time` de Python. Este método pausa la ejecución del script el tiempo especifícado. Para imitar el comportamiento humano, se varia el tiempo de espera entre peticiones de manera aleatoria usando `randint` del módulo `random`, que devuelve un número entero aleatorio en un intervalo dado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from time import sleep
+from random import randint
+
+for year in years:
+    for page in pages:
+        ...
+        sleep(randint(1,3))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sleep]: Pausar la ejecución un tiempo aleatorio]
+
+### Monitorizar el bucle
+
+Puesto que se van a scrapear 84 páginas, estaría bien poder monitorizar el proceso, de tal manera que se puede observar en que estado está en cada momento, y como evoluciona.
+
+Se monitorizan los siguientes parámetros:
+
+- La frecuencia de las peticiones, o la velocidad, para no sobrecargar al servidor
+- El número de peticiones
+- El código de estado de las peticiones, para asegurarse que el servidor está devolviendo respuestas adecuadas
+
+Para conseguir un valor de frecuencia se divide el número de peticiones por el tiempo que ha pasado desde la primera petición. Con el método `time` del módulo `time`, se guarda el momento en el que se inició la ejecución, y en cada iteración del bucle se compara con el momento inicial para saber ese tiempo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+n_requests += 1
+elapsed_time = time() - start_time
+os.system('cls')
+print(f'Request:{n_requests}; Frequency: {n_requests/elapsed_time} requests')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [frecuencia]: Cálcular la frecuencia]
+
+Se puede verificar los códigos de respuesta de cada petición, y si no es un 200, entonces se muestra por pantalla y se guarda para mostrarlo al final otra vez.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+if response.status_code != 200:
+    error = f'Request: {n_requests}; Status code: {response.status_code}'
+    errors.append(error)
+    print(error)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [error]: Controlar los códigos de estado]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

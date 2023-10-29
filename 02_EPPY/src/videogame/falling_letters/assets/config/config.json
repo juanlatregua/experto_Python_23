@@ -1,0 +1,19 @@
+{
+    "game" : {
+        "screen_size" : [480, 640],
+        "title" : "Falling Letters",
+        "background_color" : [0, 0, 0],
+        "foreground_color" : [66,201,32]
+    },
+    "timing" : {
+        "fps" : 60,
+        "time_per_frame" : 16
+    },
+    "font" : {
+        "file" : ["shmup.assets.fonts", "Sansation.ttf"],
+        "size" : 40
+    },
+    "letter" : {
+        "speed_range" : [0.1, 1.0]
+    }
+}

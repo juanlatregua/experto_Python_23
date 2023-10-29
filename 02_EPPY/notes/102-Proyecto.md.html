@@ -1,0 +1,85 @@
+<meta charset="utf-8">
+**02EPPY - 102 - Proyecto**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Proyecto
+
+Para crear las bases del proyecto se va a usar la estructura clásica de un proyecto de Python donde en la carpeta raíz se encuentra el directorio para el entorno virtual, otro para documentos, y otro donde está todo el código de la aplicación. Y en este primer nivel un fichero *setup.py* encargado de la instalación de la aplicación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+└── ShMUp
+    ├── docs
+    ├── README.md
+    ├── setup.py
+    └── shmup
+        ├── shmup.py
+        ├── __init__.py
+        └── __main__.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [project_folder]: Estructura de Ficheros del Proyecto]
+
+El fichero *`__init__.py`* por ahora estará vacío, pero pese a ello le dice al interprete de Python que este directorio va a funcionar como un paquete, lo que facilita mucho las cosas a la hora de importar las clases y métodos desde el paquete como un todo.
+
+El fichero *`__main__.py`* es un fichero que se ejecuta cuando se lanza el paquete de primer nivel directamente a través del interprete de python. Y contiene el punto de entrada del juego. Se usa el *idiom* de Python de verificar si se está ejecutando como fichero de primer nivel, o si ha sido importado, en el primer caso se ejecuta la función *main*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+import sys
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    print("Main module speaking")
+
+if __name__ == '__main__':
+    sys.exit(main())
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [__main__.py]: Fichero *`__main__.py`*]
+
+Para que el interprete de Python reconozca el paquete y se pueda importar sin problemas además hay que crear un fichero *setup.py*, y usar los *setuptools* de Python para instalar el paquete. En este fichero se especifican los paquetes que exporta, puntos de entrada,... Más adelante cuando el juego esté acabado se puede volver a este fichero y añadirle más información acerca de la instalación del mismo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python linenumbers
+from setuptools import setup
+
+setup(
+    name="shmup",
+    version="0.0.1",
+    packages=["shmup"],
+    entry_points={
+        "console_scripts": [
+            "shmup = shmup.__main__:main"
+        ]
+    },
+    install_requires=["pygame"]
+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [setup.py]: Fichero *setup.py*]
+
+Una vez finalizado el juego se puede proceder a su instalación usando el comando *pip* con el parámetro `-e` para hacerlo editable, e incluso se puede pretender subirlo al repositorio de *PyPI* para hacerlo público.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+(.venv)$ pip install -e .
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [install_shmup]: Instalación de ShMUp]
+
+Si todo ha ido bien se puede llamar directamente al proyecto instalado desde la línea de comando estando en la raíz del proyecto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+(.venv)$ cd ShMUp
+(.venv)$ python3 -m shmup
+Main module speaking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [run_project]: Lanzar Juego]
+
+O incluso hacerlo directamente si se ha instalado correctamente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+(.venv)$ shmup
+Main module speaking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [run_project2]: Lanzar juego una vez instalado]
+
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

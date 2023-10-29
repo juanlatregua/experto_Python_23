@@ -1,0 +1,348 @@
+<meta charset="utf-8">
+**02EPPY - 002 - Cómo Funcionan los Videojuegos**
+    <small>©2022 VIU - 02EPPY Introducción a la Programación de Videojuegos - Iván Fuertes</small>
+
+# Introducción
+Los videojuegos son antes de nada juegos, y después juegos basados en ordenadores. Una buena primera aproximación al desarrollo de videojuegos es examinar al detalle como funcionan algunos juegos reales. Se pueden desarmar y echar un vistazo a cómo se estructura un videojuego a nivel de diseño e implementación. Un juego simple que todo el mundo conoce puede servir para este propósito. *Pong* es uno de los primeros videojuegos, y tiene todos los elementos del resto de juegos, excepto que es lo suficientemente simple para entenderlo completamente.
+
+# Arquitectura de un Videojuego
+La palabra arquitectura puede ser definida como una construcción o una estructura, una disposición ordenada de partes de un sistema. De acuerdo a esta definición, la arquitectura de un videojuego debería referirse a la estructura interna de un juego, su organización general como un sistema funcional, en como sus partes están organizadas para crear un juego funcional. Para entender realmente la estructura de un juego, hay que saber algo de programación de ordenadores, puesto que un ordenador es el que provee la tecnología	y cualquier videojuego no es más que un trozo de software en su interior. Sin ser un programador solo se puede tener una visión muy parcial o general de como funciona un videojuego. Hay que conocer las partes visibles (coches, carreteras,...) y también las partes estructurales y funcionales, como el sistema de audio o de renderizado. Hay que entender como esas partes se comunican entre ellas y lo que necesitan para cumplir su tarea.
+
+Un jugador no necesita saber todo esto, solo necesita saber las reglas del juego, el objetivo, el interfaz, las cosas necesarias para jugar. De hecho, habitualmente una vez se estudian a fondo los videojuegos nunca se vuelven a jugar de la misma manera, la visión de su funcionamiento cambia por completo. Se empiezan a cuestionar todas las decisiones que los diseñadores han tomado, porque se ha hecho cierto nivel de cierta manera, como se han implementado ciertos sistemas,... Así, saber como funcionan los videojuegos en su interior puede a veces interferir, y otras mejorar, la experiencia de jugarlos.
+
+En un sentido técnico, un videojuego es una simulación interactiva en tiempo real con una pantalla gráfica y audio. Bajo esta definición, ya hay varios componentes identificables que conforman un sistema de juego, el sistema gráfico, el sistema de sonido, el usuario, un planificador. La unica parte esencial que falta es la inteligencia artificial, cuyo trabajo es llevar un registro de los objetos simulados en el juego.
+
+En Figure [res/101_000] se muestra un diagrama de los componentes básicos y como se conectan, no es la única posible organización, y no muestra muchos detalles, pero da una idea básica de como funciona y como se relacionan unos sistemas con otros.
+
+![Figure [res/101_000]: Arquitectura general de un videojuego](res/101_000.png)
+
+Un videojuego muestra al jugador un mundo que no existe en la realidad. Sin ahondar mucho en cuestiones filosóficas, lo que se ve a través de la pantalla del ordenador es una interpretación de una serie de datos que representa una situación simulada. Lo que se muestra es una pantalla real con imágenes reales, pero la situación y lo que se está pintando no existe en el mundo real. Es una analogía, un entorno virtual en el cual el diseñador controla las leyes que dictan como interactúan unos objetos con otros, por ejemplo, la gravedad o el resultado de una colisión. Una parte significativa de un videojuego, en términos de código y tiempo requerido para crearlo, es la parte que muestra las imágenes y los sonidos del mundo imaginario para que el jugador lo evalúe.
+
+Antes se ha visto que hay muchos tipos distintos de juegos, y cada uno de ellos puede tener unas necesidades específicas. Esto significa que el punto de vista, o el lugar desde el que el mundo virtual se ve puede variar de un juego a otro, de un genero a otro, y de manera general debe permitir varias perspectivas. Muchos juegos que se juegan online, a través de navegadores, son efectivamente en dos dimensiones, y en ese caso, el problema se desplaza hacia las maneras de pintar en 2D de manera eficiente.
+
+En un entorno tridimensional, se percibe el mundo virtual desde un punto en el espacio donde está la cámara y desde donde el jugador ve la pantalla, y esa vista se proyecta desde ese punto a un plano 2D para ser mostrado en la pantalla, que no deja de ser un dispositivo 2D. Lo que está sucediendo a gran distancia del punto de vista del jugador no suele ser relevante para el mismo, así que el sistema gráfico no se molesta en mostrarlo. El área que está justo delante del personaje del jugador es crucial, y como se responda a eso influirá de manera determinante en el devenir del juego. Lo realmente importante como programador es mostrar las cosas que el jugador necesita para tomar decisiones dentro del juego y sentir que el mundo simulado es real. El mostrar información clave implica dos aspectos principales, datos visuales, necesitando un sistema de gráficos, y datos auditivos, que requiere un sistema de reproducción de sonido. La mayoría de juegos tienen ambas cosas.
+
+## Sistema Gráfico
+Mucha gente aún piensa que lo más importante de un videojuego son los gráficos, realmente no lo son, pero la mayoría de los juegos usan más tiempo de CPU pintando la escena que con cualquier otra cosa. Un sistema gráfico de renderizado eficiente aún debería deja bastantes ciclos de reloj disponibles para el resto de sistemas, igualmente, debería usar un nivel apropiado de detalle. El principal problema que se encuentran los gráficos en un juego es ser capaz de producir suficientes *frames* en la pantalla cada segundo para dar la ilusión de movimiento y realismo. Las películas usan 24 frames por segundo para conseguir ese grado de realismo, mientras que la televisión usa entre 25 y 30 por segundo. Sin embargo, la resolución que suele mostrar una televisión tiene es mucho menor que la de una película en un cine.
+
+Otro factor importante es el número de colores distintos que se pueden mostrar, esto se suele llamar *cuantización*, y en televisión se pueden mostrar muchos menos colores que en una película, y una pantalla de ordenador está a mitad camino.
+
+Usando un poco de matemáticas sencillas, a 24 frames por segundo, con una pantalla de ordenador antigua de 1024x768 de resolución y usando colores de 24 bits de profundidad, se necesitan calcular y escribir unos 56 megabytes de datos por segundo. Esto puede parecer mucho, incluso en ordenadores modernos, así que hay que usar un montón de pequeños trucos. Primero, y muy importante, las tarjetas gráficas modernas *GPU* han conseguido un rol prioritario en la creación de frames o actualizaciones de pantalla. Estas GPUs pueden pintar millones de polígonos por segundo y pueden hacer muchas más operaciones esotéricas, como mapeado de texturas, buffers de *stencil*, y *mip-mapping*. Esto significa que la CPU no tiene que hacer estas cosas, simplemente organizar los datos para la GPU y delegar en ella para realizar ese pintado, liberando la CPU para otras tareas.
+
+Las diferencias fundamentales entre los juegos 2D y 3D se pueden simplificar diciendo que en un juego 3D todos los objetos están en tres dimensiones y necesitan ser vistos desde un punto particular en el espacio, el sistema gráfico aplana la escena proyectándola sobre una superficie plana 2D, y esto significa que algunos objetos serán ocultados por otros, algunos estarán demasiado lejos para ser vistos, otros estarán detrás del punto de vista y tampoco serán vistos, y todos los objetos serán transformados en la proyección 2D para ajustarlos a la vista del espectador. Esto último se llama la transformación de perspectiva, en la cual los objetos que están más lejos del jugador deben aparecer más pequeños y las lineas paralelas parecen encontrarse en un punto en la distancia. Por ejemplo, en un juego de carreras conduciendo un coche y mirando a través del parabrisas, el campo de visión está restringido a la región enfrente del coche, unos 60 grados a cada lado del punto central. Los objetos que no están en esa region pueden ser ignorados y no deberían requerir apenas tiempo de procesamiento, también se pueden ignorar los que están demasiado lejos, y que serían demasiado pequeños para ser vistos. Por supuesto, averiguar qué objetos pintar y cuales ignorar también consume un esfuerzo computacional.
+
+En un juego 2D normalmente los objetos se ven desde un lateral o desde arriba, el área de juego suele ser más grande que la pantalla y el fondo se desplaza cuando el personaje del jugador se mueve. Los objetos en estos juegos son más simples de pintar, y la perspectiva no es un problema. Pese a la forma que tengan se suelen pintar como *sprites*, y dado que las GPUs modernas están optimizadas para ser usadas para pintar mundos 3D, se suelen usar *quads* para pintar dichos gráficos usando una perspectiva ortográfica.
+
+Una buena parte del trabajo a la hora de pintar estas vistas es realizado por el desarrollador, pero la mayoría la realiza la tarjeta gráfica. Hay muchas GPUs en el mercado, y cada una tiene sus capacidades e interfaces. Si se desea que el juego funcione en más de un ordenador, no se puede programar el sistema gráfico para un dispositivo específico. Afortunadamente hay paquetes de software que forman una capa entre el juego y la tarjeta gráfica que abstraen de los detalles, y ocultan las diferencias entre las tarjetas presentando un interface consistente. Estas *APIs* gráficas son muy conocidas en el ámbito de la programación gráfica, como *OpenGL*, *DirectX*, *Vulkan* o *Metal*, entre otras.
+
+El lenguaje de programación Python no tiene soporte integrado para gráficos o desarrollo de videojuegos. Es un lenguaje muy popular para cursos introductorios y en la comunidad de programadores. Sin embargo, hay un paquete llamado *PyGame* que facilita todos los servicios que se necesitan para construir casi cualquier videojuego, y eso empieza por una librería gráfica realmente sencilla que permite gráficos 2D y 3D. Puesto que Python funciona en todos los principales sistemas operativos cualquier videojuego que se desarrolle en este lenguaje podrá funcionar prácticamente en cualquier parte. Hay que recordar que el sistema gráfico es un sistema 3D basado en polígonos, puesto que es la forma geométrica que las tarjetas gráficas pueden pintar de manera más eficiente y rápida. Se puede representar cualquier objeto como una colección de polígonos, a la vez que colorearlos, ponerles texturas, rotarlos, escalarlos y más cosas, usando algoritmos muy rápidos.
+
+Un termino habitual es el de *render pipeline*, o *pipeline* gráfico, la idea es mantener varios módulos de software ocupados al mismo tiempo, maximizando el número de polígonos que se pueden procesar en la misma unidad de tiempo. Aprovechando la gran capacidad que tienen las GPUs modernas de paralelizar tareas, puesto que tienen cientos o miles de procesadores, se puede hacer que todos ellos trabajen en paralelo para producir las formas geométricas que se necesitan.
+
+![Figure [res/101_001]: Pipeline Gráfico en GPU](res/101_001.png)
+
+En un primer punto los objetos aún son entendidos como tales, más que una colección de entidades gráficas compuestas de primitivas, como polígonos y lineas. Se hacen las animaciones a este nivel, así como transformaciones o detección de colisiones, cualquier operación que necesita saber acerca del objeto en sí mismo. Al final de esta fase, un conjunto de polígonos o líneas se mandan al *pipeline* gráfico. Esta primera parte es la más orientada al diseño del juego en sí, se implementa en la CPU mayormente por los diseñadores y creadores, puesto que son los que entienden mejor la lógica de juego.
+
+### Espacios 3D
+En esta parte los objetos que se han decidido pintar pasan por distintas fases como se puede ver en Figure [res/001_002]. La geometría 3D es mucho más compleja que la 2D, y se muestra en la figura. El primer paso convierte las coordenadas locales del objeto 3D, que suelen estar en referencia al sistema de coordenadas del propio objeto, en un sistema de coordenadas globales, en un espacio de mundo donde todos los objetos pueden interactuar. Es como colocar cada objeto en su lugar en la escena virtual.
+
+A continuación, basándose en la posición del espectador o la cámara, se crea una transformación de coordenadas que alinea los polígonos de los objetos a un nuevo sistema de coordenadas común basado en esa cámara. El resultado de esto es que algunos polígonos son imposibles de ver, pueden quedar fuera de la vista de la cámara, muy lejos u ocluidos por otros objetos.
+
+Más tarde se realiza la transformación de proyección o perspectiva, esto le da al espectador lo que se esperaría de un mundo tridimensional, incluyendo el hecho que los objetos más lejanos se ven más pequeños que los cercanos. En este punto los objetos 3D ya se han aplanado y son objetos 2D. Todos los objetos que se salen del área de la pantalla, tienen que ser eliminados o recortados. Los polígonos completos que estaban muy cerca o lejos ya han sido descartados en las fases anteriores. El recortado suele ser una tarea compleja que la GPU hace por el desarrollador. Por ejemplo, un triángulo que está parcialmente fuera de la pantalla está cortado por la línea vertical u horizontal del borde de la pantalla, esto significa que ya no es un triángulo dentro de la pantalla y se debe ajustar.
+
+Finalmente, todas las coordenadas de todas las líneas y polígonos son convertidas a la resolución física de la pantalla o ventana para que puedan ser pintadas rapidamente.
+
+![Figure [res/101_002]: Espacios 3D](res/101_002.png)
+
+### Rasterización y coloreado
+Durante el pipeline gráfico hay una fase donde finalmente se convierten las líneas y polígonos en pixels. Lo único que puede mostrar una pantalla son pixels, así que es importante que este paso deba ser preciso y rápido. Tras esto se pueden realizar el resto de operaciones necesarias para colorear los pixels. La rasterización está controlada por la GPU.
+
+Para colorear los pixels que forman las superficies de los modelos 3D, hay que considerar la posición y el color de las luces que aparecen en el mundo virtual, y basándose en eso decidir una serie de transformaciones de color que se aplican a los polígonos de los objetos. Hay varios modelos de iluminación, que definen como realizar estas operaciones, siendo uno de los más sencillos el modelo de Phong-Blinn, y uno de los más usados en los juegos modernos el PBR (Physical Based Rendering). El sol, por ejemplo, está situado a una gran distancia y es de color blanco/amarillo, mientras que la luz de una bombilla cercana puede ser blanco/azul. El color de un pixel es una función de su color intrínseco y el brillo, color y posición de las fuentes de iluminación.
+
+![Figure [res/101_003]: Esfera Iluminada con Modelo Phong-Blinn](res/101_003.png)
+
+Es obvio en este punto que el código debe ser escrito de manera eficiente, puesto que el sistema de render tiene que pintar suficiente número de frames por segundo para que el movimiento del juego sea suave. Los algoritmos elegidos deben ser capaces de manejar el número de polígonos que se quieren mostrar en pantalla, tanto por espacio como por tiempo.
+
+## Sistema de Audio
+En general, el objetivo del sistema de audio es reproducir música y efectos de sonido. Es una visión simplista, pero tras décadas de cambios tecnológicos en los videojuegos y su diseño, el sistema de audio sigue haciendo lo mismo que siempre ha hecho, y sigue funcionando de una manera muy similar. En el área de los gráficos se han hecho avances significativos, pero los standards siguen siendo débiles y hay muchas cosas hechas a medida.
+
+La mayoría de sonidos que se necesitan, como el sonido de un motor, una puerta que se cierra o se abre, golpes, e incluso la música, se leen de ficheros, normalmente un fichero por sonido. Un formato muy común es un fichero *WAV*, es un standard de *Microsoft* que está soportado en la mayoría de las plataformas. Pueden contener audio con o sin comprimir, mono o stereo, y puede almacenar audio en muchas diferentes tasas de muestro, incluyendo standards de CD. Es un formato muy simple y muy adecuado.
+
+Sin embargo, puede existir la necesidad de una mayor complejidad, reproducir audio posicional tridimensional, donde cada sonido parece originarse en un punto del espacio distinto. Esto puede ser simulado con sonido stereo, pero se soluciona mucho mejor con sistemas de audio de 5.1 canales, que pueden mejorar mucho la experiencia de juego. Las tarjetas de sonido han sido diseñadas con ciertas capacidades de síntesis de sonido y música, usando *MIDI*, que se puede encontrar en algunos juegos. Sin embargo, la función básica de un sistema de audio es sencilla y su trabajo obvio, hay que reproducir y parar sonidos en el momento justo.
+
+## Motores de Videojuegos
+El termino motor de videojuegos apareció en los 90, a raíz de los primeros *FPS* (First Person Shooter) como el *Doom*. Este fue uno de los primeros juegos con una arquitectura muy definida que separaba los sistemas del núcleo de los sistemas del juego y assets. El valor de esta separación se hizo pronto evidente cuando los
+desarrolladores empezaron a reusar estos motores cambiando los assets y las reglas de juego, pero manteniendo el mismo núcleo. Apareció la comunidad de *modders*, que se dedicaba a crear nuevos juegos modificando los existentes.
+
+Esta tendencia fue creciendo hasta llegar a un punto en que los juegos ya se diseñaban bajo la premisa de reusar el núcleo y permitir el *modding*. Se hacían motores personalizables a través de lenguajes de scripting, y la venta de motores empezó a ser una industria en sí misma.
+
+La línea entre lo que es un motor y un juego es borrosa, algunos motores hacen una distinción muy clara, mientras que otros no hacen esa separación. Normalmente el uso de una arquitectura dirigida por los datos (que son los que forman un juego) es lo que distingue lo que es un motor de lo que es un juego. Cuando un juego contiene lógica o reglas de juego o emplea código especifico, se vuelve imposible reusar ese código para hacer un juego distinto. Así que el termino motor es más adecuado para definir a un software que es extensible y puede ser usado como la base para muchos juegos distintos sin demasiadas modificaciones.
+
+Si bien hay que tener claro que un motor genérico que sirva para la creación de cualquier tipo videojuego es virtualmente imposible, todos los motores están más o menos enfocados hacia cierto tipo de juegos. Un motor que esté orientado hacia los FPS probablemente no ofrezca las mejores opciones para hacer un *RTS*, y seguramente será mejor idea buscar un motor con un sistema de cámaras o de renderizado que se acerca más a lo deseado en un *RTS*. Con lo cual, a la hora de empezar a desarrollar un videojuego el primer paso es encontrar un motor que vaya a poner las cosas fáciles para el tipo de videojuego que se quiere crear.
+
+Una opción que muchas veces es interesante y deseable es desarrollar un motor propio. Esto ahorra por un lado depender de un software externo para nuestros  desarrollos, permite personalizar al máximo y adaptar el motor a las necesidades particulares de los videojuegos que se van a desarrollar. Si el juego va a tener una característica que difícilmente soportan otros motores entonces es obligatorio elegir este camino. Pero también hay que tener en cuenta que esto no es algo trivial, y muchas veces complica en exceso el desarrollo del juego final.
+
+Hoy en día existen multitud de motores comerciales que pueden facilitar mucho la creación de videojuegos sin necesitar tener un conocimiento profundo del bajo nivel. Algunos motores populares pueden ser *Unreal Engine*, *Unity*, *Godot*, *CryEngine*, *GameMaker*, *Construct*, *Lumberyard*,... cada uno con sus propias características y ventajas.
+
+## Componentes de un Motor de Videojuegos
+Como cualquier sistema de software los motores están construidos por capas. Normalmente las capas superiores dependen de las inferiores, pero no al revés. Cuando una capa inferior tiene una dependencia con una capa superior, se le llama dependencia circular, y se intentan evitar a toda costa, puesto que añaden un nivel de acoplamiento entre sistemas poco deseable.
+
+![Figure [res/101_004]: Capas Principales de un Motor](res/101_004.png)
+
+En un primer nivel de acercamiento, la primera capa es el hardware en sí, por encima los drives y el sistema operativo que permiten acceder al hardware. A continuación, todos los SDK´s de terceros que se usan, por encima todos los sistemas del núcleo de motor, luego toda la gestión de recursos y todos los distintos subsistemas propios de los videojuegos. Sobre esta última es sobre la que se aplican las reglas de juego para construir el juego.
+
+En la mayoría de los casos estos motores están implementados en *C* o *C++*, puesto que son los lenguajes que tienen una mayor cercanía a la máquina y consiguen obtener un mayor rendimiento, lo cual es crítico en casi todos los casos. Por otro lado, todos los motores exponen una API para usarlos en algún lenguaje de scripting como *Lua*, *JavaScript*, *C#*, *Python*, o incluso algún lenguaje de diseño propio. De esta manera, toda la capa de gameplay se suele desarrollar usando este lenguaje.
+
+![Figure [res/101_005]: Detalle de Arquitectura de un Motor](res/101_005.png)
+
+### Hardware
+La capa de hardware representa al ordenador o consola en la cual el juego se ejecutará. Las plataformas típicas incluyen *Windows*, *Linux* y *MacOs*, plataformas móviles *Android*, *iOs*, *PSVita*, y consolas *Xbox*, *PlayStation*, *Nintendo*,...
+
+### Drivers
+Los drivers son componentes de bajo nivel que gestionan los recursos de hardware y abstraen al sistema operativo y los niveles superiores del motor de los detalles de la comunicación con todas las variantes de hardware disponibles.
+
+### Sistema Operativo
+En un PC el sistema operativo está siempre en ejecución, y gestiona la ejecución de múltiples programas en un solo ordenador, uno de los cuales es el juego. Con lo cual, el juego nunca puede asumir que tiene control total del hardware, tiene que compartirlo con otros programas en el sistema. En cambio, en consolas, el sistema operativo suele ser una librería muy fina que se compila junto al juego, con lo cual, el juego suele tener propiedad exclusiva del hardware en ejecución, aunque en plataformas más modernas como *PS4* o *XboxOne*, esto ha dejado de ser cierto.
+
+### SDK's de Terceros
+La mayoría de los motores hacen uso de librerías de terceros.
+
+- Estructuras de Datos y Algoritmos, los juegos dependen en gran medida de colecciones de estructuras de datos y los algoritmos para manipularlas, como *STL*, *STLport*, *EASTL*, *Boost*,... Suele ser motivo de debate el uso de librerías de template como *STL*, puesto que los patrones de asignación de memoria no están ajustados a su uso en programas de alto rendimiento como los juegos. En su lugar se suelen usar implementaciones propias u otras específicas para videojuegos como *EASTL*.
+
+- Gráficos, todos los motores están construidos sobre una librería gráfica, como *OpenGL*, *DirectX*, *Vulkan*, *Metal*,...
+
+- Colisiones y Físicas, la detección de colisiones y dinámicas de sólidos rígidos también suelen ser usadas a partir de librerías de terceros, como *Havok*, *PhysX*, *Bullet*, *Box2D*,...
+
+- Animaciones, librerías para la animación de personajes como *Granny*, *Havok Animation*,...
+
+### Capa de Independencia de Plataforma
+Suele ser común que a los motores se les exija el ser capaces de ejecutarse en más de una plataforma de hardware, para aumentar la exposición de los juegos publicados. Esta capa se apoya sobre las capas anteriores para construir un nivel de abstracción que las capas superiores usarán desconociendo la plataforma final donde se ejecute el juego.
+
+Encapsulando o reemplazando la mayoría de las funciones más comunes de la librería de C, llamadas al sistema operativo y otras API´s, esta capa asegura un comportamiento consistente en todas las plataformas de hardware, esto es necesario, puesto que hay mucha variación entre plataformas, incluso entre librerías estándar como la de C.
+### Sistemas del Núcleo
+
+Cada motor, y en realidad cualquier aplicación grande, requiere de un montón de utilidades.
+
+#### Assertions
+Son líneas de verificación de errores que se insertan en el código para capturar errores lógicos y violaciones de los datos o condiciones que el programador original dio por supuestas. Suelen quitarse en el juego final.
+
+#### Gestor de Memoria
+Todos los motores implementan su propio gestor de memoria para asegurarse asignaciones/desasignaciones lo más rápidas posibles y para limitar en lo posible la fragmentación de memoria.
+
+#### Librería Matemática
+Estas librerías suelen proveer soluciones matemáticas para vectores y matrices, quaterniones, trigonometría, operaciones geométricas con líneas, rayos, esferas,...
+
+#### Estructuras de Datos y Algoritmos Propios
+A menos que se haya decidido confiar plenamente en una solución de terceros como la *STL*, es habitual que se implementen estructuras de datos básicas (listas enlazadas, vectores dinámicos, árboles binarios…) y algoritmos sobre ellas (búsquedas, ordenaciones…). Suelen ser programadas a mano para minimizar o eliminar las asignaciones dinámicas a memoria y asegurar un rendimiento óptimo en las plataformas de destino.
+
+#### Gestor de Recursos
+Provee un interfaz unificado, o conjunto de interfaces, para acceder a todos los tipos de assets de juegos y cualquier clase de datos de entrada. Como modelos 3D, texturas, materiales, fuentes, niveles... Algunos motores suelen hacerlo de una manera centralizada y agrupar todos los recursos en un solo fichero, o acceden directamente a ficheros sueltos en el sistema de archivos.
+
+#### Motor Gráfico
+Esta es una de las partes más grandes y complejas de cualquier motor. Hay muchas maneras de organizarlos, normalmente dirigido por el diseño del hardware de gráficos 3D del cual dependen. Aunque hay librerías que pueden abstraer al motor del backend de gráficos final, como *BGFX*.
+
+El pintado a bajo nivel agrupa todas las capacidades básicas de pintado del motor. En este nivel, el diseño está centrado en pintar colecciones de primitivas geométricas lo más rápido posible, sin importar demasiado que partes de la escena final son visibles.
+
+El interfaz con el dispositivo gráfico es el que se encarga de gestionar el contexto de pintado, la ventana, las superficies de pintado,...
+
+Otros componentes de bajo nivel cooperan para agrupar envíos de primitivas de geometría (paquetes de pintado), como mallas, partículas, al apartado de pintado y hacerlo lo más rápido posible. Se suele tener una abstracción del viewport, y de la cámara, gestiona el estado del hardware gráfico y los shaders a través del sistema de materiales y el sistema de iluminación dinámica. Cada primitiva es asociada a un material y le afectan *n* luces dinámicas. El material describe la  textura usada por la primitiva, los parámetros que se usan para pintarla, y que shaders usar. Las luces determinan como se realizan los cálculos de iluminación que se aplican a cada primitiva.
+
+El pintado a bajo nivel pinta todo lo que se le envía, antes de eso, las primitivas pasan por un proceso donde se determina su visibilidad. Un simple *frustum culling* suele ser suficiente para quitar los objetos que la cámara no puede ver, aunque a veces es necesario realizar subdivisiones espaciales para mejorar la
+eficiencia cuando hay muchos objetos.
+
+También se hace uso de efectos visuales avanzados, como postprocesos, partículas, sombras dinámicas,... Y también se da soporte a gráficos para el interfaz del usuario, como HUD´s, cinemáticas, vídeos…
+
+#### Depuración y Medición
+Los juegos son sistemas en tiempo real, y como tales, los programadores suelen necesitar medir el rendimiento de sus juegos para optimizarlos, además, los recursos de memoria son escasos, y se necesitan herramientas para hacer análisis de uso de memoria. Esta capa, proporciona toda una serie de herramientas para hacer mediciones de rendimiento, así como servicios para hacer depuración dentro del juego, pintar líneas de depuración, menús de desarrollo, grabar y reproducir sesiones de juego… Por norma estas herramientas suelen ser desarrolladas dentro del propio motor y con soluciones propias.
+
+#### Colisiones y Físicas
+La detección de colisiones es importante para los juegos, sin él, los objetos penetrarían unos dentro de otros, mermando notablemente la jugabilidad. Algunos juegos hasta incluyen simulaciones dinámicas realistas. Normalmente solo se suele tener en cuenta el movimiento (cinemática) de cuerpos rígidos y las fuerzas (dinámica) que causan estos movimientos. Las físicas y las colisiones suelen ir de la mano, puesto que cuando una colisión se detecta, casi siempre se resuelve como parte de una integración de la física. Puesto que es un tema bastante complejo se suele integrar un motor de físicas de terceros, como *Havok*, *PhysX*, *Bullet*, *Box2D*, *ODE*,...
+
+#### Animaciones
+Casi cualquier juego tiene personajes orgánicos o semi-orgánicos (humanos, animales, robots…), y estos necesitan un sistema de animaciones. Hay varios tipos de animaciones (sprites, esqueletales, por vértice,...). El más común en mundos 3D es la animación esqueletal, esta permite a una malla de puntos 3D que representa a un personaje variar su pose usando un sistema de huesos sencillo. Todos los vértices reciben la influencia de cada hueso, entonces al mover un hueso los vértices asociados a ese hueso se mueven en función de esa influencia, haciendo así que sea solo necesario animar el esqueleto.
+
+#### Dispositivos de Interfaz Humana
+Todos los juegos necesitan recibir y procesar los datos de entrada del jugador, teclado, ratón, joystick, gamepad,... A veces, incluso este componente también ofrece una salida hacia esos dispositivos, como el *forcefeedback*, o el audio que produce el mando de *Wii*.
+
+Normalmente esta capa se desarrolla de manera que independiza los detalles a bajo nivel de los dispositivos de entrada y ofrece una capa de alto nivel al resto de sistemas del motor.
+
+#### Audio
+El sonido es casi tan importante como los gráficos en cualquier juego moderno, por desgracia, suele recibir menos atención que el resto de los sistemas. Normalmente se suele usar un motor de audio (*openAL*, *openSL*, *fmod*,...) sobre el que se construyen una serie de abstracciones que son las que usarán las capas superiores
+del motor.
+
+#### Online/Multiplayer
+Muchos juegos permiten a varios jugadores jugar a la vez en el mismo mundo virtual (en la misma pantalla, en pantalla dividida, a través de red, masivos…). Suelen ser similares a sus equivalentes mono-jugador, en cambio, pueden tener un impacto muy grande en el diseño de ciertos componentes del motor, casi todos los sistemas se ven afectados por este sistema. Cambiar un juego mono-jugador a multi-jugador normalmente suele ser una tarea muy difícil, y siempre es buena idea planear este aspecto desde el inicio del desarrollo.
+
+#### Base de Gameplay
+Gameplay se refiere a la acción que tiene lugar en el juego, las reglas que gobiernan el mundo virtual, las habilidades de los jugadores y otros personajes u objetos, los objetivos del juego,... El gameplay se puede desarrollar en el mismo lenguaje que el motor, o en algún lenguaje de scripting de más alto nivel. Para conectar los sistemas de bajo nivel del motor con el código de gameplay se suele introducir una capa base de gameplay.
+
+Introduce el concepto de mundo de juego, conteniendo elementos estáticos y dinámicos (edificios, piedras, arboles, jugadores, armas, vehículos,...), o el modelo de objetos. Sistema de eventos para comunicar unos objetos de juego con otros. Sistema de scripting, que implementa un lenguaje de alto nivel donde desarrollar toda la lógica del juego (gameplay), así se puede desarrollar todo el juego en un lenguaje más sencillo para los diseñadores y permite no tener que recompilar todo el motor cada vez que se trabaja sobre el gameplay. Inteligencia Artificial, se implementan diversos mecanismos que se usan en casi cualquier sistema de AI, como máquinas de estado, árboles de comportamiento, sistemas multiagente,...
+
+#### Sistemas Específicos del Juego
+Sobre todas las demás capas, los programadores de gameplay y diseñadores implementan la lógica propia del juego. Suelen ser sistemas muy variados y específicos para cada juego desarrollado. Incluyen las mecánicas de juego, sistemas de cámara, inteligencia artificial para controlar actores, sistemas de armas, vehículos,...
+
+Por debajo de esta capa se encontraría el motor, y por encima todo lo relacionado con el juego en sí, no siempre es una línea clara, puesto que muchos sistemas que se implementan aquí acaban en el propio motor, y viceversa, cierto conocimiento del juego especifico acaba filtrándose hacia abajo y acaba en partes del motor.
+
+# Diseño de Videojuegos
+Ser un diseñador de juegos es un trabajo muy a menudo poco agradecido. Casi nunca son personas conocidas, y muchas veces su trabajo principal es crear y actualizar documentos de diseño de videojuegos. Tienen que tener ideas de como deben operar los juegos, pero el elemento clave de un diseñador es saber comunicar esos conceptos en detalle a las personas que las implementarán, no solo a los programadores, pero también a los artistas, compositores y otros diseñadores como los de niveles o de personajes.
+
+Un diseñador suele crear las mecánicas de juego, a veces inventándolas, como en *Portal*, otras veces ajustando otras conocidas o combinándolas entre sí para crear otras nuevas. La aparición de mecánicas nuevas es extraño, pero ocurre de vez en cuando. Lo realmente importante es incorporar mecánicas simples en una situación nueva e interesante. Como por ejemplo en *Angry Birds*, el uso del dedo del jugador para determinar la dirección y fuerza de un lanzamiento combinado con el concepto de derribar una estructura hecha de bloques lo hizo un juego de éxito. Y no hay una fórmula que garantice ese éxito.
+
+![Figure [res/101_006]: Angry Birds](res/101_006.png)
+
+Un programador de videojuegos, en realidad tiene poca influencia creativa en el diseño de un videojuego. Al programador se le da el documento de diseño y se le asigna una para implementar. Un juego es un tipo especial de software, y se requiere un conocimiento específico para que un desarrollador pueda ejecutar su trabajo con éxito.
+
+## Mecánicas
+El concepto de mecánicas de juego es difícil de definir para gente que no crea videojuegos, y es casí imposible para gente que ni siquiera los juega. Pero una definición comúnmente aceptada es aquella que define una mecánica de juego como un conjunto de reglas destinadas a crear un juego o una jugabilidad. Es una definición un poco circular, los juegos usan mecánicas, y las mecánicas construyen un juego. Otra idea acerca de las mecánicas es que guían al jugador a un comportamiento particular al restringir las posibilidades del mismo para llegar al objetivo. Es decir, pone las reglas de juego en una posición subordinada a las acciones del jugador. Existe una visión instintiva de que una mecánicas es algo que hace un jugador y que está diseñado dentro del juego. Son métodos invocados por los agentes del juego para interactuar con el mundo virtual.
+
+En general, una mecánica de juego es una característica del diseño de un juego que permite al jugador avanzar hacia el objetivo final. Incluso también pueden existir mecánicas que interfieran con ese progreso. Una mecánica clásica es la de *esquivar*, donde el jugador debe evitar objetos que se mueven hacia sus personajes. Otra mecánica habitual es *disparar*, donde el jugador debe acertar a un enemigo disparando algún tipo de misil. La *carrera* supone que el jugador deba llegar antes que los oponentes a algún lugar en el mundo virtual.
+
+Una mecánica debería ser divertida para el jugador y simple de usar. La pulsación de un botón o un gesto de ratón es muchas veces todo lo que se permite interactuar con un juego, así que eso debe ser convertido en elementos de juego que implementen la mecánica correspondiente. Pulsar la tecla espacio para disparar, la tecla de arriba para mover hacia delante,... La mecánica no tiene una relación directa con el interface de usuario. Una de las mecánicas más celebradas recientemente es la del juego *Portal*, donde el jugador, usando un click del ratón, puede crear dos portales circulares a través de cualquier pared, suelo o techo. El jugador entra en uno de esos portales y sale por el otro. Esto puede ser usado para crear muchos puzzles complejos. Pero el click del ratón no es lo principal, son las posibilidades creadas por ese click.
+
+![Figure [res/101_007]: Portal](res/101_007.png)
+
+# Reglas de Juego
+Lo visto hasta ahora de la arquitectura de los videojuegos podría equipararse al tablero de juego, la parte que el jugador ve y manipula. Hay muchas aplicaciones y programas de ordenador que tienen interfaces gráficas y de sonido muy sofisticadas que no son juegos. Un juego funciona en tiempo real, procesando las elecciones del jugador y actualizando lo que se muestra en concordancia, es una simulación, y más importante, tiene un objetivo. Para ser un juego, tiene que haber una manera de mantener una puntuación, y suele haber una manera de ganar. La parte del videojuego que hace eso es la que se llama la lógica de juego.
+
+La parte de gráficos y audio, como se ha visto, puede ser compartida por varios juegos que pueden ser distintos entre ellos. La lógica de juego es la que hace a cada juego que sea lo que es. Es el código que refleja el propósito del diseñador del juego. Incluso aquí, la estructura tiene cierta consistencia entre varios juegos, es en los detalles donde el código cambia.
+
+## Lo Que Está Oculto
+El jugador ve un mundo pintado por el sistema de gráficos, pero este mundo es específico del juego y cambia de acuerdo a reglas que son mayormente invisibles al jugador, al menos al principio. Parte del juego es descubrir esas reglas. Por ejemplo, como de rápido se puede conducir a través de esa curva antes de derrapar. Cual es la relación entre el freno y el acelerador para un giro de 180 grados. Son reglas que se van descubriendo conforme se va jugando. El número de puntos de daño que se pueden recibir antes de que el coche explote es una regla explicita que se muestra desde el principio, lo cual es algo un poco distinto. Muchos jugadores no leen ninguna regla antes de empezar a jugar, y van descubriendo esas reglas explicitas sobre la marcha.
+
+Por eso, muchas reglas del juego están ocultas, las interrelaciones entre objetos del juego, objetivos e incluso el progreso del jugador están almacenadas en el código y estructuras de datos del juego y no necesariamente se muestran al jugador. De hecho, su representación interna no suele mostrarse.
+
+## Inteligencia Artificial
+El subsistema de inteligencia artificial de un juego es responsable de muchas cosas que el juego hace y no se ven directamente, pero se reflejan en la forma de jugar y añaden realismo. La IA gestiona objetos, comportamientos y los movimientos de los personajes simulados de un juego. Monitoriza la posición, velocidad de los objetos en el mundo virtual, sus atributos, puntos, dañós,... y usa esos datos para que los objetos o personajes sobre los que tiene control puedan tomar decisiones informadas y simular que tienen inteligencia, y reacciona de manera inteligente a ciertos estímulos.
+
+La inteligencia artificial tiene la connotación entre la población general que los ordenadores pueden pensar. Pero no exactamente cierto, en realidad es hacer que los ordenadores parezcan que puedan pensar, es decir, que parezcan que son inteligentes. Las técnicas para esto son muchas y variadas, pero la realidad es que la inteligencia usada en videojuegos es bastante simple comparada con otras técnicas usadas en laboratorios de investigación, y los objetivos también son bastante distintos.
+
+El problema principal, una vez más, es que la IA de un videojuego debe funcionar en tiempo real, y debe usar tiempo de CPU, y competir por ese tiempo con el resto de sistemas del juego, como los gráficos. Así que, todas esos algoritmos de un sistema de IA real avanzado son simplemente demasiado costosos para un juego. La parte buena es que casi nunca son necesarios. Lo que se requiere son cosas más sencillas, como decidir que hacer a continuación, planear una ruta a través de un bosque o un mapa hacia un objetivo, quizás decidir la mejor forma de trazar una horquilla en un juego de carreras,... Aunque a veces sea util usar alguna técnica avanzada como una red neuronal para conseguir algún objetivo, no es habitual.
+
+Sin embargo, una cosa que todos los sistemas de IA hacen es monitorizar todo lo que pasa en la pantalla, e incluso, muchas cosas que no se ven. Un juego no solo tiene que decidir cuando el coche del jugador ha golpeado un muro, también tiene que tener la noción del resto de coches de la carrera, aunque no se vean en pantalla para hacer que bajen su velocidad y evitar el accidente. La mayor parte de las veces la IA de un videojuego usa reglas y decisiones simples, muchas veces usando condicionales.
+
+## Estado del Juego
+El estado del juego es una colección de información que representa al juego en un momento determinado. Dado un estado, el juego puede comenzar desde ese punto. La información en ese estado incluye:
+
+- posición, orientación y velocidad de todos las entidades dinámicas.
+- comportamiento e intenciones de los personajes controlados por la IA.
+- atributos estáticos y dinámicos de todas las entidades del juego.
+- puntuación, vidas, mejoras, niveles de daño,...
+
+Todos los subsistemas del juego tienen interés en alguna parte del estado del juego, puesto que las variables de estado son exactamente aquellas cosas que son esenciales para el juego y las opciones posibles desde cualquier punto. Por ejemplo, el sistema de gráficos necesita saber las posiciones de los objetos para pintarlos, su estado de daños,...
+
+Hay muchas opciones para hacer que el estado del juego esté disponible para todos los subsistemas, cada uno con sus ventajas e inconvenientes, pero para un juego simple usar un estado global es suficiente. Hacer que las variables de estado sean globales, compartidas por todos los módulos no suele ser una buena idea. Cada módulo teniendo acceso completo a dicho estado global, incluso a partes del estado de otros módulos solo puede acabar de una manera, caos!
+
+Por otro lado, es un modelo muy cómodo, si el sistema de gráficos necesita saber donde está un árbol para pintarlo, solo tiene que buscarlo donde está almacenado y preguntar por su posición. El problema es que puede cambiar esa posición. Si se están escribiendo sistemas pequeños y se es disciplinado, esto puede funcionar. En cuando la complejidad del juego va creciendo es más probable que esta manera de hacer las cosas acabe en problemas.
+
+# Pong
+El juego *Pong* es suficientemente antiguo como para que mucha gente actualmente no lo conozca. Pero fue uno de los primeros videojuegos creado para un ordenador en el año 1972. La idea era crear una simulación básica de una partida de tenis de mesa, o ping pong.
+
+![Figure [res/101_008]: Pong](res/101_008.png)
+
+Según las definiciones se puede considerar un videojuego:
+- Es una actividad
+- Es entretenido, no tiene otro proposito
+- Tiene reglas, hay una pelota que se mueve por la pantalla de acuerdo a ciertas reglas básicas de interacción, rebota en las paredes.
+- Tiene objetos, hay una pelota y dos palas
+- Hay un área de juego, una ventana en la pantalla que representa una mesa de ping-pong
+- Tiene un objetivo claro, derrotar al oponente
+
+Las reglas son sencillas. Se crea una pelota y se mueve en una dirección específica. Cada jugador (hay dos) controla una pala, que es una linea vertical en la pantalla en la parte izquierda o derecha cerca del final del área de juego. Usando las teclas el jugador puede hacer que la pala suba o baje. La mecánica clave es bloquear el paso de la pelota para que no alcance el borde de la pantalla izquierda o derecha de la pantalla, con lo cual, es golpear la pelota con la pala. Si la pelota pasa la pala del jugador y llega al borde del área de juego que el jugador está protegiendo, entonces el oponente consigue un punto. Cuando esto pasa una nueva pelota se crea en la zona media y el juego vuelve a empezar.
+
+Cada uno de los objetos tiene una representación gráfica que se muestra en la pantalla en el lugar que deberían encontrarse en el área de juego. Las palas son líneas, la pelota un círculo. El programa que implementa el juego va actualizando la pantalla constantemente para dar la apariencia que la pelota y las palas están en movimiento. Esta es una ilusión óptica como la usada en la televisión o el cine. Si al sistema visual humano se le muestran imágenes repetidas donde los objetos aparecen en posiciones ligeramente diferentes, da la sensación de movimiento. Lo que el juego hace es mover los objetos a las nuevas posiciones basándose en los movimientos determinados por el juego y el usuario y volver a dibujar los objetos una y otra vez. Y lo hace muchas veces por segundo.
+
+El software del juego hace otras cosas, lleva un seguimiento de los eventos que suceden en el juego, cuando una pelota golpea una pared, cuando golpea una pala, cuando alcanza el borde de la pantalla,... Estos son eventos básicos en el *Pong*, pero el final del juego también será otro evento, aunque solo pueda suceder una vez, después de eso el juego se reinicia.
+
+Debería quedar claro que este videojuego está implementado mediante un manejo correcto de todos los eventos que pueden suceder. El software implicado en un videojuego lleva un seguimiento de todos los objetos e implementa las interacciones entre ellos de acuerdo a las reglas.
+
+Un juego es una simulación en realidad, en *Pong* no hay pelotas o palas reales, solo una simulación de ellas. No puede haber un impacto real entre una pelota y una pala, solo un evento que indica que su geometría se ha superpuesto y hay una respuesta programada para hacer algo, en este caso, cambiar la velocidad de la pelota. *Pong* es una simulación en tiempo real del tenis de mesa con una pantalla y sonido. En la mente del jugador se confía que los objetos de un juego se comporten como lo hacen los objetos reales en el mundo, cuando esto no sucede, el jugador se da cuenta en seguida, y se percibe como un error del juego y se pierde la inmersión.
+
+En el *Pong*, al iniciar una partida, la pelota suele aparecer en la zona media del área de juego, en una posición P = (P<sub>x</sub>, P<sub>y</sub>) y con una velocidad v = (v<sub>x</sub>, v<sub>y</sub>). Las posiciones de las palas son conocidas, y por tanto, el estado puede ser pintado inmediatamente en un primer frame. En la siguiente situación la pelota se ha movido a una nueva posición, según las siguientes fórmulas:
+
+\begin{equation}P_x = P_x + v_x\end{equation}
+\begin{equation}P_y = P_y + v_y\end{equation}
+
+Si las palas no se hubieran movido, este sería el único cambio en el juego, y la siguiente imagen o frame será pintada con la pelota en la nueva posición. Si se mueve la pala izquierda que está en la posición PI = (PI<sub>x</sub>, PI<sub>y</sub>) será porque el jugador de la izquierda ha pulsado una tecla, se define que la tecla para mover la pala hacia arriba es *Q*, si se pulsa dicha tecla la pala se debe mover hacia arriba una distancia que se ha determinado durante el diseño del juego, d = (d<sub>x</sub>, d<sub>y</sub>) . En ese caso el programa debería hacer lo siguiente:
+
+\begin{equation}PI_y = PI_y - d_y\end{equation}
+
+Y si se pulsa la tecla *A* que se ha definido para mover la pala hacia abajo:
+
+\begin{equation}PI_y = PI_y + d_y\end{equation}
+
+Y esto funciona de manera similar para la pala de la derecha. Cuando el siguiente frame vaya a ser dibujado las palas serán pintadas en sus nuevas posiciones. Este proceso continua paso a paso, frame tras frame, hasta que la posición x de la pelota es menor que 0 (ha pasado a través de la pala de la izquierda) o es mayor que el ancho de la pantalla (ha pasado a través de la pala de la derecha), o la pelota colisiona contra algo. Colisionar con una pared horizontal cambia la velocidad y de la pelota, cambiando de dirección. Colisionar contra una pala cambia su velocidad en x.
+
+El proceso general de cualquier juego es siempre el mismo, se recoge el input del jugador, con eso se actualiza el estado del juego y luego se pinta el nuevo estado. Una y otra vez.
+
+![Figure [res/101_009]: Main Loop](res/101_009.png)
+
+# Flow
+El objetivo principal de cualquier juego es crear una experiencia para el jugador, que mantenga su atención el máximo de tiempo posible y tan intensamente como se pueda. Cuando algo captura toda la atención e imaginación del jugador por un periodo largo de tiempo, este jugador entra en un estado mental de inmersión. El resto del mundo se desvanece, esto se conoce como Flow.
+
+![Figure [res/101_010]: Estado de Flow](res/101_010.png)
+
+Cualquier diseñador de videojuegos lo que quiere es poder hacer entrar a los jugadores en ese estado mental, pero es realmente difícil. Hay que conseguir diseñar los retos que plantea el juego de manera que no sean demasiado exigentes o demasiado fáciles para el nivel de habilidades del jugador. Si se cae en uno de los extremos, entonces el juego se puede volver aburrido o generara demasiada ansiedad y destruir el flow. Se deben balancear para que el jugador conforme vaya avanzando en el juego encuentro retos lo suficientemente interesantes para mantenerle jugando mientras sus habilidades van creciendo. Si el juego se vuelve muy sencillo entonces es aburrido superar esos retos, y el jugador lo abandona. De manera similar, si se vuelve muy difícil puede crear un estado de frustración que hace que el jugador también lo abandone. Y la finalidad de cualquier juego es prolongar la experiencia del jugador lo máximo posible.
+
+Para prevenir el aburrimiento se puede ajustar de manera dinámica la dificultad del juego o bien varia las actividades que el jugador debe realizar dentro del juego. Para prevenir la ansiedad o frustración hay que mantener la dificultad a un nivel razonable y hacer el juego entendible y usable.
+
+# Game Design Document
+Un documento de diseño de juego *GDD* debería especificar todo lo que puede suceder en un videojuego y como se deben resolver todas las situaciones. Cada interacción entre cada pareja de objetos debe ser definida cuidadosamente, y en suficiente detalle para que un programador pueda implementarla en la manera exacta en la que el diseñador ha pensado. Cada evento debe ser modelado de manera completa y detallada. Es mucho más que una especificación de software, puesto que también define el estilo artístico y auditivo. Los programadores, artistas, músicos, diseñadores de niveles, marketing,... todo el mundo tiene acceso al mismo documento, es como la biblia del juego. Suele ser competencia del diseñador del juego crear este documento, programadores y el resto de usuarios deben saber como leerlo.
+
+Un juego empieza con una idea. Las ideas suelen ser comunes en las industrias creativas, pero las buenas ideas son menos comunes. En el ámbito de los videojuegos esas ideas se deben reducir a unas pocas que valga la pena implementar.
+
+La idea del juego presentado aquí es sobre una batalla de naves espaciales. Habrá varias naves controladas por la máquina que se enfrentarán al jugador en el espacio y este tendrá que luchar contra ellas por su supervivencia para alcanzar su destino. Esto es simplemente una idea, para transformarlo en un diseño hay que definir en detalle qué son los objetos del juego, cuales son las mecánicas, los eventos, los objetivos, como los eventos llevan al jugador hacia el objetivo final, como son los recursos gráficos y sonoros, así como una evaluación detallada de todo lo que puede suceder en el juego.
+
+Es típico de un GDD que evolucione conforme lo hace el desarrollo del juego, pero es esencial que solo haya una versión actualizada, compartida por todos los desarrolladores en un momento dado, y que todo el mundo sepa donde encontrarla. Se puede usar un sistema de control de versiones o algún tipo de gestión documental para ello.
+
+El siguiente documento está incompleto, y se irá rellenando conforme se vayan conociendo aspectos más detallados del videojuego, como pathfinding, detección de colisiones, audio,...
+
+## Documento de Diseño de Shmup
+- **Resumen del Juego**
+ - Concepto. El jugador manejará una aeronave a través de un terreno plagado de enemigos a los cuales tendrá que derribar. Algunos de estos enemigos dejarán cajas de potenciadores para mejorar la nave del jugador. Al final de cada nivel aparecerá un jefe final que el jugador tendrá que derrotar para superar dicho nivel.
+ - Genero. Shoot'em Up de vista cenital 2D, estilo retro.
+ - Audiencia. Cualquier tipo de jugador, pero centrado en personas que quizás jugaran a este tipo de juegos en su infancia.
+ - Flujo de Juego. Tras pasar por las pantallas de menú, el jugador comienza su aventura despegando su avión y este se posiciona en la parte inferior de la pantalla centrado, y avanzando a través del terreno. Inicialmente el jugador tiene solo un armamento básico para defenderse, oleadas de aviones y otro equipamiento militar enemigos aparecen en pantalla por diversos sitios disparando al jugador. Este tendrá que esquivar sus misiles y las propias naves enémigas e intentar derribarlas con sus armas. Los enemigos se presentarán a dos niveles, por aire con los cuales el jugador puede colisionar, y por tierra con los cuales el jugador puede pasar por encima. Si consigue sobrevivir a lo largo de todo el nivel, al final aparecerá una nave final que será de más entidad que las normales y será más difícil de derribar. Una vez derrotado este enemigo el avión del jugador aterrizará en tierra para un descanso y posteriormente avanzar al siguiente nivel.
+ - Estilo visual. La vista del jugador es cenital, desde arriba, la pantalla se desplaza siguiendo al jugador. Gráficos 2D de estilo retro, realistas y muestran equipamiento militar moderno.
+- **Jugabilidad y Mecánicas**
+ - Jugabilidad
+  - Progresión. El objetivo es llegar al final de todos los niveles y rechazar el intento de invasión enemiga. Habrán 10 níveles, cada uno de ellos ambientado en un terreno diferente, una isla, desierto, océano,...
+  - Estructura de Misiones/Retos. Cada nivel se puede considerar una misión, donde un escuadrón enemigo intenta conquistar nuestra tierra. Su estructura es lineal y repetible, siempre se empieza por el nivel 1, se avanza al 2, y asi consecutivamente.
+  - Objetivos. El objetivo final es rechazar la invasión, derrotar al máximo número de enemigos intermedios y derrotar obligatoriamente a cada jefe final de nivel. Hay objetivos de puntuación, y una serie de logros que el jugador puede desbloquear mediante retos secundarios, como completar el juego con pocas derrotas, ratio de acierto al disparar,...
+  - Flujo. El juego está en enfocado en el jugador humano, este deberá esquivar a los enemigos y sus misiles y eventualmente disparar para derribarlos.
+ - Mecánicas. El jugador podrá mover su aeronave en las cuatro direcciones, arriba, abajo, izquierda, derecha. Si bien, tendrá una limitación de movimiento en la cual no podrá sacar su nave de la pantalla y no podrá acceder a la mitad superior de la pantalla, para que no esté demasiado cerca de la zona donde aparecerán la mayoría de las naves enemigas. Tendrá la opción de disparar sus misiles de manera ilimitada, los cuales variarán en número y funciones conforme el jugador vaya mejorando su nave. Cada vez que se dispara se lanza un misil, no tiene función de disparo continuo. Estos misiles pueden impactar en las naves enemigas causándoles daños, los enemigos tendrán distintos puntos de daño y al quedarse a 0 serán destruidos. Los misiles enemigos no pueden ser derribados y solo pueden ser esquivados. Algunos enemigos dejarán potenciadores al ser derribados, estos potenciadores estarán en la pantalla en movimiento durante un tiempo determinado, y si el jugador les impacta con sus misiles cambiarán de tipo. El jugador también dispondrá de unas bombas especiales, que al lanzarlas producirán una explosión másiva que derribará a todos los enemigos y sus misiles en pantalla en ese momento, esas bombas son limitadas. El jugador tendrá un número de puntos de daño inicial para cada vida, y un número de vidas disponibles. Los impactos que reciba restarán sus puntos de daño en función del tipo de impacto recibido. Cuando el jugador se queda sin puntos de daño pierde una vida y se reinicia el nivel en el que se encuentra. Cuando se queda sin vidas pierde la partida y accede al menu de Game Over.
+  - Físicas. La acción principal del juego sucede en el aire, con poca fricción, los movimientos son inmediatos y tienen poca inercia.
+  - Movimiento. Para mover la nave el jugador podrá hacerlo con la combinación *WASD* o con las teclas de cursor, para disparar los misiles se usará la tecla *SPACE* y para lanzar las bombas la tecla *B*.
+  - Objetos. Las interacciones con el resto de objetos del juego se pueden realizar o bien superponiéndose a ellos, colisionando, o alcanzándolos con un misil. En el caso de los enemigos o sus misiles, colisionar con ellos supone perder puntos de daño. A los enemigos se les puede alcanzar con un misil y entonces se les produce a ellos daños. Con los potenciadores, alcanzarlos con un misil supone cambiar su tipo de mejora, colisionar con ellos supone recoger esa mejora.
+  - Conflicto. Los enemigos disparán al jugador para restarle puntos de daño, así como algunos intentarán algún ataque kamikaze lanzándose directamente contra su nave para provocar más daños.
+  - Economía. No existe este aspecto en el juego. Una posible ampliación del juego podría ser cambiar el sistema de potenciadores clásicos, por otro en el cual, esas mismas naves dejen monedas al ser derribadas. Y en las pantallas entre niveles el jugador pudiera usar esas monedas para comprar distintos items para su nave y mejorarla de manera permanente.
+  - Flujo de Pantallas. Primero una pantalla de carga (mientras se cargan los assets), luego presentación del juego (play, exit, options), pantalla de opciones (teclas, sonido, música), pantalla de selección de aeronave, pantalla de juego, pantalla de game over (win/lose, save score, retry/exit).
+ - Opciones de Juego. El jugador puede seleccionar diferentes aeronaves que tendrán características distintas (maniobrabilidad, capacidad de disparo, bombas disponibles) y por supuesto, un gráfico distinto.
+ - Rejugabilidad y Puntos de Guardado. El juego no puede ser guardado, pero puede ser rejugado. Se mantiene un sistema de puntuación.
+- Historia y Personajes
+ - Historia y Narrativa. Nuestro país está siendo atacado por una fuerza invasora para acceder a nuestras riquezas naturales. Todo nuestro ejercito ha sido aniquilado por un ataque sorpresa del enemigo usando armas de destrucción masiva en todas nuestras instalaciones militares, pero en unas instalaciones en una isla existe una base militar que desarrolla armamento experimental que ha sido pasada por alto por las fuerzas enemigas. Allí se estaba desarrollando el nuevo modelo de aeronave de combate definitivo, solo existe un prototipo funcional, y es la única esperanza para nuestra nación. Un piloto de pruebas con mucho valor y gran destreza se pone a los mandos de este prototipo con el objetivo de derrotar a todos enemigos y liberarnos a todos.
+ - Mundo de Juego. Cada nivel tendrá un terreno distinto en función de donde se desarrolle la acción. Se empieza en la isla donde está ubicada la base militar, luego se progresa a otros niveles. Se muestra el avión 2D del jugador sobrevolando el área, donde también aparecerán sobrevolando el resto de aeronaves, y por debajo con el mismo nivel de desplazamiento a los enemigos en tierra.
+ - Personajes. Los enemigos controlados por la CPU, *NPCs*, tendrán distintos tamaños y gráficos. Serán distintos tipos de aeronaves, aviones, helicópteros,... y por tierra distintos tanques y vehículos terrestres. Todos mostrando algún signo común de pertenecer al mismo ejercito.
+- Niveles. El detalle del tipo de enemigos, capacidad de los mismos, tipo de potenciadores,... de cada nivel se proveerá en un documento aparte con más detalle.
+ - Tutorial. En este nivel introductorio la acción se desarrolla en la isla donde el jugador despega con su prototipo y se enfrenta a una cantidad pequeña de enemigos. Se muestran las mecánicas básicas y se le deja al jugador tiempo para aprenderlas y adaptarse al juego. Enemigos básicos y un jefe final muy asequible.
+ - Nivel 1. El océano, una vez derrotadas las fuerzas que se encontraban en alrededor de la isla, el jugador intenta atravesar el océano para llegar a tierra firme donde el grueso de los enemigos está sometiendo al país. Los enemigos ya son un poco más agresivos y el jefe final sigue siendo asequible.
+ - Nivel 2. La costa, el jugador llega a tierra firme y sigue su progresión. Los enemigos y jefes finales siguen subiendo su nivel.
+ - Nivel N. Se seguirán desarrollando los niveles conforme el desarrollo del juego avance.
+- Interface
+ - HUD. Habrá un indicador en la parte superior donde se detallarán los puntos que lleva el jugador, las vidas que le quedan y una barra con el nivel de daño sufrido hasta el momento. En la parte inferior se indican las bombas que aún tiene disponibles y posibles efectos de los potenciadores.
+ - Cámaras. Hay una sola cámara cenital que se mueve automáticamente hacia arriba y siempre mantiene al jugador en la parte inferior de la pantalla.
+ - Sistema de Control. A través del teclado.
+ - Audio. Habrá una música de fondo, distinta en cada nivel y que irá de acuerdo a la ambientación de dicho nivel, siempre a ritmo rápido para ayudar a la inmersión. Efectos de sonido para el lanzamiento de misiles tanto del jugador como de los enemigos, y diversas explosiones de menor volumen para impactos menores y de mayor volumen para derribos o jefes finales, un efecto de explosión mucho más masivo para cuando se lancen las bombas. Quizás algún mensaje de voz por radio cuando se acerca algún jefe final, al derrotarlo, mensajes de enhorabuena, de derrota,...
+ - Sistema de Ayuda. En el tutorial se mostrarán algunos mensajes mostrando las mecánicas de juego básicas e introduciendo al jugador en la historia.
+- Inteligencia Artificial
+ - AI Oponentes. La mayoría de los oponentes se moverán siguiendo unos patrones pre establecidos, y durante esa patrulla dispararán de manera aleatoria a la posición del jugador en el momento actual, con un pequeño factor de aleatoriedad también en dicha puntería. Todos los disparos enemigos describirán una trayectoria fija, bien sea lineal o curva, pero serán fácilmente predecibles por el jugador. Los aviones kamikazes sí que se dirigirán directamente hacia el jugador y actualizarán su dirección si el jugador intenta esquivarlos para provocar una colisión directa. Los jefes finales seguirán unos patrones de comportamiento donde alternarán diferentes ataques/armas contra el jugador. Más detalles acerca de sus comportamientos concretos se proveerá en un documento aparte con más detalle.
+ - AI Amiga. No existe cooperación con ningún otro personaje.
+- Técnica
+ - Plataforma. Cualquier ordenador de sobremesa.
+ - HW/SW Desarrollo. Python y PyGame.
+ - Red. No existe la posibilidad de juego online.
+
+ ![Figure [res/101_011]: 1942](res/101_011.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

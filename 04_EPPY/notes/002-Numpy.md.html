@@ -1,0 +1,266 @@
+<meta charset="utf-8">
+**04EPPY - 002 - NumPy**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Numpy
+==============================================================
+
+NumPy es una librería externa para Python. Su nombre deriva de **Num** erical **Py** thon y facilita la computación numérica en Python. Se puede instalar desde su paquete en [PyPI](https://pypi.org/project/numpy/) usando `pip` o `pipenv`. Para utilizarla, se ha de importar el módulo numpy con la expresión `import numpy`. La siguiente expresión importa el módulo numpy y lo hace accesible a través del alias np:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import numpy as np
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [import]: Importar NumPy]
+
+NumPy está escrito en lenguaje C, por lo que es muy eficiente y rápido de usar. Es el estándar de facto en cuanto a computación numérica, y muchas otras librerías lo tratan como tal.
+
+NumPy se utiliza frecuentemente para crear colecciones multidimensionales y aplicar funciones matemáticas estándares a los elementos en una colección.
+
+Objeto básico en NumPy, ndarray
+--------------------------------------------------------------
+
+En el corazón de NumPy está el objeto `ndarray`. Un `ndarray` es una colección multidimensional de datos del mismo tipo, aunque se pueden usar `ndarrays` para colecciones de bool o string, son útiles y muy eficientes cuando se usan para grabar y manipular valores numéricos float e int.
+
+Cada `ndarray` solo puede contener elementos de un solo tipo (int, float, string, bool,... ). Si hay que crear un `ndarray` que contenga tipos diferentes, Python trata de convertir los tipos a uno solo.
+
+- `np.array([1, '2'])` se convierte en `array(['1', '2'])`
+- `np.array([True, 0])` se convierte en `array([1, 0])`
+
+Para crear ndarrays, NumPy ofrece varias formas:
+
+- `np.array(<secuencia>)`, crea un `ndarray` a partir de una lista o secuencia de Python. Si la lista o secuencia es anidada, se creará una dimensión por nivel. Por ejemplo, `a = np.array([ [1,2], [3,4,5] ])` crea el `ndarray` bidimensional `array([1,2],[3,4,5]])`
+
+- `np.zeros(<dimensiones>)`, `np.ones(<dimensiones>)` y `np.empty(<dimensiones>)`, generan un ndarray con valores 0, 1 o sin determinar, respectivamente. El valor dimensiones se pasa como una tupla. Por ejemplo, `np.zeros( (2,2) )` genera `array([0,0], [0,0])`. Con np.empty, los elementos asignados inicialmente son indeterminados, es decir, pueden tomar cualquier valor
+
+- `np.arange(min,max,step)` crea un `ndarray` de forma similar a la secuencia `range`
+
+- `np.full(<tamaño>,<valor>)` crea un `ndarray` de tamaño definido por la tupla <tamaño> con todos los valores inicializados a <valor>
+
+Algunos de los métodos más interesantes en cualquier objeto ndarray son los siguientes:
+
+- `sort()`, ordena los elementos del array
+- `argmax()`, retorna el índice del elemento más alto
+- `argmin()`. retorna el índice del elemento más bajo
+
+Existen muchos métodos aplicables a cada ndarray. Aunque aquí solo se cubren unos pocos, se puede consultar el resto [aqui](https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html)
+
+### Dimensiones
+
+Cada `ndarray` contiene metainformación sobre sus dimensiones y el tipo de sus elementos. Así, `array1.ndim` retorna el número de dimensiones, `array1.shape` retorna una tupla con las dimensiones y `array1.dtype` retorna el tipo de sus elementos.
+
+NumPy permite forzar un `ndarray` a unas dimensiones específicas. A través del método `reshape(x,y)` de cada `ndarray`, `x` determina el número de elementos en la primera dimensión, e `y` determina el número de elementos en la segunda. Por ejemplo, el `arr1 = np.array([1,2,3,4])` puede cambiar a una 2D con `arr1.reshape(2,2)`, resultando en `array([ [1,2], [3,4] ])`.
+
+Un ejemplo en el que `reshape` es muy conveniente es cuando se desea generar una matriz con valores consecutivos. `np.arange(9).reshape(3,3)` retorna la matriz:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+[ [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8] ]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reshape]: `ndarray` de 2D]
+
+Como opuesto a `reshape`, `flatten()` se utiliza para allanar un `ndarray` multidimensional a una de una sola dimensión.
+
+### Manipulación de `ndarrays`
+
+NumPy permite juntar dos arrays, bien de lado a lado o bien uno encima del otra, con las funciones `np.hstack(a1,a2)` o `np.vstack(a1,a2)` respectivamente (del inglés, horizontal stack y vertical stack).
+
+También es posible dividir un array en múltiples. `np.array_split(array1, divisiones)` divide `array1` en tantas partes como se define en `divisiones`. Se puede pasar el argumento `axis` para determinar si se debe dividir por filas `(axis=0)` o columnas `(axis=1)`. `divisiones` puede ser una tupla o lista (de tamaño máximo igual a las dimensiones de `array1`), en cuyo caso se puede especificar dónde cortar en cada dimensión.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+a = np.arange(16).reshape(4,4)
+dividida = np.array_split(a, (3,3) )
+for i,d in enumerate(dividida):
+    print(i)
+    print(d)
+
+Output:
+0
+[[ 0  1  2  3]
+ [ 4  5  6  7]
+ [ 8  9 10 11]]
+1
+[]
+2
+[[12 13 14 15]]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [dimensions]: Manipulación de las dimensiones de un `ndarray`]
+
+### Índices y slicing
+
+Tanto los índices como slicing en `ndarrays` funcionan de manera homóloga a como lo hacen en listas Python, con la diferencia de que, cuando se solicita un slice de un `ndarray`, se retorna una referencia a la parte afectada del `ndarray`, y no una copia. Esto significa que, si se modifica algún elemento del slice, el cambio se verá reflejado en el `ndarray` original.
+
+NumPy permite mucha más flexibilidad para realizar y trabajar con slices. Por ejemplo, se puede asignar un único valor a los elementos de la slice con `array1[:3] = 0` (asigna 0 a los tres primeros elementos). También se pueden hacer slices condicionales, es decir, retornar solo los elementos que cumplen una condición, para ello, se especifica una condición (o condiciones encadenadas con operadores lógicos &, | o ~) entre corchetes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+array1 = np.arange(-3,4)        # [-3,-2,-1,0,1,2,3]
+array1[array1 < 0]              # [-3,-2,-1]
+array1[array1 % 2 == 0] = 10    # [-3, 10, -1, 10,  1, 10,  3]
+array1[array1 == 10] = 0        # [-3,  0, -1,  0,  1,  0,  3]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [slices]: Slicing de un `ndarray`]
+
+Para más flexibilidad, se puede utilizar una lista como índice a un `ndarray`, en cuyo caso se retornan los elementos con los índices especificados en la lista (si la lista es 2D, el primer elemento determina la fila y el segundo la columna). Por ejemplo, `array[ [1,2] ]` retorna el segundo y tercer elementos.
+
+Cuando se trabaja con `ndarrays` multidimensionales, se puede acceder a elementos a través de índices separados por comas. En el `ndarray` bidimensional `array1`, `array1[0][1] == array[0,1]`.
+
+Funciones matemáticas sobre colecciones
+--------------------------------------------------------------
+
+Uno de los aspectos que más valor tiene de NumPy es la facilidad de aplicar operaciones o funciones matemáticas a un conjunto de valores de una vez, sin necesidad de iterar sobre cada uno de los valores con un loop. Así, se puede aplicar cualquier operador binario (+, -, /, *, %, etc.) a toda un `ndarray` de la misma forma que con cualquier variable.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+array = np.arange(5)            # array(0,1,2,3,4)
+array = array * 10              # array(0,10,20,30,40)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operations]: Operación sobre un `ndarray`]
+
+También se pueden utilizar operadores entre dos `ndarrays`, lo que resulta en un `ndarray` producto de la operación entre cada uno de los elementos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+array1 = np.array([1,1,1,1])
+array2 = np.array([5,5,5,5])
+result = array1 + array2            # array(6,6,6,6)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [operations2]: Operación sobre dos `ndarray`]
+
+Si se aplican operadores binarios a `ndarrays` con dimensiones distintas, Python aplica la técnica de broadcasting, que, en su forma más simple, resulta en virtualmente incrementar el tamaño de la `ndarray` más pequeña hasta igualar el de la otra, para así poder aplicar la operación correctamente. Esto es lo que sucede en el caso básico de aplicar una operación entre un escalar y un `ndarray` (por ejemplo, `np.arange(10) * 2`).
+
+El valor de la porción incrementada es normalmente una copia del elemento ya existente en el `ndarray`, aunque en situaciones más complejas se determina siguiendo una serie de reglas. Para más información acerca de las reglas de broadcasting, se puede visitar este  [enlace](https://docs.scipy.org/doc/numpy-1.13.0/user/basics.broadcasting.html).
+
+Además de poder aplicar operaciones Python a `ndarrays`, NumPy ofrece una serie de operadores unarios (que se aplican a un solo operando) y operadores binarios. La Table [numpy_unary_operations] lista algunos de los más útiles. Por ejemplo, `np.abs(np.array([1,-2,3]))` retorna `array(1,2,3)`.
+
+| Tipo | Operación | Descripción |
+|:-----|:----------|:------------|
+| Unario | *abs* | Valor absoluto de cada elemento |
+| | *sqrt* | Raíz cuadrada de cada elemento |
+| | *exp* | e^x, siendo x cad elemento |
+| | *log, log10, log2* | Logaritmos en distintas bases de cada elemento |
+| | *sign* | Retorna el signo de cada elemento (-1 para negativo, 0 o 1 para positivo) |
+| | *ceil* | Redondea cada elemento por arriba |
+| | *floor* | Redondea cada elemento por abajo |
+| | *isnan* | Retorna si cada elemento es Nan |
+| | *cos, sin, tan* | Operaciones trigonométricas en cada elemento |
+| | *arccos, arcsin, arctan* | Inversas de operaciones trigonométricas en cada elemento |
+| Binario | *add* | Suma de dos arrays |
+| | *substract* | Resta de dos arrays |
+| | *multiply* | Multiplicación de dos arrays |
+| | *divide* | División de dos arrays |
+| | *maximum, minimum* | Retorna el valor máximo/mínimo de cada pareja de elementos |
+| | *equal, not_equal* | Retorna la comparación (igual o no igual) de cada pareja de elementos |
+| | *greater, greater_equal, less, less_equal* | Retorna la comparación (>, >=, <, <= respectivamente) de cada pareja de elementos |
+[Table [numpy_unary_operations]: Operadores unarios y binarios más comunes en NumPy]
+
+Filtrado de Datos
+--------------------------------------------------------------
+
+Una función muy útil en el análisis de datos, por la versatilidad que da para filtrar y modificar información, es `np.where`. En su forma más básica, retorna un `ndarray` resultado de aplicar una condición elemento a elemento sobre un `ndarray`, escogiendo un valor `a` o el valor `b` en función del resultado de la comparación. Toma la siguiente forma, `np.where(<condición>, <elemento_condición_afirmativa> , <elemento_ condición_ negativa>)`.
+
+Por ejemplo, se puede utilizar `np.where` para crear una lista en la que los elementos positivos aparecen con un 1 y los demás con 0 de la siguiente forma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+resultado = np.where(array1 < 0, 0, 1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [where]: Filtrado de un `ndarray`]
+
+`np.where` permite también utilizar `ndarrays` como elementos sustitutivos, de forma que, en vez de sustituir los valores con condicional afirmativo por un único valor, se escoge un elemento de un `ndarray`. Por ejemplo, siguiendo el ejemplo anterior, se pueden sustituir todos los elementos negativos por 0, pero dejar los positivos como están.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+resultado = np.where(array1 < 0, 0, array1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [where2]: Filtrado de un `ndarray`]
+
+Si se proporciona solo el valor condicional, NumPy retorna los índices para los que la condición es afirmativa. Por ejemplo, para conocer la posición de los elementos negativos de `array = np.array([-1,1,-2,2])`, se puede hacer a través de `np.where(array < 0)`, que retorna `array([0,2])`.
+
+También se puede emplear `np.where` para limpieza básica de datos, por ejemplo, para eliminar ocurrencias de NaN en los datos. Si tenemos, `array = np.array([1,2,np.nan])`, aplicando `np.where(np.isnan(array), 0, array)` obtenemos `array([1,2,0])`.
+
+Exploración y estadística descriptiva
+--------------------------------------------------------------
+
+Una parte fundamental del analista de datos es entender las características de la información que maneja. Así, la fase preliminar de exploración ayuda al profesional a comprender la naturaleza de los datos que se tienen entre manos. En este sentido, la estadística descriptiva ofrece una visión general de los datos en conjunto, como el valor medio, cómo de diferentes son los valores, mínimos y máximos,...
+
+En Table [numpy_stats_operations] vemos algunas de las funciones de estadística descriptiva dentro de NumPy. Todas son accesibles a través del alias NumPy, pasando como argumento el `ndarray` que se desea explorar. Por ejemplo, `np.mean(arr1)` retorna el valor medio del array `arr1`.
+
+| Función | Descripción |
+|:--------|:------------|
+| *sum(arr)* | Suma de todos los elementos de *arr* |
+| *mean(arr)* | Media aritmética de los elementos de *arr* |
+| *std(arr)* | Desviación estándar de los elementos de *arr* |
+| *cumsum(arr)* | Devuelve array con la suma acumulada de cada elementos con todos los anteriores |
+| *cumprod(arr)* | Devuelve array con el producto acumulado de cada elementos con todos los anteriores |
+| *min(arr), max(arr)* | Mínimo y máximo de *arr* |
+| *any(arr)* | En array de tipo *bool*, retorna *True* si algún elemento es *True* |
+| *all(arr)* | En array de tipo *bool*, retorna *True* si todos los elementos son *True* (o >0 en valores numéricos) |
+| *unique(arr)* | Devuelve un array con valores únicos |
+| *in1d(arr1, arr2)* | Devuelve un array con bool indicando si cada elemento de *arr1* está en *arr2* |
+| *union1d(arr1, arr2)* | Devuelve la unión de ambos arrays |
+| *intersect1d(arr1, arr2)* | Devuelve la intersección de ambos arrays |
+[Table [numpy_stats_operations]: Funciones de estadística descriptiva de NumPy]
+
+Si se trabaja con `ndarrays` multidimensionales, la mayoría de funciones permiten pasar un argumento para indicar qué eje del `ndarray` considerar. De esta forma, se puede obtener la suma de todos los elementos, columna por columna, de un `array` de la siguiente forma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+array1 = np.array([ [1,2,3], [10,20,30] ])
+np.sum(array1,axis=0)                   # array([11,22,33])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [sum_columns]: Operación por columnas]
+
+En este caso, axis acepta el eje (o dimensión), 0 para columnas, 1 para filas, y así sucesivamente si hay más dimensiones.
+
+Álgebra lineal
+--------------------------------------------------------------
+
+NumPy, como buena librería de arrays, dispone de funciones y métodos para facilitar el trabajo en álgebra lineal, desde operaciones con matrices, hasta resolución de sistemas de ecuaciones.
+
+Para multiplicar dos matrices expresadas como `ndarrays`, se puede utilizar `np.dot(matriz1,matriz2)`, o bien directamente `matriz1 @ matriz2` (en Python 3.5+). También se puede obtener el mismo resultado con el método propio de un array, `matriz1.dot(matriz2)`.
+
+`matriz1 * matriz2` resulta en una multiplicación elemento a elemento y no en el producto de dos matrices. Para que la multiplicación tenga sentido, las dimensiones de las matrices deben ser compatibles (si el tamaño de `matriz1` es A × B, el tamaño de `matriz2` debe ser B × C, es decir, el número de columnas de la primera matriz debe coincidir con el número de filas de la segunda).
+
+Otras operaciones convenientes para `ndarrays` que representan matrices son:
+
+- Calcular la traspuesta con `matriz1.T` o `matriz1.transpose()`
+- Obtener los elementos en la diagonal con `matriz1.diagonal()`
+- Construir una matriz con elementos específicos en su diagonal (pero 0 en el resto), `np.diag(array)`, con `array` siendo unidimensional
+
+NumPy incluye un submódulo llamado `numpy.linalg` dedicado al álgebra lineal, con funcionalidad dedicada a la factorización de matrices, cálculo de determinantes e inversas, ... Table [numpy_lineal_operations] describe algunas de las funciones más importantes.
+
+| Función | Descripción |
+|:---------|:-----|
+| *dot(mat1, mat2)* | Devuelve el producto escalar entre dos arrays. Si son matrices 2D, es equivalente a la multiplicación de ambas |
+| *matmul(mat1, mat2)* | Devuelve el producto entre dos matrices |
+| *trace(mat1, mat2)* | Suma de las diagonales de ambas matrices |
+| *det(mat)* | Devuelve el determinante de la matriz |
+| *eig(mat)* | Computa los autovalores y autovectores de la matriz cuadrada *mat* |
+| *inv(mat)* | Devuelve la inversa de la matriz |
+| *qr(mat)* | Computa la factorización QR de *mat* |
+| *solve(A, b)* | Resuelve el sistema lineal de ecuaciones *Ax = b* para *b*, cuando *A* es una matriz cuadrada |
+[Table [numpy_lineal_operations]: Funciones de algebra lineal de NumPy]
+
+Para más información sobre las funciones dentro de numpy.linalg, se puede acceder a la [documentación oficial](https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html).
+
+Valores aleatorios
+--------------------------------------------------------------
+
+Python contiene un módulo denominado `random` que se puede utilizar para generar números aleatorios. Una vez importado con `import random`, se pueden generar números aleatorios con `random.random()` para fracciones de 0 a 1, `random.randint(min,max)` para números enteros dentro de un rango o `random.uniform(low,high)` para fracciones dentro de un rango. También ofrece la posibilidad de elegir un valor de entre una colección al azar con `random.choice(<colección>)`, donde colección puede ser también un string.
+
+Aunque el módulo `random` puede ser útil en casos simples, tiende a ser relativamente lento. NumPy ofrece una serie de funciones dentro del namespace `np.random` con mejor rendimiento. Entre otras se encuentran las siguientes.
+
+- `np.random.rand()`, retorna un número aleatorio entre 0 y 1
+- `np.random.randint(min,max)`, retorna un número entero entre min (inclusive) y max (exclusive)
+- `np.random.randn(d0,d1…)`, retorna un `ndarray` con elementos aleatorios de una distribución normal (media 0 y varianza 1) de dimensiones especificadas por d0, d1,...
+
+Para obtener números a partir de distintas distribuciones estadísticas, NumPy ofrece los siguientes métodos.
+
+- `np.random.binomial(n,p)`, genera números de una distribución binomial
+- `np.random.uniform(low,high)`, genera números a partir de una distribución uniforme (con igual probabilidad para todos)
+- `np.random.poisson(lambda,size)`, genera números de una distribución poisson
+
+Para más información sobre números aleatorios en NumPy y otras distribuciones, se puede visitar el siguiente [enlace](https://docs.scipy.org/doc/numpy/reference/routines.random.html).
+
+Por supuesto, como máquinas deterministas que son, los ordenadores no pueden generar números realmente aleatorios. Los algoritmos utilizan ecuaciones para generar números pseudoaleatorios, pero siempre a partir de un valor dado, que se denomina semilla. Esto quiere decir que una secuencia de números pseudoaleatorios a partir de una semilla es siempre la misma, aunque para el observador tenga un patrón aleatorio. Si se escoge otra semilla, la secuencia será distinta. Esto sirve muchas veces en simulaciones científicas para asegurarse de que las condiciones de un experimento son idénticas.
+
+Para iniciar una secuencia pseudoaleatoria con una semilla determinada, en NumPy se utiliza el método `np.random.seed(semilla)`.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

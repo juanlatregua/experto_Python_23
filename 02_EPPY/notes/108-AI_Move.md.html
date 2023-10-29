@@ -1,0 +1,788 @@
+<meta charset="utf-8">
+**02EPPY - 108 - Inteligencia Artificial, Movimiento Autónomo**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Introducción
+
+Inteligencia Artificial es hacer a los ordenadores capaces de realizar las tareas inteligentes tal como los humanos y animales. Ya se pueden programar ordenadores con habilidades sobrehumanas para resolver ciertos problemas, aritméticos, de ordenación, de búsqueda, ... Incluso algunos pueden jugar a algunos juegos de tablero mejor que cualquier humano. Muchos de esos problemas originalmente eran considerados problemas de IA, pero tal como han ido resolviéndose han salido del dominio de la IA.
+
+Pero aún hay muchas cosas en las que los ordenadores no son buenos y que nosotros encontramos triviales, reconocer caras familiares, hablar un lenguaje, decidir qué hacer, o ser creativo. Estos son problemas de la IA, encontrar que clases de algoritmos se necesitan para construir esas habilidades.
+
+Desde el punto de vista de la programación de videojuegos, el interés no se centra en cuestiones filosóficas como lo hace la IA académica, sino en encontrar algoritmos que hagan que los personajes de un juego se comporten como humanos o animales.
+
+*PacMan (1979)* fue el primer juego que mostraba una IA primitiva, antes de eso existieron algunos clones de *Pong* con paletas controladas por la *CPU*. Pero *PacMan* definió personajes enemigos que parecían conspirar contra el jugador, se movían por el nivel y hacían la vida del jugador complicada.
+
+[PacMan Dossier](https://www.gamasutra.com/view/feature/132330/the_pacman_dossier.php)
+
+*PacMan* mostraba una técnica de IA muy simple, una máquina de estados. Cada uno de los cuatro fantasmas o perseguían al jugador o huían de él. Para cada estado elegían una ruta semi-aleatoria en cada intersección. En modo persecución, cada uno tenía una probabilidad distinta de perseguir al jugador o elegir un camino aleatorio. En modo huida, o huían directamente o elegían una dirección aleatoria.
+
+![Figure [res/108_000]: Comportamiento de un fantasma de *PacMan*](res/108_000.png)
+
+Hasta mediados de los años 90 la IA en videojuegos no evolucionó demasiado, la mayoría de los personajes controlados por la maquina eran de una sofisticación similar. En *Golden Axe (1987)*, los enemigos estaban quietos (o se movían ligeramente) hasta que el jugador se acercaba, entonces se dirigían hacia él.
+
+*GoldenEye (1997)* fue de los primeros en mostrar como la IA podía mejorar la experiencia de juego, los personajes aun eran manejados por pequeñas máquinas de estados, pero ya se podían ver entre ellos y tomar decisiones sobre eso. En esas fechas empezaron a aparecer los primeros *RTS*, ya mostraban búsquedas de caminos avanzadas e incluso modelos emocionales de soldados en simulaciones de batalla.
+
+Recientemente, un número creciente de juegos están haciendo de la IA su principal argumento. *Creatures* tenía uno de los sistemas de IA más complejos jamás vistos en un videojuego, con un cerebro basado en redes neuronales para cada criatura.
+
+Ahora hay una amplia diversidad de AI en los juegos, muchos de ellos siguen usando la simplicidad del *PacMan*, porque es todo lo que necesitan. Los *bots* en los *FPS* han sido estudiados hasta en ámbitos académicos, la IA de los *RTS* incluso ha ayudado a construir simulaciones de entrenamiento militar. Los juegos de deportes y conducción tienen sus propios desafíos en la IA, algunos siguen sin resolverse (calcular el camino más rápido alrededor de una pista de carreras), mientras que los *RPG* con interacciones complejas de personajes siguen implementándose como arboles de conversación.
+
+La IA en la mayoría de los juegos modernos aborda tres necesidades básicas: la capacidad de mover personajes, la capacidad de tomar decisiones acerca de donde moverse, y la capacidad de pensar táctica o estratégicamente.
+
+![Figure [res/108_001]: Modelo de IA](res/108_001.png)
+
+El modelo básico de IA se divide en tres secciones, movimiento, toma de decisiones y estrategia. Las dos primeras contienen algoritmos que funcionan a nivel de personaje, mientras que la última funciona a nivel de equipo. A su alrededor hay toda una infraestructura (gestión del tiempo, visión del mundo, animaciones, físicas, scripting...).
+
+No todos los juegos requieren todos los niveles, muchos de los juegos de tablero como el ajedrez, solo requieren del nivel de estrategia, y en otros muchos juegos no hay estrategia, los personajes en juegos de plataformas no suelen tenerla, son puramente reactivos, tomando sus simples decisiones y actuando sobre ellas, no hay ninguna coordinación entre ellos.
+
+## Movimiento
+
+Se refiere a algoritmos que convierten decisiones en algún tipo de movimiento. Cuando un enemigo sin pistola necesita atacar al jugador, se dirige hacia el jugador, y cuando está cerca puede realizar el ataque. La decisión de atacar la ejecutan una serie de algoritmos de movimiento que se dirigen a la posición del jugador, solo entonces la animación de ataque puede reproducirse y se puede vaciar la barra de salud del jugador.
+
+Los algoritmos de movimiento pueden ser mucho más complejos que simplemente dirigirse a un punto, un personaje puede necesitar evitar obstáculos, o incluso encontrar un camino entre una serie de habitaciones. Un guarda puede responder a la aparición del jugador disparando una alarma, esto requiere navegar hasta el botón de alarma más cercano, que puede estar lejos, y puede involucrar navegación compleja alrededor de obstáculos o a través de pasillos.
+
+Muchas acciones se realizan usando animaciones directamente, si un personaje está sentado en una mesa con comida enfrente de él, y quiere ejecutar la acción de comer, simplemente se reproduce la animación de comer. Una vez que la IA ha decidido que el personaje debe comer, no se necesita más IA, en cambio, si el mismo personaje se encuentra fuera de la casa y necesita comer, primero la IA tiene que guiarlo hasta la silla.
+
+## Toma de Decisiones
+
+Esto supone que un personaje descubra su siguiente acción a realizar. Normalmente, cada personaje tiene un rango de diferentes comportamientos que puede elegir realizar, atacar, pararse, esconderse, explorar, patrullar, ... Los sistemas de toma de decisiones necesitan resolver cual de esos comportamientos es el más apropiado para cada momento del juego. El comportamiento elegido entonces puede ser ejecutado usando movimiento o animaciones.
+
+En un extremo, un personaje puede tener muy pocas reglas para elegir un comportamiento, un animal de granja puede estarse quieto hasta que el jugador se acerca, entonces se alejan un poco. En el otro extremo, algunos enemigos pueden mostrar una toma de decisiones muy compleja, y tratarán un numero de estrategias diferentes para alcanzar al jugador, encadenando acciones intermedias.
+
+Algunas decisiones pueden requerir ejecutar un movimiento, un ataque de melé, puede requerir al personaje estar muy cerca de su víctima. Otros son manejados puramente por una animación o simplemente actualizando el estado del juego directamente sin ningún tipo de *feedback* visual.
+
+## Estrategia
+
+Solo con movimiento y toma de decisiones se puede ir muy lejos, y la mayoría de juegos de acción usan solo esos dos elementos. Pero para coordinar un equipo entero, se necesita alguna IA estratégica.
+
+Estrategia se refiere a una aproximación global para un grupo de personajes, no son algoritmos que manejen a un solo personaje, sino que influencian el comportamiento de un conjunto de personajes. Cada personaje del grupo puede tener su propia toma de decisiones y algoritmos de movimiento, pero en general su toma de decisiones se verá influenciada por la estrategia de grupo.
+
+Los enemigos pueden trabajar como un equipo para rodear al jugador, alguno incluso puede correr alrededor del jugador para flanquearlo.
+
+## Infraestructura
+
+Los algoritmos de IA son solo la mitad de la película, para construir la IA de un juego, se necesita un buen montón de infraestructura adicional. Las peticiones de movimiento necesitan ser transformadas en acción en un juego usando animaciones o simulaciones físicas.
+
+De manera similar, la IA necesita información acerca del juego para tomar decisiones razonables. Esto se suele llamar percepción, calcular qué información sabe el personaje. En la práctica, es mucho más amplio que simplemente simular que puede oír o ver un personaje, pero incluye todas las interrelaciones entre el mundo de juego y la IA. La conexión con el mundo es a menudo una proporción grande del trabajo realizado por un programador de IA.
+
+Finalmente, todo el sistema de IA necesita ser gestionado para usar la cantidad de tiempo de procesador y memoria correctos. Suele existir algún tipo de gestor de ejecución para cada área de un juego, pero la IA suele necesitar nuevas técnicas y algoritmos en esta área.
+
+## Agentes
+
+Una IA basada en agentes se dedica a producir personajes autónomos que toman información de los datos del juego, determinan que acciones realizar basándose en esa información, y ejecutan esas acciones.
+
+Se puede ver como un diseño de abajo a arriba, se empieza averiguando cómo se comportará cada personaje e implementando la IA necesaria para soportarlo. El comportamiento general del juego entero es simplemente una función de cómo los comportamientos de los personajes individuales trabajan juntos. Los dos primeros elementos del modelo de IA, movimiento y toma de decisiones, forman la IA para un agente en el juego.
+
+En contraste, una IA no basada en agentes, averigua como debería actuar todo de arriba a abajo, y construye un único sistema para simularlo todo. En *GTA3* la simulación del tráfico y los transeúntes se calculaba basándose en la hora del día y la región de la ciudad y solo se transformaban en coches o personas individuales cuando el jugador los veía.
+
+La distinción es borrosa, un buen programador de IA mezclara cualquier técnica fiable que solucione el problema, independientemente de la aproximación.
+
+## La Falacia de la Complejidad
+
+Es un error común pensar que cuando más compleja sea la IA de un juego, se verán mejor los personajes para el jugador. Crear una buena IA es sobre todo combinar los comportamientos correctos con los algoritmos adecuados. Una IA muy compleja puede acabar pareciendo estúpida, mientras que otra técnica muy simple bien usada puede ser perfecta.
+
+En *PacMan*, la IA tiene dos estados, uno normal cuando el jugador está recogiendo puntos y otra cuando el jugador se ha comido un *powerup*. En el estado normal, cada uno de los cuatro fantasmas se mueve en línea recta hasta que alcanza una intersección, entonces cada fantasma decide si tomar el camino que está en la dirección del jugador (como un simple *offset* a la posición del jugador, nada de *pathfinding*) o tomar un camino aleatorio. La elección depende de cada tipo de fantasma, cada uno tiene una diferente probabilidad de hacer una cosa u otra.
+
+Es una IA muy simple, cualquier cosa más simple haría que fueran predecibles o puramente aleatorios. La combinación de los dos da una gran experiencia de juego. De hecho, las distintas inclinaciones de cada fantasma son suficientes para hacer de los cuatro juntos una fuerza de oposición al jugador significativa.
+
+El caso contrario también puede pasar, en *Herdy Gerdy*, se presenta un ecosistema de personajes, el jugador tiene que llevar la manada al redil. El comportamiento de manada ha sido usado muchas veces antes, pero en este juego era la característica principal. Por desgracia, los personajes olvidan las bases del movimiento. Era fácil verlos atrapados en el escenario y su detección de colisiones podía dejarlos atascados en sitios inalcanzables.
+
+Saber cuándo ser complejo y cuando mantenerse simple es el elemento más difícil del arte de cualquier programador de IA. Los mejores programadores de IA son aquellos que usan una técnica muy simple para dar la ilusión de complejidad.
+
+## La Ventana de la Percepción
+
+En la mayoría de los juegos, las posibilidades de que el jugador se encuentre con un personaje durante un periodo corto de tiempo son altas. Este tiempo puede ser muy corto en el caso de soldados desechables cuyo propósito es ser disparados. Algunos enemigos más difíciles pueden estar en pantalla unos pocos minutos hasta que se encuentra su punto débil y son derrotados. Cuando se estudia algo en la vida real, se tiende a ponerse en su lugar, mirar a su alrededor, la información que recibe de su entorno, y las acciones que está llevando a cabo. Un guarda en la oscuridad, oye un ruido, y debería encender la luz, si no lo hace, se le considera estúpido.
+
+Si solo vemos a alguien durante un corto periodo de tiempo, no tenemos suficiente tiempo para entender su situación. Si se ve a un guarda que oye un ruido y de repente se gira y se va en dirección contraria, se asume que su IA es defectuosa. El guarda debería haberse movido hacia el origen del ruido. Si se mira la escena un poco más, y se ve al guarda alcanzar un interruptor cerca de la puerta de salida, entonces entendemos su acción.
+
+Esta situación es la ventana de percepción, hay que asegurarse que el personaje de la IA encaja con su propósito en el juego y la atención que recibirá del jugador. Añadiendo más comportamientos a personajes casuales puede hacer ganar el cariño del raro jugador que juega cada nivel muchas horas buscando comportamientos extraños o *bugs*, pero todos los demás pensaran que la programación fue descuidada.
+
+## Cambios de Comportamiento
+
+La ventana de percepción no es solo acerca del tiempo, los fantasmas del *PacMan*, quizás no den la sensación de conciencia, pero no hacen nada incorrecto. Esto es porque nunca cambian de comportamiento (solo cuando el jugador se come un *powerup*).
+
+Cuando un personaje en un juego cambia de comportamiento, el cambio es más apreciable que el comportamiento en sí mismo. De la misma manera, cuando el comportamiento de un personaje debería cambiar de manera obvia y no lo hace, también salta la alarma. Si dos guardas están de pie hablando entre ellos y el jugador dispara a uno, el otro guarda no debería continuar con la conversación.
+
+Un cambio de comportamiento casi siempre ocurre cuando el jugador está cerca o ha sido descubierto. Una buena solución es mantener solo dos comportamientos para los personajes casuales, una acción normal y una cuando se ha descubierto al jugador.
+
+## Tipos de IA
+
+Los videojuegos siempre han sido criticados por estar mal programados (desde el punto de vista de ingeniería del software), usan trampas, optimizaciones arcanas, tecnologías sin probar, para conseguir un extra de velocidad o algún efecto particular. La IA no es diferente, una de las mayores barreras entre la IA de videojuegos y la académica, es qué se considera como IA.
+
+La IA para videojuegos es a partes iguales *hacking* (soluciones a medida), heurísticas (reglas generales) y algoritmos.
+
+### Hacks
+
+Se estudia el comportamiento, y entendiendo cómo un comportamiento se construye, se entiende todo lo que se puede sobre la cosa que se está comportando. No se está interesado en la naturaleza de la realidad, solo se quieren personajes que parezca que actúan correctamente. En la mayoría de los casos, eso supone empezar a partir de comportamientos humanos e intentar resolver la manera más sencilla de implementarlo.
+
+Por norma, un programador de IA recibe el diseño de un personaje y aplica la herramienta más relevante para conseguir el resultado. Esto significa que lo que es IA para videojuegos puede ser irreconocible como técnica de IA. En el ejemplo del *PacMan*, se usa un simple generador de números aleatorios, pero generar un numero aleatorio no se considera IA, pero puede funcionar como técnica de IA en muchas situaciones.
+
+Siempre hay que buscar maneras creativas y simples que puedan dar la ilusión de inteligencia. Si se quieren personajes emocionalmente involucrados, es posible añadir unas pocas animaciones de emociones, es más sencillo disparar esas animaciones en el momento correcto que intentar representar el estado emocional del personaje a través de sus acciones.
+
+Si se tienen un montón de comportamientos sobre los cuales el personaje tiene que elegir uno, y su elección involucra la evaluación de muchos factores, quizás valga la pena una versión que elija uno de esos comportamientos al azar. El programador podrá apreciar la diferencia, pero un jugador probablemente no.
+
+### Heurísticas
+
+Una heurística es una regla general, una solución aproximada que funciona en la mayoría de las situaciones, pero que no lo hace en todas. Los humanos usan heurísticas todo el tiempo, no se intentan calcular todas las consecuencias de sus actos, en su lugar, se confía en principios generales que han funcionado en el pasado.
+
+Un amplio rango de heurísticas se puede aplicar a problemas generales de IA que no requieren un algoritmo particular. En el *PacMan*, el fantasma se dirige hacia el jugador tomando el camino en una intersección que le lleva hacia su posición, conseguir la ruta completa hasta el jugador puede ser complejo, pero la regla general (moverse en la dirección actual del jugador) funciona y simula la suficiente capacidad para que el jugador entienda que los fantasmas no son simplemente aleatorios.
+
+### Algoritmos
+
+Confiar en *hacks* y heurísticas para construir una IA supone muchas veces reinventar la rueda, algunas partes generales de IA, como el movimiento, toma de decisiones e inteligencia táctica, se pueden beneficiar de métodos probados que pueden ser reusados.
+
+Solo hay que tener en cuenta que para cada situación donde un algoritmo complejo parece la mejor opción, hay al menos cinco donde un simple *hack* o heurística solucionarían el problema.
+
+# Movimiento
+
+Uno de los requisitos fundamentales de la IA es mover los personajes en el mundo de juego con buen juicio. Muchos juegos, incluso con una IA que parece avanzada, implementan solo algoritmos de movimiento y no tienen ninguna toma de decisiones. En el otro extremo, algunos juegos no necesitan mover a los personajes, juegos de recursos, ...
+
+Hay un cierto solapamiento entre la IA y las animaciones, puesto que las animaciones también están relacionadas con el movimiento. Pero normalmente se habla de movimiento en IA a gran escala, es decir, el movimiento de los personajes sobre un nivel del juego, no sobre el movimiento de las partes del cuerpo de un personaje. La línea divisoria no siempre está clara, en muchos juegos la animación puede tomar el control del personaje, incluyendo algún movimiento a gran escala.
+
+## Bases
+
+Cada personaje tiene una posición actual y posiblemente propiedades físicas adicionales que controlan su movimiento. Un algoritmo de movimiento está diseñado para usar esas propiedades y calcular donde estará el personaje en el siguiente momento.
+
+![Figure [res/108_002]: Estructura del Algoritmo de Movimiento](res/108_002.png)
+
+Todos estos algoritmos tienen la misma forma, cogen los datos geométricos de su propio estado y del mundo, y devuelven una salida geométrica representando el movimiento que quieren hacer. Algunos requieren pocas entradas, otros, muchas interacciones con el estado del juego y la geometría del nivel. Igualmente, la salida también puede variar.
+
+Hay dos distinciones básicas, algoritmos cinemáticos y dinámicos. Un movimiento dinámico tiene en cuenta la posición actual del personaje y su velocidad, y su salida suelen ser fuerzas o aceleraciones con el objetivo de cambiar la velocidad del personaje. Estos algoritmos suelen llamarse comportamientos de dirección (*steering behaviors*).
+
+### Movimiento en Dos Dimensiones
+
+Muchos juegos tienen una IA que trabaja en dos dimensiones, aunque raramente estos se pintan en dos dimensiones, pero sus personajes están bajo la influencia de la gravedad, pegándolos al suelo, y limitando sus movimientos a dos dimensiones. La mayoría de los movimientos en IA se pueden lograr en 2D, y la mayoría de algoritmos están diseñados así.
+
+Por tanto, pese a que un personaje consista de un modelo 3D que ocupa un espacio en el mundo de juego, los algoritmos de movimiento asumen que el personaje se puede tratar como un simple punto. La detección de colisiones, evasión de obstáculos, y otros algoritmos usan el tamaño del personaje para sus resultados, pero el movimiento asume que el personaje es un punto. Una ventaja añadida es que las operaciones matemáticas se simplifican sobremanera.
+
+Los personajes en 2D tienen dos coordenadas lineales representando su posición, estas coordenadas son relativas a los ejes del mundo que están perpendiculares a la dirección de la gravedad y perpendiculares uno a otro. Este conjunto de ejes se conoce como base ortonormal del espacio 2D.
+
+En la mayoría de los casos el eje Y es el opuesto a la dirección de la gravedad (hacia arriba), y los ejes X y Z se apoyan en el plano del suelo. El movimiento de los personajes tiene lugar en los ejes X y Z usados para pintar.
+
+![Figure [res/108_003]: Ejes en 3D](res/108_003.png)
+
+Además de las dos coordenadas lineales, un objeto mirando hacia una dirección tiene un valor de orientación. Este representa el ángulo desde un eje de referencia. Se suele usar un ángulo en dirección contraria a las agujas del reloj, desde el eje positivo Z. Por defecto, con orientación cero, el personaje está mirando hacia el eje Z.
+
+Con estos tres valores se puede definir el estado de un personaje en el mundo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Location:
+
+  def __init__(self, position, orientation):
+    self.position = pyagme.math.Vector2(position[0], position[1])
+    self.orientation = orientation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [character_location]: Ubicación del Personaje]
+
+Para convertir el valor escalar de la orientación a un vector unitario apuntando a la dirección que está mirando el personaje solo hay que hacer uso de las coordenadas polares, para X y Z, asumiendo radio 1. Puesto que el ángulo se mide desde el eje positivo de Z, en un sistema de coordenadas de mano derecha (el más habitual en videojuegos).
+
+\begin{equation}
+\vec{w} =
+\begin{bmatrix}
+\sin(\theta) \\
+\cos(\theta)
+\end{bmatrix}
+\end{equation}
+
+Donde $\theta$ es la orientación como escalar y w es la dirección expresada como vector.
+
+### Cinemática
+
+Con la posición y orientación de cada personaje ya se pueden crear algoritmos para calcular su velocidad objetivo, permitiendo que la velocidad de salida cambie instantáneamente.
+
+Pese a que puede estar bien para muchos juegos, esto puede parecer poco realista. Una consecuencia de las leyes del movimiento de *Newton* es que las velocidades no pueden cambiar instantáneamente en el mundo real, si un personaje se mueve en una dirección y cambia de repente su dirección o velocidad, se verá raro. Para hacer movimientos suaves se necesita tener en cuenta la velocidad actual y usar la aceleración para cambiarla.
+
+El personaje necesita guardar su velocidad actual además de su posición, los algoritmos entonces pueden operar para cambiar su velocidad ligeramente en cada frame, dando un movimiento suave.
+
+También necesitan guardar sus velocidades lineales y angulares. La velocidad lineal tiene componentes X y Z, la velocidad del personaje en cada uno de los ejes, la velocidad angular representa como de rápido está cambiando su orientación, esto se da con un solo valor, el número de *radianes* por segundo que la orientación está cambiando.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicStatus:
+
+    def __init__(self, position = pygame.math.Vector2(0.0, 0.0), orientation = 0.0 , velocity = pygame.math.Vector2(0.0, 0.0), rotation = 0.0,  speed = 0.0):
+        self.position = position
+        self.orientation = orientation
+        self.velocity = velocity
+        self.rotation = rotation
+        self.speed = speed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [ubicacion_cinematica]: Ubicación Cinemática del Personaje]
+
+Los steering behaviors operan sobre esos datos cinemáticos, y devuelven aceleraciones que cambiaran las velocidades de un personaje para moverlo en el nivel. Su salida es un conjunto de aceleraciones.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Steering:
+
+    def __init__(self, linear = pygame.math.Vector2(0.0, 0.0), angular = 0.0):
+        self.linear = linear
+        self.angular = angular
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [aceleraciones_steering]: Aceleraciones de los Comportamientos de Dirección]
+
+No hay nada conectando la dirección a la que un personaje se está moviendo y la dirección a la que está mirando. La mayoría de los personajes de un juego no deberían comportarse así, deberían orientarse de tal manera que se muevan hacia donde están mirando. La mayoría de los *steering behaviors* ignoran hacia donde se mira, operan directamente sobre los componentes lineales de los datos del personaje. En esos casos la orientación debería ser actualizada para que encaje con la dirección del movimiento. Se podría cambiar directamente la orientación en la dirección del movimiento, pero eso significaría que la orientación cambia de golpe. La solución es moverlo una proporción del camino hacia la dirección deseada, para suavizar el movimiento en varios *frames*.
+
+Actualizar la posición y la orientación del personaje se hace con las ecuaciones del movimiento básicas simplificadas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def update(self, delta_time, steering):
+  time = delta_time * 0.001  #dt comes in miliseconds
+  self.state.velocity += steering.linear
+  self.state.position += self.state.velocity * time
+  self.state.rotation += steering.angular
+  self.state.orientation += self.state.rotation * time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_steering]: Actualización del Estado del Personaje en cada *frame*]
+
+Las velocidades vienen dadas en unidades por segundo, casi todos los juegos soportan *frame rate* variable, así que se usa un tiempo de actualización explícito. Si el personaje se mueve a 1 metro por segundo y el ultimo *frame* tuvo una duración de 10 milisegundos, entonces se necesita mover 20 milímetros.
+
+### Fuerzas
+
+En el mundo real no se puede aplicar una aceleración a un objeto, se aplican fuerzas y las fuerzas causan un cambio en la energía cinética del objeto. Acelerarán, pero lo harán dependiendo de la inercia del objeto. La inercia actúa para oponerse a la aceleración, cuanta más inercia, entonces hay menos aceleración para la misma fuerza.
+
+Para modelar esto en un juego se puede usar la masa del objeto para la inercia lineal y el momento de inercia para la aceleración angular. Se pueden extender los datos del personaje para añadir estos valores. Pero puesto que los algoritmos de dirección suelen devolver aceleraciones, no es común usar algoritmos que trabajen directamente con fuerzas. Normalmente el controlador de movimiento considera las dinámicas del personaje en un paso posterior llamado accionamiento.
+
+Este paso toma como entrada el cambio de velocidad deseado, tal como seria aplicado en un sistema cinemático, entonces calcula la combinación de fuerzas que puede aplicar para aproximar el cambio en la velocidad deseado. La manera más simple de hacerlo es multiplicar la aceleración por la inercia para conseguir una fuerza. Esto asume que el personaje es capaz de aplicar cualquier fuerza, pero no siempre es el caso.
+
+## Algoritmos de Movimiento Cinemático
+
+Estos algoritmos usan los datos estáticos (posición y orientación) y devuelven la velocidad deseada, no usan la velocidad, ni la aceleración, aunque cambios bruscos de velocidad se pueden suavizar en varios *frames*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicSteering:
+    def __init__(self, velocity = pygame.math.Vector2(0.0, 0.0), rotation = 0.0):
+        self.velocity = velocity
+        self.rotation = rotation
+
+def update_kinematic(self, delta_time, steering):
+    time = delta_time * 0.001  #dt comes in miliseconds
+    self.state.velocity = steering.velocity
+    self.state.position += steering.velocity * time
+    self.state.rotation = steering.rotation
+    self.state.orientation += steering.rotation * time
+
+    self.keep_in_bounds()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_kinematic]: Actualización Cinemática del Estado del Personaje en cada *frame*]
+
+Muchos juegos incluso simplifican las cosas y fuerzan a que la orientación del personaje esté en la dirección en que está moviéndose. Si un algoritmo de movimiento devuelve una velocidad objetivo, entonces es usada para su orientación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def set_orientation(self):
+    if self.state.velocity.length_squared() > 0:
+        self.state.orientation = math.degrees(math.atan2(self.state.velocity.y, self.state.velocity.x))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [set_orientation]: Orientación del Personaje hacia donde se Mueve]
+
+### Seek
+
+El comportamiento cinemático *seek* (búsqueda) recibe como entrada los datos estáticos del personaje, calcula la dirección entre el personaje y el destino y solicita una velocidad en esa línea. Los valores de orientación suelen ser ignorados.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicSeek(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_speed = 100.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.Kinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = KinematicSteering()
+        #going full speed towards the target
+        result.velocity = (target.position - character.position).normalize() * self.max_speed
+        result.rotation = 0.0  #no rotation
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [kinematic_seek]: *Kinematic Seek*]
+
+### Flee
+
+Si se quiere que el personaje huya del destino, simplemente hay que invertir la dirección de la velocidad.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicFlee(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_speed = 100.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.Kinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = KinematicSteering()
+        #going full speed opposite to the target
+        result.velocity = (character.position - target.position).normalize() * self.max_speed
+        result.rotation = 0.0 #no rotation
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [kinematic_flee]: *Kinematic Flee*]
+
+### Arrive
+
+El algoritmo anterior se usa para perseguir a un personaje, pero nunca alcanza su objetivo, continúa persiguiendo siempre. Si el personaje se está moviendo a un punto concreto del mundo, este algoritmo no funciona, se mueve al máximo de velocidad siempre, con lo cual es probable que supere el punto de destino, y tenga que ir y volver alrededor del destino. Se necesita una manera de estacionar en el destino.
+
+Para solucionarlo hay dos opciones, se le puede dar al algoritmo un radio de satisfacción y dar el destino por alcanzado cuando se está dentro de ese radio, o bien, se puede soportar un rango de velocidades de movimiento, y decelerar al personaje cuando va alcanzando el destino, haciendo más improbable que se pase.
+
+La mejor aproximación es mezclar ambas ideas, hacer que el personaje decelere al acercarse al destino permite usar un radio de satisfacción más pequeño. Se puede modificar el algoritmo *seek* para verificar si está dentro del radio, en ese caso no hace nada. Pero en caso contrario, intenta alcanzar su objetivo en una longitud de tiempo fija. Si esto significa moverse más rápido que la velocidad máxima, entonces se mueve a la velocidad máxima. El tiempo fijo a destino es un truco que hace que el personaje decelere al acercarse al destino.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicArrive(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_speed = 100.0
+        self.sq_radius = 25.0   #squared radius
+        self.time_to_target = 0.5
+        self.needs_orientation = True
+        self.steering_type = SteeringType.Kinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = KinematicSteering()
+        #direction to the target
+        result.velocity = target.position - character.position
+        if result.velocity.length_squared() < self.sq_radius:  #inside the radius
+            result.velocity.x = 0.0   #no velocity
+            result.velocity.y = 0.0
+        else:
+            result.velocity /= self.time_to_target    #velocity adjusted to time
+            if result.velocity.length() > self.max_speed:   #max out
+                #normalized direction to max speed
+                result.velocity = result.velocity.normalize() * self.max_speed
+        result.rotation = 0.0  #no rotation
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [kinematic_arrive]: *Kinematic Arrive*]
+
+### Wandering
+
+Este comportamiento siempre se mueve en la dirección de la orientación del personaje a máxima velocidad, pero se modifica su orientación, permitiendo al personaje deambular mientras se mueve hacia adelante.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class KinematicWander(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_speed = 50.0
+        self.max_rotation = 90.0
+        self.needs_orientation = False
+        self.steering_type = SteeringType.Kinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        orientation = pygame.math.Vector2(0.0, 0.0)
+        #orientation of character as vector
+        orientation.from_polar((1.0, character.orientation))
+
+        result = KinematicSteering()
+        result.velocity = orientation * self.max_speed  #max speed
+        #rotate to random (binomial distribution around 0)
+        result.rotation = self.max_rotation * (random.random() - random.random())
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [kinematic_wandering]: *Kinematic Wandering*]
+
+Para ello convertimos la orientación actual del personaje, que es un ángulo, y por tanto en coordenadas polares, a coordenadas cartesianas. La velocidad entonces irá en esa dirección, pero la rotación que se le va a aplicar al personaje se calcula sobre un máximo y una distribución binomial entre -1 y 1 (donde los valores cercanos a 0 tienen más probabilidad). Eso quiere decir que el personaje va a tender a seguir moviéndose en la misma dirección que tiene, y que no se produzcan cambios bruscos de dirección.
+
+## Steering Behaviors Básicos
+
+Los *steering behaviors* extienden los algoritmos cinemáticos añadiendo velocidad y rotación. Hay un rango muy amplio de comportamientos de dirección distintos. Se suelen dividir entre los básicos o atómicos y los compuestos, que se obtienen combinando varios básicos.
+
+La mayoría de ellos tienen una estructura similar, toman como entrada la información cinemática del personaje y el destino. El destino depende de la aplicación, para persecución o evasión, suele ser otro personaje en movimiento, para la evasión de obstáculos, suele ser una representación de la geometría de colisión del mundo. Incluso se puede especificar un camino como destino de un comportamiento de guía de caminos.
+
+Muchas veces esa información no está disponible en un formato fácil de leer para la IA, la información de colisión, por ejemplo, acceder a esa información puede ser un proceso costoso, por ejemplo, verificar el movimiento anticipado del personaje usando *raycasts* de movimientos de prueba en un nivel.
+
+Algunos de los *steering behaviors* operan sobre un grupo de destinos, el comportamiento de *flocking* (bandada), se basa en ser capaz de mover la posición media de una bandada de personajes. En estos casos, se necesita condensar toda la información en algo a lo que el comportamiento o pueda reaccionar. Pueden ser propiedades medias de todo el conjunto, u ordenarlos, o buscar entre ellos, …
+
+No hay un comportamiento que lo haga todo, cada uno hace una sola cosa y solo recibe los datos necesarios para eso. Para conseguir comportamientos más complejos se usan algoritmos que combinan varios comportamientos y los hacen trabajar en sintonía.
+
+### Seek y Flee
+
+*Seek* trata de emparejar la posición del personaje con la del destino. Tal como se veía en el algoritmo cinemático, encuentra la dirección al destino y se encamina a ella lo más rápido posible. Puesto que la salida del algoritmo ahora es una aceleración, acelerará al máximo posible.
+
+Si continuara acelerando, su velocidad crecería siempre, por eso la mayoría de personajes tienen una velocidad máxima a la que pueden moverse, no pueden acelerar indefinidamente. La velocidad actual de un personaje se verifica regularmente, y se recorta si excede la velocidad máxima, esto se suele hacer como postproceso en la función `update`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def keep_in_speed(self):
+    if self.state.velocity.length() > Body.max_speed:
+        self.state.velocity = self.state.velocity.normalize() * Body.max_speed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [keep_in_speed]: Mantener la Velocidad por debajo de un Máximo]
+
+Para implementar el comportamiento *seek* hay que aplicar aceleraciones en el cálculo, y usar la función `update` apropiada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Seek(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_acceleration = 5.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.NonKinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = Steering()
+        #acceleration towards the target
+        result.linear = (target.position - character.position).normalize() * self.max_acceleration
+        result.angular = 0.0   #no angular
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [seek]: *Steering Behavior Seek*]
+
+El comportamiento *flee* será simplemente invertir la dirección.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Flee(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_acceleration = 5.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.NonKinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = Steering()
+        #acceleration opposite to the target
+        result.linear = (character.position - target.position).normalize() * self.max_acceleration
+        result.angular = 0.0  #no angular
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [flee]: *Steering Behavior Flee*]
+
+![Figure [res/108_004]: Seek](res/108_004.png)
+
+### Arrive y Leave
+
+El comportamiento *seek* siempre se moverá hacia el objetivo con la mayor aceleración posible, esto funciona si el destino está moviéndose constantemente y el personaje necesita cazarlo lo más pronto posible. Sucede el mismo problema que en el caso del algoritmo cinemático cuando el destino es estático y el personaje lo alcanza, este lo sobrepasa y se queda dando vueltas alrededor. En este caso, el problema no es tan malo, puesto que el personaje al no cambiar de dirección inmediatamente parece que se bambolea alrededor del destino.
+
+El algoritmo dinámico es un poco más complejo que el cinemático, usa un radio más amplio, y el personaje empezará a decelerar cuando entre en este radio. El algoritmo calcula la velocidad para el personaje dentro de ese radio, en caso contrario va a máxima velocidad. Resta esa velocidad a la actual del personaje, teniendo en cuenta el tiempo deseado al destino, y si la aceleración supera el máximo la recorta.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Arrive(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_acceleration = 5.0
+        self.max_speed = 100.0
+        self.slow_radius = 100.0
+        self.time_to_target = 1.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.NonKinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        #direction to the target
+        direction = target.position - character.position
+        distance = direction.length()  #distance to target
+
+        target_speed = self.max_speed  #max speed
+        if distance < self.slow_radius:  #inside the slow zone
+            #speed slowing down
+            target_speed = (self.max_speed * distance) / self.slow_radius
+
+        #velocity towards the target
+        target_velocity = direction.normalize() * target_speed
+        #linear acceleration adjusted to time
+        result = Steering()
+        result.linear = (target_velocity - character.velocity) / self.time_to_target
+        if result.linear.length() > self.max_acceleration:  #max out
+            #normalized to max acceleration
+            result.linear = result.linear.normalize() * self.max_acceleration
+
+        result.angular = 0.0  #no angular
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [arrive]: *Steering Behavior Arrive*]
+
+![Figure [res/108_005]: Arrive](res/108_005.png)
+
+El comportamiento opuesto es *leave*, si se necesita dejar un destino, no se suele necesitar acelerar con una aceleración minúscula al principio e ir incrementándola. Lo normal es acelerar lo más rápido posible, con lo cual, se convierte en el comportamiento *flee*.
+
+### Align
+
+Este comportamiento trata de igualar la orientación del personaje con la del destino. No le importa la posición o velocidad del personaje o el destino. La orientación no está directamente relacionada con la dirección del movimiento para la cinemática. Este algoritmo no produce ninguna aceleración lineal, solo responde girando.
+
+Se comporta de manera similar a *arrive*, intenta alcanzar la orientación del destino e intenta decelerar la rotación a cero al pasar un determinado valor.
+
+Puesto que las orientaciones dan la vuelta cada $2\pi$ radianes, no se puede simplemente restar la orientación destino de la del personaje, hay que convertir el resultado al rango entre $(-\pi, \pi)$ radianes. Entonces se puede usar este valor para controlar la rotación, el algoritmo es muy parecido al de *arrive*, se usa un radio para decelerar, el radio actúa como un intervalo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Align(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_ang_acc = 20.0
+        self.max_rotation = 90.0
+        self.slow_radius = 2.0
+        self.time_to_target = 0.1
+        self.needs_orientation = False
+        self.steering_type = SteeringType.NonKinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        #rotation between character and target wrapped to (-PI, PI)
+        rotation = wrap_angle_180(target.orientation - character.orientation)
+        rotation_size = abs(rotation)  #absolute value of rotation
+
+        target_rotation = self.max_rotation  #max
+        if rotation_size < self.slow_radius:  #inside the slow zone
+            #speed of rotation slowing down
+            target_rotation = (self.max_rotation * rotation_size) / self.slow_radius
+
+        target_rotation = math.copysign(target_rotation, rotation)  #positive or negative
+
+        result = Steering()
+        #angular acceleration adjusted to time
+        result.angular = (target_rotation - character.rotation) / self.time_to_target
+        if abs(result.angular) > self.max_ang_acc:  #too fast
+            #normalized to max
+            result.angular = math.copysign(1, result.angular) * self.max_ang_acc
+
+        result.linear = pygame.math.Vector2(0.0, 0.0)  #no linear
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [align]: *Steering Behavior Align*]
+
+El comportamiento opuesto a *align* sería que el personaje mirará en dirección contraria hacia donde lo hace el destino, solo habría que sumar $\pi$ a su orientación y alinear a ese valor.
+
+### Igualar Velocidad
+
+Se puede hacer que, en lugar de intentar igualar la posición con el destino, hacerlo con su velocidad. Por sí solo, este comportamiento no tiene mucha utilidad, en cambio combinado con otros da mucho juego. La implementación es idéntica a la parte de *arrive* que calcula la velocidad basándose en la velocidad del destino.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class VelocityMatching(SteeringBehaviour):
+
+    def __init__(self):
+        self.max_acceleration = 5.0
+        self.time_to_target = 1.0
+        self.needs_orientation = True
+        self.steering_type = SteeringType.NonKinematic
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        result = Steering()
+        #linear acceleration adjusted to time
+        result.linear = (target.velocity - character.velocity) / self.time_to_target
+        if result.linear.length() > self.max_acceleration:  #max out
+            #normalized to max acceleration
+            result.linear = result.linear.normalize() * self.max_acceleration
+
+        result.angular = 0.0  #no angular
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [velocity_matching]: *Steering Behavior Velocity Matching*]
+
+## Steering Behaviors Delegados
+
+Todos los *steering behaviors* delegados tienen la misma estructura, calculan un destino, ya sea posición u orientación, y entonces delegan en uno de los demás comportamientos el cálculo final. El cálculo del destino puede estar basado en múltiples entradas.
+
+De hecho, resulta que *seek*, *align* y *velocity matching* son los únicos comportamientos fundamentales. Puesto que *arrive* se puede dividir en dos partes, la creación de un destino de velocidad y la aplicación del algoritmo de *velocity matching*. Muchos de los delegados pueden ser usados como la base para otro comportamiento delegado.
+
+Para usar estos delegados se hace uso de la herencia, es decir, los delegados heredan de los básicos, y llaman a su clase base para delegar el cálculo final.
+
+### Pursue y Evade
+
+Hasta ahora los personajes se han movido basándose solo en la posición del destino, pero si se está persiguiendo un destino en movimiento, entonces moverse constantemente hacia su posición actual no es suficiente. Para cuando se ha alcanzado donde está en ese momento, ya se ha movido. Si el personaje está a bastante distancia del destino, se ve claramente que no se mueve en la dirección más óptima.
+
+En lugar de apuntar hacia la dirección actual del destino, hay que predecir donde estará en el futuro y apuntar a esa dirección. Por simplicidad, se asume que el destino se seguirá moviendo con la misma velocidad que lo hace en ese momento, es una suposición razonable para las distancias cortas, incluso en las largas funciona bien.
+
+El algoritmo averigua la distancia entre el personaje y el destino, luego calcula cuanto tiempo le costaría llegar hasta allí, a máxima velocidad. Usa ese intervalo de tiempo como predicción. Calcula la posición del destino si continuara moviéndose a su velocidad actual en ese tiempo, y esa posición es usada como destino del comportamiento *seek* standard.
+
+![Figure [res/108_006]: Pursue](res/108_006.png)
+
+Si el personaje se mueve muy despacio, o está muy lejos, el tiempo de predicción podría ser muy grande, y el destino es poco probable que siga el mismo camino para siempre, así que pone un límite a lo lejos que se apunta. El algoritmo tiene un parámetro de tiempo máximo para esto, si la predicción de tiempo va más allá, se usa el máximo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Pursue(Seek):
+
+    def __init__(self):
+        super().__init__()
+        self.max_prediction = 2.0
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        #distance to the target
+        distance = (target.position - character.position).length()
+        speed = character.velocity.length()  #speed of character
+
+        prediction = self.max_prediction  #max prediction
+        if speed > (distance / self.max_prediction):  #reasonable prediction
+            prediction = distance / speed  #calc prediction time
+
+        #new target
+        new_target = KinematicStatus(pygame.math.Vector2(target.position), target.orientation, pygame.math.Vector2(target.velocity), target.rotation, target.speed)
+        #position of new target
+        new_target.position += target.velocity * prediction
+
+        debug_draw.add_shape(DebugShape.Cross, new_target.position, color = (0,0,255))
+
+        #delegate to seek behavior with new target
+        return super().calculate(character, new_target)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pursue]: *Steering Behavior Pursue*]
+
+El opuesto de *pursue* es *evade*, se predice la posición del destino, pero en lugar de delegar a *seek*, se delega a *flee*.
+
+![Figure [res/108_007]: Evade](res/108_007.png)
+
+Si el personaje perseguidor se mueve más rápido que el destino, entonces lo sobrepasará y oscilará alrededor del destino, tal como hacia el *seek*, para evitarlo se puede delegar a *arrive*. Esto demuestra la potencia de construir unos comportamientos sobre otros, a partir de sus componentes lógicos, si se desea un efecto ligeramente distinto, se puede modificar fácilmente para conseguirlo.
+
+### Face
+
+Este comportamiento hace que un personaje mire a su destino, delega al comportamiento *align* para realizar la rotación, pero calcula la orientación destino antes. La cual se genera a partir de la posición relativa del destino al personaje.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Face(Align):
+
+    def __init__(self):
+        super().__init__()
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        #direction to target
+        direction = target.position - character.position
+        #new target
+        new_target = KinematicStatus(pygame.math.Vector2(target.position), target.orientation, pygame.math.Vector2(target.velocity), target.rotation, target.speed)
+        #orientation of new target facing direction
+        new_target.orientation = math.degrees(math.atan2(direction.y, direction.x))
+
+        #delegate to align behavior with new target
+        return super().calculate(character, new_target)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [face]: *Steering Behavior Face*]
+
+### Look Where You're Going
+
+La dirección en la que un personaje está mirando, no tiene por qué ser la dirección en la que se está moviendo, sin embargo, en muchos casos es deseable. En los algoritmos cinemáticos se calculaba directamente, pero usando el comportamiento *align*, se le puede dar al personaje una aceleración angular para que mire la dirección correcta. De esta manera el personaje cambia gradualmente, lo que puede parecer más natural. Es un proceso similar al comportamiento *face*, la orientación destino se calcula usando la velocidad actual del personaje, si no hay velocidad, entonces la orientación destino es la orientación actual.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class LookGoing(Align):
+
+    def __init__(self):
+        super().__init__()
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        if character.velocity.length() == 0:  #no movement
+            return Steering()
+
+        new_target = KinematicStatus(pygame.math.Vector2(target.position), target.orientation, pygame.math.Vector2(target.velocity), target.rotation, target.speed)
+        #orientation of new target facing velocity
+        new_target.orientation = math.degrees(math.atan2(character.velocity.y, character.velocity.x))
+
+        #delegate to align behavior with new target
+        return super().calculate(character, new_target)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [look_going]: *Steering Behavior Look Where You're Going*]
+
+### Wander
+
+Al implementar este comportamiento cinemático, se perturbaba la dirección con una cantidad aleatoria cada vez que se ejecutaba. Esto hace que el personaje se mueva hacia delante suavemente, pero la rotación es errática. Esto daba una sensación tosca, se puede suavizar añadiendo una capa extra.
+
+Se puede dibujar un circulo alrededor del personaje en el cual el destino está limitado, cada vez que se ejecuta el comportamiento, se mueve el destino alrededor del circulo un poco, una cantidad aleatoria. El personaje entonces ejecuta *seek* sobre el destino.
+
+Se puede mejorar moviendo el circuito alrededor en el que está limitado el destino. Ese círculo se hace pequeño y se aleja delante del personaje, entonces este intenta encararse al destino cada frame, usando el comportamiento *face* para alinearse al destino, y se le aplica aceleración al máximo en esa dirección.
+
+![Figure [res/108_009]: Wander](res/108_008.png)
+
+La orientación del personaje entonces se retiene entre llamadas (suavizando los cambios en orientación), los ángulos en los cuales los bordes del círculo delimitan al personaje, determinan como de rápido girará. Si el destino es un punto extremo, girara rápidamente. El destino se sacudirá alrededor del borde del círculo, pero la orientación del personaje cambiará suavemente.
+
+![Figure [res/108_009]: Wander](res/108_009.png)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Wander(Face):
+
+    def __init__(self):
+        super().__init__()
+        self.wander_offset = 50.0
+        self.wander_radius = 20.0
+        self.wander_rate = 100.0
+        self.wander_orientation = 0.0
+        self.max_acceleration = 2.0
+
+    def calculate(self, character = KinematicStatus(), target = KinematicStatus()):
+        #update wander orientation, rate * binomial distribution
+        self.wander_orientation += self.wander_rate * (random.random() - random.random())
+        new_target = KinematicStatus()
+        #orientation of new target facing combined orientation
+        new_target.orientation = self.wander_orientation + character.orientation
+
+        char_orient = pygame.math.Vector2(0.0, 0.0)  #orientation of character as vector
+        char_orient.from_polar((1.0, character.orientation))
+
+        target_orient = pygame.math.Vector2(0.0, 0.0)  #orientation of new target as vector
+        target_orient.from_polar((1.0, new_target.orientation))
+
+        #the center of the circle
+        new_target.position = character.position + (char_orient * self.wander_offset)
+        #position of the target in the circle
+        new_target.position += target_orient * self.wander_radius
+
+        debug_draw.add_shape(DebugShape.Cross, new_target.position, color = (0,0,255))
+
+        #delegate to face behavior
+        result = super().calculate(character, new_target)
+        #linear to full acceleration in direction of orientation
+        result.linear = char_orient.normalize() * self.max_acceleration
+
+        return result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [wander]: *Steering Behavior Wander*]
+
+### Path Following
+
+Hasta ahora todos los comportamientos seguían a un destino o a ninguno. Este, en cambio, es un comportamiento que toma un camino entero como destino. Un personaje que use este comportamiento debería moverse a lo largo de un camino en una dirección.
+
+Calcula la posición de un destino basándose en la posición actual del personaje y la forma el camino, entonces delega en *seek*. No hay necesidad de usar *arrive*, puesto que el destino siempre debería estar moviéndose a lo largo del camino.
+
+La posición del destino se calcula en dos fases. Primero, la posición actual del personaje se mapea al punto más cercano del camino, esto puede llegar a ser complejo, especialmente si el camino es curvado o hecho de muchos segmentos pequeños. Segundo, el destino es seleccionado a lo largo del camino hacia delante del punto mapeado con una distancia fija. Para cambiar la dirección del movimiento a lo largo del camino se puede cambiar el signo de esta distancia.
+
+Algunas implementaciones generan el destino de manera distinta, primero predicen donde estaría el personaje en un espacio corto de tiempo, entonces mapean esto al punto más cercano del camino. Este es un destino candidato, si este candidato no ha sido situado más adelante en el camino de lo que lo fue en el frame anterior, entonces se cambia para que lo sea. Esto puede resultar más suave para caminos complejos con cambios bruscos de dirección, pero puede llegar a cortar esquinas cuando dos caminos se juntan demasiado.
+
+![Figure [res/108_010]: Path Following](res/108_010.png)
+
+### Separation
+
+Este es un comportamiento habitual en simulaciones de multitudes, donde varios personajes van todos en la misma dirección. Actúa para evitar que los personajes estén demasiado cerca y se amontonen.
+
+La mayor parte del tiempo este comportamiento no tiene salida, no recomienda ningún movimiento, solo si se detecta otro personaje más cerca de un margen, entonces actúa de manera similar al comportamiento *evade* para alejarse de un personaje, pero la fuerza del movimiento tiene relación a la distancia del destino.
+
+![Figure [res/108_011]: Separation](res/108_011.png)
+
+### Collision Avoidance
+
+En áreas urbanas, es común tener un gran número de personajes moviéndose en el mismo espacio, estos tienen trayectorias que se cruzan unas con otras, y necesitan evitar colisiones con el resto de personajes.
+
+Una aproximación simple es usar una variación de *evade* o *separation*, que solo se ejecuta si el destino está dentro de un cono enfrente del personaje. Si hay varios personajes dentro del cono, entonces hay que evitarlos a todos, suele ser suficiente encontrar la posición media de todos ellos y huir de esa posición para evitarlos. También se puede huir del más cercano dentro del cono e ignorar al resto. Por desgracia, esto no funciona demasiado bien con una simulación con muchos personajes, solo tiene una reacción de pánico que no tiene en cuenta si realmente se produciría una situación de colisión.
+
+Una mejor solución suele ser averiguar si los personajes colisionaran si mantienen su velocidad, hay que tener en cuenta que pueden tener distintas velocidades y aunque sus trayectorias se crucen puede que no lo hagan en el tiempo y no se produzca una colisión.
+
+![Figure [res/108_012]: Collision Avoidance](res/108_012.png)
+
+### Obstacle and Wall Avoidance
+
+El comportamiento *collision avoidance* solo se dedica a evitar la colisión sin acercarse al centro del destino. Esto se puede aplicar a cualquier obstáculo del juego si se puede representar con una esfera. Pero objetos más complejos no se pueden representar de esta manera, por ejemplo, las paredes de un nivel.
+
+Este algoritmo usa un sistema distinto, el personaje que se mueve lanza uno o más rayos en la dirección de su movimiento, si esos rayos colisionan con un obstáculo entonces se crea un destino que evitará la colisión, y el personaje hace un *seek* sobre ese destino. Normalmente los rayos no son infinitos, se extienden una distancia pequeña delante del personaje.
+Muchas veces se suelen tirar varios rayos por delante en distintos ángulos para evitar problemas asociados con la detección de esquinas, o bien en paralelo, con distintas longitudes, etc….
+
+![Figure [res/108_013]: Raycasts](res/108_013.png)
+
+## Combinando Steering Behaviors
+
+Individualmente, los *steering behaviors* pueden conseguir muchos tipos de movimiento bastante sofisticados, en muchos juegos simplemente se usa el moverse hacia una posición determinada, el comportamiento *seek*.
+
+Los sistemas de más alto nivel de toma de decisiones son los responsables de determinar donde intenta moverse el personaje, esto es habitualmente el algoritmo de *pathfinding*, que genera destinos intermedios en el camino hacia un objetivo.
+
+Pero un personaje en movimiento suele necesitar más de un *steering behaviour*, necesita alcanzar el objetivo, evitar colisiones con otros personajes, evitar rebotar en paredes, … Una manera de cumplir estas combinaciones es mezclar las salidas de los distintos comportamientos o diseñar complicadas arquitecturas.
+
+Combinando varios comportamientos juntos, se pueden conseguir movimientos más complejos. Hay dos métodos para combinarlos, mezcla y arbitraje.
+
+Cada método coge un grupo de comportamientos, cada uno con su propia salida, y genera una sola salida. El método de mezcla lo hace ejecutando todos los comportamientos y combina las salidas usando un conjunto de pesos o prioridades. Esto es suficiente para conseguir algunos comportamientos complejos, pero aparecen problemas cuando hay muchas limitaciones al movimiento de un personaje. Arbitraje selecciona uno o más comportamientos para que tengan el control completo del personaje, hay multitud de esquemas de arbitraje que controla que comportamiento debe tomar el control en cada momento. Sin embargo, no son mutuamente exclusivos, pueden convivir ambos métodos.
+
+El método de mezcla puede tener pesos o prioridades que pueden cambiar con el tiempo. Algunos procesos pueden cambiar esos pesos, y puede ser en respuesta a alguna situación del juego o al estado interno del personaje, incluso esos pesos pueden ser 0 y desactivar ese comportamiento.
+
+Al mismo tiempo, no hay nada que obligue a la arquitectura de arbitraje a devolver un solo comportamiento a ejecutar, puede devolver un conjunto de pesos de mezcla para combinar un conjunto de comportamientos diferentes.
+
+### Flocking
+
+El comportamiento *flocking* es un caso típico para el uso de comportamientos combinados con pesos. Se basa en combinar tres comportamientos básicos, *alignment*, *cohesion* y *separation*.
+
+*Alignment* hace que un personaje se alinee con el resto de personajes a su alrededor (que todos vayan alineados en la misma dirección), *cohesion* hace que un personaje tienda a moverse hacia el centro de masas de un grupo de personajes (la posición media entre todos los agentes con un cierto radio) (todos vayan juntos), y *separation* hace que un personaje se aleje del resto de sus vecinos (que no se amontonen).
+
+Una bandada la forman un conjunto de personajes, esta bandada tiene un objetivo común, un destino, al cual todos los personajes quieren moverse usando el comportamiento *seek*. A continuación, para cada personaje se ejecutan los tres comportamientos *alignment*, *cohesion* y *separation*, que toman en cuenta tanto la posición del propio personaje como las del resto de miembros de la bandada. Al resultado del *seek* entonces se suman los resultados de los otros tres comportamientos, pero cada uno con un peso específico, para dar como resultado una aceleración que moverá al personaje. Esos tres pesos son los que configurarán cómo se comporta la bandada.
+
+![Figure [res/108_014]: Los tres Comportamientos que forman el Flocking](res/108_014.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

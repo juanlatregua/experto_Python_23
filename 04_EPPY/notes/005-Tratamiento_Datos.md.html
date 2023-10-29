@@ -1,0 +1,260 @@
+<meta charset="utf-8">
+**04EPPY - 005 - Tratamiento de Datos**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Tratamiento de Datos
+==============================================================
+
+En este capítulo se van a describir tres aspectos fundamentales para el científico de datos en Python. En primer lugar, se descubrirá cómo leer y escribir datos en el disco duro, importante para cargar los datos a nuestro modelo y guardar el progreso. También se describirá desde una perspectiva pragmática cómo manipular strings. Y finalmente, se introducirá el tema de la limpieza de datos para su utilización tanto en el análisis de datos como en aprendizaje automático.
+
+Lectura y escritura de archivos
+--------------------------------------------------------------
+
+Cargar y guardar datos es fundamental para evitar la transitoriedad del intérprete de Python. De poco serviría construir modelos predictivos con alta precisión si no fuésemos capaces de almacenarlos para su uso en producción. O sería poco productivo (o frecuentemente imposible) tener que generar los datos para entrenar nuestros modelos cada vez que quisiéramos utilizar dicho modelo.
+
+Hay varias formas de interactuar con el disco duro en Python, desde la escritura y la lectura directa con streams, hasta el uso de las interfaces de NumPy y pandas.
+
+### En Python
+
+Como en cualquier lenguaje de programación, Python ofrece clases y métodos para trabajar con streams o flujos de datos, que pueden utilizarse para leer y escribir datos en el disco duro. La forma básica de abrir un stream es a través de la función `f = open(<path>)`, que retorna una referencia al stream que puede usarse para leer y escribir información sobre el archivo indicado en `<path>`. Una vez se ha terminado de trabajar con el archivo, se debe cerrar el stream con `f.close()`.
+
+Para evitar tener que recordar cerrar el stream, se puede utilizar la construcción `with` en Python, que permite definir un alias temporal de la siguiente forma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+with open(<path>) as f:
+    # trabajar con f
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [with]: Abrir fichero con `with`]
+
+De esta forma, se puede trabajar con el stream definido como `f` sin necesidad de cerrarlo al final.
+
+Para leer datos del stream, puede hacerse por líneas, iterando de forma natural.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for line in f:
+   # line contiene una línea en cada iteración
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [for_file]: Iterar sobre las líneas de un fichero]
+
+Dependiendo del formato del archivo y del sistema operativo, al leer una línea en un archivo de texto es posible que exista un `EOF character` (carácter indicador de final de línea). Python posee un método para eliminar dicho carácter de una string, `str.rstrip()`. Así, se pueden obtener todas las líneas de un stream, sin incluir `EOF`, filtrando de la siguiente forma.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+lines = [x.rstrip() for x in f]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [all_lines]: Lista con las líneas de un fichero]
+
+También es posible leer todas las líneas de una vez con `f.readlines()`, que retorna una secuencia con todas las líneas. Alternativamente, se puede solicitar la lectura de cierto número de caracteres con `f.read(5)`. En el caso de que sea adecuado hacerlo, se puede navegar a través del stream con las funciones `f.seek(<posición>)`, que mueve el puntero actual (posición actual de lectura) a la posición indicada, y `f.tell()`, que retorna la posición actual del stream.
+
+Al abrir un stream, Python otorga un modo de acceso. Si no se define, por defecto el stream tiene solo modo de lectura, por lo que se puede leer información del archivo, pero no escribir. Para definir otro modo de acceso, se utiliza el segundo parámetro de la función `open(<path>,<mode>)`, `donde <mode>` es una de las strings indicadas en Table [file_mods].
+
+| Modo Acceso | Desc |
+|:------------|:-----|
+| r | Solo Lectura |
+| w | Solo Escritura (Borra si el archivo ya existe) |
+| x | Solo Escritura (Falla si el archivo ya existe) |
+| a | Crea Fichero (Si existe lo abre y se añade al final) |
+| r+ | Lectura y Escritura |
+| b | Se puede añadir a otros modos para acceso binario
+| t | Acceso para archivos de texto (default) |
+[Table [file_mods]: Descripción de los modos de acceso en streams Python]
+
+Para escribir datos a un stream (abierto con el modo adecuado, `w`, `x`, `a`, o `r+`), se pueden utilizar los métodos `f.write(<string>)` o `f.writelines(<secuencia>)` para escribir una string literal o una secuencia de strings (cada una en una línea) respectivamente.
+
+Leer y escribir datos a un archivo de texto es suficiente en muchos casos. Sin embargo, dada la ubicuidad de los datos tabulares en big data y aprendizaje automático, es conveniente tener métodos para tratar con esta información directamente. Así, Python ofrece soporte para leer y procesar archivos CSV, estándar en la descripción de tablas.
+
+Tanto para importar como para escribir datos tabulares en formato CSV, el módulo `csv` contiene funciones idóneas. `data = csv.read(<stream>,<delimiter>)` construye un lector de CSV iterable. Como los archivos CSV pueden tener los elementos separados por varios caracteres, el parámetro `<delimiter>` se utiliza para indicarlo. Cada iteración retorna una colección con los elementos de una línea de la tabla, en la que el elemento con índice 0 es la primera columna,...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+# Tabla1.csv contiene datos, con valores separados por comas
+
+import csv
+f = open('Tabla1.csv')
+data_reader = csv.reader(f,delimiter=',')
+with open('Nueva_tabla.csv','w') as f2:
+   csv_writer = csv.writer(f2,delimiter=';)
+   for line in data_reader:
+      print(line[0])
+      csv.writer.writerow(line)
+f.close()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [open_write]: Lectura, procesado y guardado de elementos en archivos CSV]
+
+Listing [open_write] contiene un ejemplo de cómo leer e iterar sobre los valores de una tabla CSV. Se lee el archivo CSV, en el que solo se imprimen los elementos de la primera columna. Como resultado, el archivo CSV es copiado a `Nueva tabla.csv` pero utilizando el carácter `;` como separador.
+
+### En NumPy
+
+NumPy ofrece su propia interfaz para leer y escribir `ndarrays` en disco. Por convención, estos archivos tienen el formato `.npy`. Para guardar cualquier `ndarray` en el disco, se utiliza el método `np.save(<filename>,array1)`.
+
+También se pueden guardar múltiples `ndarrays` al mismo tiempo con `np.savez(<filename>, a=arr1, b=arr2)` sin comprimir, o `np.savez_compressed(<filename>, a=arr1, b=arr2)`.
+
+En cualquier caso, el método `loaded = np.load(<filename>)` carga el `ndarray` del archivo `<filename>`. Si el archivo continene varios `ndarrays`, `loaded` es un diccionario con todas.
+
+### En pandas
+
+De la misma forma que NumPy puede grabar y leer `ndarrays` directamente del disco, pandas ofrece formas de manipular datos tabulares. El método más común es `pd.read_table`, que genera un `DataFrame` o `Series` a partir de la información en el archivo CSV.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+object = pd.read_table(<filename>, 	names=<nombres_de_columnas>, index_col=<columna_como_index>, sep=<caracter_separador>, na_values=<string_na>)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pandas_file]: Lectura de ficheros con pandas]
+
+Descripción de los parámetros:
+
+- `names=<nombres_de_columnas>`, lista de strings a utilizar como nombres de columnas
+- `index_col=<columna_como_index>`, columna a utilizar como label o índice de las filas en el DataFrame o Series
+- `sep=<caracter_separador>`, carácter a utilizar como separador en el archivo CSV
+- `na_values=<string_na>`, lista de strings en el CSV que serán interpretados como valores nulos NaN. Puede también indicarse un diccionario en el que cada clave es el nombre de una columna, y el valor es una lista de elementos que se interpretarán como NaN en esa columna.
+
+Para grabar en un archivo, tanto `DataFrame` como `Serie` se tiene un método:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+to_csv(<filename>, na_rep=<string_NaN>,  columns=<columnas_a_grabar>, sep=<separador>)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [pandas_save]: Guardado de ficheros con pandas]
+
+El parámetro `na_rep` se utiliza para indicar el string que pandas utilizará en el CSV para valores NaN y nulos. `columns` sirve para seleccionar un subset de columnas a grabar (si no se desea grabar todo el objeto). `sep` es para indicar el carácter separador utilizado en el CSV.
+
+pandas también ofrece interfaces para leer archivos en formatos estándares como JSON, Excel o HDF5. Para más información, se puede consultar la [API de pandas](https://pandas.pydata.org/pandas-docs/stable/api.html#input-output) relacionada con input y output, incluyendo lectura y escritura de varios formatos.
+
+Trabajo con strings
+--------------------------------------------------------------
+
+En el tratado y procesamiento de datos, dada la naturaleza de muchos datos, es frecuente tener que manipular strings. Algunas de las tareas habituales son: limpiar strings de espacios blancos innecesarios, dividir strings en unidades, combinar strings o forzar un formato particular.
+
+En Python, para utilizar caracteres de escape en strings, como tabulación (`'\t'`) o fin de línea (`'\n'`), se marcan con el carácter `'\'` primero. Esto quiere decir que, internamente, Python interpreta cualquier `'\'` en un string como un carácter de escape. No obstante, este no es siempre cierto, y el caso más común es cuando se desea expresar un directorio completo en Windows. Si se desea incluir el carácter `'\'` como tal en un string, se debe indicar como doble `'\\'`. Otra alternativa es marcar la string con el prefijo `r`, lo que indica a Python que no hay caracteres de escape.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+s1 = 'c:\\windows\\user\\myfiles'
+s2 = r'c:\windows\user\myfiles'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [escape]: Strings equivalentes]
+
+Formar un string con una plantilla determinada es conveniente, por ejemplo, cuando se desea imprimir cierta información de forma homogénea. Para ello, Python incluye la función `<string>.format()`, que asocia marcadores dentro del string con valores absolutos en los parámetros.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+# Uso de una plantilla para formar strings
+template = “{0:.2f} {1:s} equivalen a {2:d} euros”
+euros= template.format(9,’libras esterlinas’,10)
+dolares = template.format(11,’dolares’,10)
+# euros tiene el valor “9 libras esterlinas equivalen a 10 euros”
+# dolares tiene el valor “11 dolares equivalen a 10 euros”
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [format]: Formatear strings]
+
+Manipular strings es sencillo:
+
+- Para dividir un string en un listado de elementos mediante un separador, se puede utilizar el método `<string>.split(<separador>)`, que retorna dicho listado
+- Para unir elementos de una lista en un string con un carácter de por medio (operación inversa a 1), `<string_intermedia>.join(<listado>)` forma un string concatenando los elementos del `<listado>` y añadiendo `<string_intermedia>` entre medio
+- `<original>.replace(<string_a>,<string_b>)` reemplaza las ocurrencias de `<string_a>` en la string `<original>` con `<string_b>`
+- `<string>.strip()` elimina espacios en blanco a ambos lados de `<string>`
+- `<string>.upper()` y `<string>.lower()` convierten el `<string>` en mayúsculas y minúsculas respectivamente
+
+Otra tarea frecuentemente realizada es la de buscar un fragmento dentro de un string. Python permite comprobar la presencia con un simple `<substring> in <string>`, que retorna `True` cuando `<substring>` forma parte de `<string>`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+genre = 'comedy|drama|romantic'
+'comedy' in gente           # retorna True
+'thriller' in genre         # retorna False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [substring]: Substring en string]
+
+También se puede averiguar el índice de la primera ocurrencia de un carácter con `<string>.index('@')`, que retorna un número con la posición de la primera ocurrencia, por ejemplo, para separar el dominio del nombre de usuario en una dirección de correo. `<string>.find(<caracter>)` funciona de manera similar pero retorna -1 si no encuentra el carácter. Se puede averiguar el número de ocurrencias de un carácter con `<string>.count(<caracter>)`.
+
+Limpieza de datos
+--------------------------------------------------------------
+
+Los modelos de predicción son tan buenos como la información que se usa para construirlos y entrenarlos ('garbage in, garbage out'). Por lo tanto, no es de extrañar que gran parte del tiempo que emplean los analistas de datos lo dedican a explorar y transformar la información que poseen para llevarla a un estado en el que pueda ser utilizada.
+
+Esta sección intenta ser una breve introducción a cómo realizar algunas de las tareas de limpieza de datos, y no una descripción exhaustiva de las técnicas o filosofías que hay detrás de ellas.
+
+### Aplicación de funciones a una colección
+
+Cuando se poseen datos en cualquier colección de Python, en ocasiones se desea aplicar una medida global (por ejemplo, una función que escale los valores) a todos los elementos. Python posee tres tipos de funciones globales:
+
+- `map` aplica una función a todos los elementos de una colección y retorna una secuencia sin materializar con los resultados. La forma general es `list(map(<funcion>,<coleccion>))`
+- `filter` retorna una secuencia sin materializar con solo los elementos de una colección que cumplen una condición establecida. La forma general es `list(filter(<funcion_booleana>,<coleccion>))`, donde `<funcion_booleana>` es una función que retorna `True` o `False`
+- `reduce` ejecuta una función con los elementos de una lista y retorna un escalar con el resultado. La forma general es `value = reduce(<funcion>,items)`
+
+La función `reduce` se encuentra en el módulo `functools`, por lo que requiere importación para ser utilizada.
+
+En `map`, `filter` y `reduce` es un caso habitual en el que se suelen utilizar las funciones `lambda` para pasar funciones, ya que normalmente son expresiones cortas que no se reutilizan.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from functools import reduce        # necesario para reduce
+
+# ejemplo de map para elevar todos los elementos al cuadrado
+items = np.arange(10)
+print(items)
+squared = list(map(lambda x : x**2, items))
+print(squared)
+
+# ejemplo de filter para eliminar los elementos menores de 10
+bigger_items = list(filter(lambda x : x > 10, squared))
+print(bigger_items)
+
+# ejemplo de reduce para obtener la suma de los elementos restantes
+final_sum = reduce(lambda x,y : x + y, bigger_items)
+print(final_sum)
+
+Output:
+[0 1 2 3 4 5 6 7 8 9]
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+[16, 25, 36, 49, 64, 81]
+271
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [map_filter_reduce]: Ejemplo de uso de funciones globales sobre una colección]
+
+### pandas para transformar datos
+
+Cuando se trabaja en proyectos de big data, es raro encontrarse con datasets listos para ser utilizados directamente. Frecuentemente los datos requieren de procesos de transformación para tratar valores no definidos, columnas no estandarizadas, elementos duplicados,... pandas incluye herramientas para facilitar el tratamiento y la limpieza de datos.
+
+#### Valores no definidos
+
+Recolectar datos es una tarea compleja y muchas veces inacabada, por lo que habitualmente se trabaja con datasets con valores incompletos. Para complicar las cosas, algunos algoritmos de aprendizaje automático y análisis de datos no toleran valores no definidos, por lo que estos huecos plantean un reto para el analista.
+
+Hay varias formas de resolver valores no definidos.
+
+- Eliminar datos con valores nulos. Pueden eliminarse elementos enteros si uno de sus valores es `NaN`. `<objeto>.dropna()` filtra dichos elementos. En el caso de `DataFrames`, si uno de los valores en una columna es `NaN`, la fila entera queda eliminada. Si se desea ser menos restrictivo, por ejemplo, para solo eliminar las filas que no contengan al menos 3 valores completos, puede indicarse con el argumento `thres=3`. Para eliminar solo los elementos con todos los valores `NaN`, se puede pasar el argumento `how='all'`.
+- Sustituir los valores `NaN` (fijo). En vez de eliminar elementos del dataset (particularmente difícil si la información es escasa), una alternativa es sustituir los valores `NaN` por valores fijos (el valor en concreto depende del problema en cuestión). Tanto series como frames tienen el método `<objeto>.fillna(<valor>)`, con el cual se sustituyen todos los `NaN` por `<valor>`.  El valor puede ser uno específico por columna, pasando como argumento un diccionario (en el que la clave es la columna y el valor es el elemento sustitutivo).
+- Sustituir los valores `NaN` (dinámico). Utilizando el argumento `method` de `<objeto>.fillna(method=<metodo>)`, es posible rellenar los valores `NaN` de forma dinámica. Por ejemplo, `'backfill'` utiliza el valor inmediatamente siguiente al no definido para rellenar el hueco, y `'ffill'` utiliza el valor anterior. Otra forma de rellenar valores es mediante interpolación con `<objeto>.interpolate()`, que toma los valores anterior y siguiente, y los interpola para rellenar el no definido.
+
+#### Valores duplicados y reemplazos
+
+Para encontrar valores duplicados, los objetos pandas tienen el método `<objeto>.duplicated()`, que retorna un objeto de las mismas dimensiones con `True` si el valor está duplicado o `False` si no lo está.
+
+Para filtrar los elementos duplicados, se puede hacer a través del método `<objeto>.drop_duplicates()`, que es equivalente a `<objeto>[<objeto>.duplicated() == False]`.
+
+También es conveniente tener la capacidad de reemplazar ciertos valores, como errores de medición. `Series` y `DataFrames` contienen el método `<objeto>.replace(<original>, <nuevo>)`, con el que pueden realizar dicho cambio. El valor `<nuevo>` puede ser un elemento único o una lista. Es posible pasar más de un recambio a la vez, pasando como argumento un diccionario, `<objeto>.replace(<diccionario>)`. En este caso, se reemplazan los elementos definidos como clave por los elementos valor.
+
+#### Valores categóricos
+
+Otra transformación fundamental es la conversión de valores continuos en categóricos. Para ello, pandas ofrece un nuevo objeto, `Categorical`. Para construirlo, se definen las categorías (contenedores o bins) y los valores, y pandas retorna un objeto `Categorical` indicando a qué categoría pertenece cada valor. La forma general es `categorias = pd.cut(<valores>, <bins>)`
+
+Una vez construido, se puede hacer un recuento de todas las categorías con `pd.value_counts(<categoria>)`.
+
+El argumento `<bins>` puede indicarse como un escalar, y pandas automáticamente divide los `<valores>` en segmentos de igual longitud. De forma similar, se puede utilizar la variante `pd.qcut(<valores>,<nbins>)` para que pandas divida los `<valores>` en tantas categorías como se determina en `<nbins>`, pero el rango se elige específicamente para repartir los valores de forma equitativa entre las categorías.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+bins = [0,18,35,65,99]
+edades = [2,16,25,18,33,71,44,54]
+categorias = pd.cut(edades,bins)
+
+print(categories)
+print(pd.value_counts(categories))
+
+Output:
+
+[(0, 18], (0, 18], (18, 35], (0, 18], (18, 35], (65, 99], (35, 65], (35, 65]]
+Categories (4, interval[int64]): [(0, 18] < (18, 35] < (35, 65] < (65, 99]]
+
+(18, 35]	3
+(0, 18] 	3
+(35, 65]	2
+(65, 99]	1
+dtype: int64
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [categorizar]: Ejemplo de categorización]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

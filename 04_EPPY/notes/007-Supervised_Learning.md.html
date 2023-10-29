@@ -1,0 +1,628 @@
+<meta charset="utf-8">
+**04EPPY - 007 - Supervised Learning**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Aprendizaje Supervisado
+==============================================================
+
+Clasificador K-Nearest Neighbors
+--------------------------------------------------------------
+
+Dada una nueva medida de una flor Iris, la tarea de un clasificador es averiguar a cual de las tres especies esta medida pertenece. El clasificador más simple es el de vecinos cercanos (nearest neighbors). Si se tiene solo un conjunto de datos, es importante no usar los mismos datos para el entrenamiento y las pruebas, para ello, los elementos del conjunto de datos se dividen en dos partes, una dedicada al entrenamiento del algoritmo y la otra dedicada a realizar su validación.
+
+Este algoritmo funciona de la siguiente manera. Primero se define un valor para K, por defecto en scikit-learn es de 5, pero es habitual definir este valor como la raiz cuadrada del total de observaciones con las que se está realizando el entrenamiento. Este valor indica el número de vecinos que se van a tener en cuenta. Entonces el modelo calcula las distancias entre todas las observaciones en los datos de entrenamiento y la observación a predecir. Y se queda con las más cercanas, cuya distancia es menor, en concreto con las K más cercanas. Se suele usar la distancia euclidea para este cálculo, pero se pueden usar otros algoritmos para calcular las distancias de otra manera. Una vez se obtienen estos vecinos más cercanos, se usa el valor del target más popular entre ellos como el valor de la predicción.
+
+Así pues, antes de continuar, hay que dividir el conjunto de datos de Iris en dos partes. Sin embargo, es interesante mezclar de manera aleatoria los elementos antes de realizar la división. De hecho, a menudo los datos han sido recogidos en un orden determinado, de hecho, en el conjunto de datos de Iris, las observaciones están ordenadas por especie. Para realizar la mezcla de los elementos se puede usar la función `random.permutation` de NumPy.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+np.random.seed(0)
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+shuffled_indexes = np.random.permutation(len(iris.data))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_shuffle]: Cargar el conjunto de datos y generar los índices mezclados]
+
+El conjunto de datos que contiene 150 observaciones ahora se puede dividir en dos bloques usando los índices mezclados, uno con 140 observaciones que se va a usar como conjunto de entrenamiento, y el otro con 10 observaciones que se usará para validar el modelo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X_train = X[shuffled_indexes[:-10]]
+y_train = y[shuffled_indexes[:-10]]
+X_test = X[shuffled_indexes[-10:]]
+y_test = y[shuffled_indexes[-10:]]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_split]: Dividir el conjunto de datos en entrenamiento y pruebas]
+
+Ahora se puede aplicar el algoritmo K-Nearest Neighbor, se importa `KHeighborsClassifier`, se llama al constructor de dicho clasificador y se entrena usando la función `fit`. A esta función se le pasan los conjuntos de features `X` y targets `y` que se han preparado para el entrenamiento. El clasificador se deja con todos los parámetros por defecto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier()
+knn.fit(X_train,y_train)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_fit]: Ajuste del modelo del clasificador usando los datos de entrenamiento]
+
+Ahora ya se tiene un modelo predictivo que consiste en un clasficador `knn`, entrenado con 140 observaciones, y se averiguará si es válido. Este clasificador debería predecir correctamente la especie de las flores Iris de las 10 observaciones en el conjunto de pruebas. Para obtener la predicción se puede usar la función `predict`, que será aplicada directamente sobre el modelo predictivo `knn` con los datos en `X_test`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+knn.predict(X_test)
+
+Output:
+array([1, 2, 1, 0, 0, 0, 2, 1, 2, 0])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_predict]: Predicción de las observaciones de prueba]
+
+Finalmente, se compararán los resultados predichos con los observados realmente que están en el conjunto `y_test`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+y_test
+
+Output:
+array([1, 1, 1, 0, 0, 0, 2, 1, 2, 0])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_y]: Resultados reales del conjunto de validación]
+
+Se ha obtenido un error del 10%, una de las observaciones ha sido predicha incorrectamente, en concreto la segunda.
+
+Se puede visualizar todo esto de manera gráfica usando las áreas de las agrupaciones en el espacio representando el gráfico de dispersión en dos dimensiones de los sépalos.
+
+Se realiza el entrenamiento del modelo solo sobre las variables de los sépalos, para ello se hace un slicing sobre el dataset para coger solo las dos columnas involucradas. Puesto que se va a realizar un gráfico y no se va a realizar la validación del modelo, se pueden coger todas las observaciones como conjunto de entrenamiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris = datasets.load_iris()
+X = iris.data[:,:2][shuffled_indexes[:]]        #sepal length-width
+y = iris.target[shuffled_indexes[:]]
+
+knn = KNeighborsClassifier()
+knn.fit(X, y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_sepal]: Entrenamiento con solo los atributos de los sépalos]
+
+A continuación se crea una matriz que cubra todo el área donde están los puntos originales de la muestra. Se obtienen los máximos y mínimos tanto en anchura como en altura de las mediciones de los sépalos, e incluso se añade un pequeño margen de 0.5 a cada lado para dar al gráfico un área más grande.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+length_min, length_max = X[:,0].min() - .5, X[:,0].max() + .5
+width_min, width_max = X[:,1].min() - .5, X[:,1].max() + .5
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_lenght_width]: Área del grupo de muestras]
+
+Se crea una `meshgrid`, que es una cuadrícula rectangular a partir de estos dos datos del área, añadiendo puntos cada pocos intérvalos, en este caso cada 0.2. De esta manera se crean muchos puntos que cubren todo el área donde estaban las mediciones originales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+h = .02
+length, width = np.meshgrid(np.arange(length_min, length_max, h), np.arange(width_min, width_max, h))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_meshgrid]: Meshgrid que cubre el área]
+
+Ahora se usa esta malla de puntos sobre el modelo entrenado solo con las mediciones de los sépalos, para tener la predicción de dicho modelo sobre todo el área de las muestras. Para ello primero se aplanan los dos `ndarrays` del `meshgrid` y se concatenan verticalmente para formar un `ndarray` con todas las coordendadas de los puntos que cubren todo el área. Luego se pasa esta lista de puntos al modelo para que prediga las salidas correspondientes a todos los puntos. De esta manera se tendrán las predicciones para todo el área alrededor de las muestras originales. Por último se devuelven las salidas que ahora son de una sola dimensión al tamaño 2D deseado que cubra todo el área.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+points_in_area = np.c_[length.flatten(),width.flatten()]
+
+Z = knn.predict(points_in_area)
+Z = Z.reshape(length.shape)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_predict_area]: Predecir las salidas para todos los puntos del área]
+
+El último paso es usar matplotlib para visualizar los datos predichos para todo el área junto con los datos de las medidas de los sépalos para entender como ha trabajado el modelo de clasificación. Para ello se usa el método `pcolormesh` para pintar todos los puntos, se le pasa a la función además del conjunto de datos predicho, una lista de 3 colores para que los use para pintar cada una de las tres especies predichas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+cmap_light = ListedColormap(['#AAAAFF','#AAFFAA','#FFAAAA'])
+ax.pcolormesh(length, width, Z, cmap=cmap_light, shading='auto')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_pcolormesh]: Pintar todos los puntos predichos del área]
+
+Además de eso, se pinta por encima un gráfico de dispersión con las observaciones para los sépalos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+ax.scatter(X[:,0], X[:,1], c=y)
+ax.set_xlim(length.min(),length.max())
+ax.set_ylim(width.min(),width.max())
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_scatter]: Pintar las observaciones de los sépalos]
+
+Al visualizar el gráfico se puede observar claramente las tres áreas que el modelo ha entrenado, y cuales son los límites y como encajan con las observaciones, estos límites de las áreas se suelen llamar `decission boundaries`. También se puede apreciar como en la zona media donde hay más confusión entre las observaciones de dos especies distntas para versicolor y virginica el modelo refleja esto con el área naranja pintando algunas islas dentro del área verde.
+
+![Figure [res/007_000]: Las tres áreas de la clasificación por observaciones de los sépalos](res/007_000.png)
+
+Si se entrenara este modelo con el valor para K de 1 con el parámetro `n_neighbors`, es decir, que tomara en cuenta solo el vecino más cercano a la hora de predecir, el resultado sería distinto. Esto se suele llamar `model tuning`, donde se ajustan algunos parámetros del clasificador para probar distintas configuraciones y encontrar la más precisa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+knn = KNeighborsClassifier(n_neighbors=1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_neighbors_1]: Entrenando con solo 1 vecino]
+
+En este caso se puede visualizar de manera más clara como trabaja el algoritmo, y la diferencia con el gráfico anterior.
+
+![Figure [res/007_001]: El mismo modelo entrenado con solo 1 vecino](res/007_001.png)
+
+Se podría hacer lo mismo con las observaciones de los pétalos. El algoritmo a seguir sería idéntico al anterior, cambiando tan solo los datos de entrada del entrenamiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X = iris.data[:,2:4]                # petal length-width
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [knn_scatter]: Pintar las observaciones de los pétalos]
+
+En este caso se puede observar como usando solo las observaciones de los pétalos la distinción quizás quede más clara, las tres áreas correspondientes a cada especie están mucho mejor definidas. Se pùeden observar claramente los límites que caracterizan las especies de iris teniendo en cuenta el tamaño de los petalos
+
+![Figure [res/007_002]: Las tres áreas de la clasificación por observaciones de los pétalos](res/007_002.png)
+
+Regresión logística
+--------------------------------------------------------------
+
+Puesto que el sistema de trabajo con scikit-learn está claramente separado en pasos y todos sus algoritmos cumplen con este interface común, es sencillo cambiar de algoritmo de machine learning y probar otros rápidamente.
+
+En este caso se pretende usar una regresión logística, que pese a su nombre es otro método para realizar clasificaciones.
+
+El primer paso suele ser escalar y normalizar los datos de las observaciones, para ello se va a usar el `StandardScaler` de scikit-learn. Pero para aplicarlo solo sobre las columnas de las observaciones, y no sobre la del target se va a usar el `ColumnTransformer`. Se instancia un objeto `ColumnTransformer`, y se le indica que use un `StandardScaler` sobre las 4 primeras columnas, y para el resto de columnas, es decir, el target, se deje el valor como estaba con `passthrough`. Y por último se llama al método `fit_transform` de dicho `ColumnTransformer` para ajustar y realizar la transformación en solo un paso. Así se tendrán los datos escalados correctamente, con un rango distinto, pero normalizados. Los datos siguen teniendo 150 filas y 5 columnas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler
+
+ct = ColumnTransformer([('scaler', StandardScaler(), [0,1,2,3])], remainder='passthrough')
+df_scaled = ct.fit_transform(df_iris)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglog_scaled_data]: Datos escalados de las features de Iris]
+
+Para realizar la división entre los datos de entrenamiento y validación se puede usar la función `train_test_split` del módulo `model_selection` de scikit-learn. Para ello primero se crean los dos conjuntos de datos para X e y, el primero con las observaciones y el segundo con los targets. El primero se obtiene haciendo un slicing del conjunto de datos escalados son las 4 primeras columnas, las observaciones, el conjunto y se obtiene con un slicing de la cuarta columna, y se convierten los datos a entero (se habían convertido todos a float en el paso del escalado). Se especifica un porcentaje del tamaño dedicado al conjunto de pruebas, el resto del porcentaje será dedicado al conjunto de entrenamiento, en este caso será del 10%. Además, se puede especificar una semilla para realizar la mezcla aleatoria de dichos conjuntos antes de separarlos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X = df_scaled[:,:4]
+y = np.ravel(df_scaled[:,4:]).astype(int)
+
+test_size = 0.10
+seed = np.random.randint(1000)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglog_split]: Conjuntos divididos de entrenamiento y pruebas]
+
+Una vez están los conjuntos de datos listos, se procede al entrenamiento del modelo usando una regresión logística. Para ello se siguen los pasos habituales en scikit-learn, se importa el módulo correcto, se instancia el estimador, se entrena y se predicen los resultados de prueba.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn.linear_model import LogisticRegression
+
+logreg = LogisticRegression()
+logreg.fit(X_train, y_train)
+logreg.predict(X_test)
+
+Output:
+[2, 1, 0, 2, 1, 2, 2, 1, 1, 2, 1, 1, 1, 2, 0]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglog_fit]: Entrenamiento del modelo usando regresión logística]
+
+Se pueden verificar los resultados contra los targets del conjunto de test, que en este caso muestra un 100% de acierto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+list(y_test.astype(int))
+
+Output:
+[2, 1, 0, 2, 1, 2, 2, 1, 1, 2, 1, 1, 1, 2, 0]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglog_test]: Visualización del target]
+
+Regresión lineal
+--------------------------------------------------------------
+
+La regresión lineal es un procedimiento que usa datos contenidos en el conjunto de entrenamiento para construir un modelo lineal. El más simple está basado en la ecuación de una recta con los dos parámetros `a` y `b` que la caracterizan. Estos parámetros se calcularán para hacer que la suma de los restos cuadrados sea lo más pequeña posible.
+
+\begin{equation}
+y = m * x + b
+\end{equation}
+
+En esta expresión, `x` es el conjunto de entrenamiento, `y` es el target, `m` es la pendiente y `b` es la intersección de la recta con el eje vertical, representado por el modelo. En scikit-learn, para usar un modelo predictivo para la regresión lineal, hay que importar el módulo `linear_model` y usar la clase `LinearRegression` para crear el modelo predictivo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import linear_model
+linreg = linear_model.LinearRegression()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin]: Crear el modelo de regresión lineal]
+
+Se puede usar el conjunto de datos de diabetes para probar este modelo. Primero hay que dividir a los 442 pacientes entre un conjunto de entrenamiento y otro de pruebas, en este caso en 422 y 20 elementos respectivamente.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import datasets
+diabetes = datasets.load_diabetes()
+
+X_train = diabetes.data[:-20]
+y_train = diabetes.target[:-20]
+
+X_test = diabetes.data[-20:]
+y_test = diabetes.target[-20:]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_split]: Dividir el conjunto de datos en entrenamiento y pruebas]
+
+A continuación se entrena el modelo con el conjunto de entrenamiento usando la función `fit`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+linreg.fit(X_train,y_train)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_train]: Entrenamiento del modelo]
+
+Una vez se ha entrenado el modelo se pueden obtener los 10 coeficientes calculados para cada variable fisiológica usando el atributo `coef_` del modelo predictivo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+linreg.coef_
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_coef]: Coeficientes de la regresión lineal para cada variable]
+
+Si se aplica el conjunto de datos de pruebas sobre el modelo para realizar la predicción se obtienen una serie de targets para este conjunto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+linreg.predict(X_test)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_predict]: Predicciones para el conjunto de pruebas]
+
+Que se pueden comparar con los valores observados para estos targets.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+y_test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_y_test]: Valores de target observados en el conjunto de pruebas]
+
+Sin embargo, un buen indicador de como de perfecta es una predicción suele ser la varianza. Cuanto más cerca de 1 esté la varianza mejor será la predicción. Esto se puede realizar con el método `score` del modelo, que recibe el conjunto de pruebas en las observaciones y los targets. En este caso se observa que dicho valor es de 0.58.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+linreg.score(X_test, y_test)
+
+Ouput:
+0.5850753022690574
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_score]: Puntuación de varianza del modelo]
+
+Se puede intentar representar graficamente dicha regresión usando matplotlib, por ejemplo, teniendo en cuenta un solo factor fisiológico, como por ejemplo, la edad. En primer lugar se hace un slicing del conjunto de datos original de entrenamiento y de pruebas para recuperar solo la primera columna, y se hace un apilado vertical para tener las dimensiones correctas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X0_test = np.vstack(X_test[:,0])
+X0_train = np.vstack(X_train[:,0])
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_slice_age]: Recortar la primera columna con la edad]
+
+A continuación se entrena un nuevo modelo con estos nuevos datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+linreg = linear_model.LinearRegression()
+linreg.fit(X0_train,y_train)
+y = linreg.predict(X0_test)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_train_age]: Entrenamiento con la edad]
+
+Y por último, usando matplotlib, se visualiza la recta de regresión predicha, así como los valores del conjunto de pruebas para la edad y el target esperado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+ax.scatter(X0_test, y_test,color='k')
+ax.plot(X0_test, y, color='b', linewidth=3)
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_plot_age]: Generar gráfico de la regresión lineal con la edad]
+
+Y se puede observar de manera visual una raya azul representando la correlación lineal entre la edad de los pacientes y la progresión de su enfermedad.
+
+![Figure [res/007_003]: Gráfico de la edad contra la progresión de la diabetes](res/007_003.png)
+
+En realidad se tienen 10 factores fisiológicos en el conjunto de datos diabetes, así pues, para tener una imagen más completa de todo el conjunto de entrenamiento, se puede realizar una regresión lineal para cada feature fisiológica, creando 10 modelos y viendo los resultados para cada uno de ellos a través de un gráfico lineal.
+
+Para ello, se prerara un gráfico con 10 subfiguras, ordenadas en 2 columnas y 5 filas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots(5,2, figsize=(10,12))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_subplots_gen]: Generar gráfico con 5 filas y 2 columnas]
+
+Se realiza un bucle de 10 iteraciones, una por cada feature del conjunto de datos, y para cada una de ellas se extrae la columna deseada y se realiza el entrenamiento del modelo solo para esa columna. Para luego, generar el gráfico dentro de cada subfigura con esos datos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+for i in range(0,10):
+    Xi_test = np.vstack(X_test[:,i])
+    Xi_train = np.vstack(X_train[:,i])
+
+    linreg.fit(Xi_train,y_train)
+    y = linreg.predict(Xi_test)
+
+    ax[i//2,i%2].scatter(Xi_test,y_test,color='k')
+    ax[i//2,i%2].plot(Xi_test,y,color='b',linewidth=3)
+    ax[i//2,i%2].set_title(diabetes.feature_names[i])
+
+plt.subplots_adjust(wspace=0.2, hspace=0.6)
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [reglin_subplots]: Generar gráfico con la regresión lineal para las 10 features]
+
+Se muestran 10 gráficos lineales, cada uno de los cuales representa una correlación entre un factor fisiológico y la progresión de la enfermedad.
+
+![Figure [res/007_004]: Gráfico de las 10 features contra la progresión de la diabetes](res/007_004.png)
+
+Support Vector Machines SVMs
+--------------------------------------------------------------
+
+Las máquinas de vectores de soporte son una serie de técnicas de aprendizaje automático que se desarrollaron a principios de los años 90. La base de este tipo de procedimientos es un algoritmo llamado Support Vector, que es una generalización de un algoritmo llamado `Generalized Protrait`, desarollado en 1963.
+
+En terminos sencillos, los clasificadores SVM son modelos binarios o discriminatorios, trabajando sobre dos clases de diferenciación. Su propósito principal es basicamente discriminar entre dos clases contra nuevas observaciones. Durante la fase de aprendizaje, estos clasificadores proyectan las observaciones en un espacio multidimensional llamado espacio de decisiones (decisional space), y construyen una superficie de separación llamada límite de decisión (decision boundary) que divide dicho espacio en dos áreas de pertenencia. En el caso más simple, es decir, en el caso lineal, el límite de decisión estará representado por un plano (en 3D) o por una línea recta (en 2D). En casos más complejos, las superficies de separación son formas curvas con formas más articuladas.
+
+Las SVM se pueden usar tanto en problemas de regresión con SVR (Support Vector Regression) como en clasificación con SCV (Support Vector Classification).
+
+### Support Vector Classification SVC
+
+Para entender bien este algoritmo se puede empezar por el caso más simple, al caso lineal en 2D, donde el decision boundary será una línea recta separando en dos parte el área de decisiones. Por ejemplo, un entrenamiento sencillo, donde algunos puntos están asignados a dos clases diferentes. El conjunto de entrenamiento consistirá de 11 puntos u observaciones, con dos atributos diferentes que tendrán valores entre 0 y 4. Estos valores estarán contenidos en un `ndarray` llamado X. Su pertenencia a una de las dos clases estará definida por valores de 0 o 1 contenidos en otro `ndarray` llamado y.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X = np.array([[1,3],[1,2],[1,1.5],[1.5,2],[2,3],[2.5,1.5],[2,1],[3,1],[3,2],[3.5,1],[3.5,3]])
+y = [0]*6 + [1]*5
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_dataset]: Datos de prueba]
+
+Usando matplotlib, se puede generar un gráfico de dispersión sobre dichos puntos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+ax.scatter(X[:,0], X[:,1], c=y, s=50, alpha=0.9)
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_dataset_plot]: Generar gráfico de dispersión de datos de prueba]
+
+Se visualiza la distribución de dichos puntos en el espacio con un gráfico de dispersión que sera definido como un espacio de decisión.
+
+![Figure [res/007_005]: Gráfico de dispersión de datos de prueba](res/007_005.png)
+
+Una vez que se ha definido el conjunto de entrenamiento, se puede aplicar el algoritmo de Support Vector Classification (SVC). Este algoritmo creará una línea (límite de decisión) para dividir el área de decisión en dos partes, y esta línea recta estará localidad para maximizar su distancia desde las observaciones más cercanas contenidas en el conjunto de entrenamiento. Esta condición debería producir dos porciones distintas en las cuales todos los puntos de una misma clase deberían estar contenidos.
+
+Cuando se aplica el algoritmo SVC, se hace con la clase `SVC` del módulo `svm` de scikit-learn, y se define su `kernel` como `linear`. Un kernel es un tipo de algoritmos para el análisis de patrones. Entonces se usa la función `fit` con el conjunto de entrenamiento como argumento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import svm
+
+svc = svm.SVC(kernel='linear')
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_train]: Entrenamiento de SVC]
+
+Una vez el modelo está entrenado se pueden dibujar los decision boundaries con la función `decision_function`, que evalua la función de decisión sobre los datos que recibe.
+
+A continuación se crea una matriz que cubra todo el área donde están los puntos originales de la muestra. Se crea una `meshgrid`, que es una cuadrícula rectangular a partir del ancho y alto del área, en este caso, entre 0 y 4, añadiendo puntos cada pocos intérvalos, en este caso cada 0.2. De esta manera se crean muchos puntos que cubren todo el área donde estaban las mediciones originales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+h = .02
+length, width = np.meshgrid(np.arange(0, 4, h), np.arange(0, 4, h))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_meshgrid]: Meshgrid que cubre el área]
+
+Ahora se usa esta malla de puntos sobre el modelo entrenado, para tener la predicción de dicho modelo sobre todo el área de las muestras. Para ello primero se aplanan los dos `ndarrays` del `meshgrid` y se concatenan verticalmente para formar un `ndarray` con todas las coordendadas de los puntos que cubren todo el área. Luego se pasa esta lista de puntos al modelo para que prediga las salidas correspondientes a todos los puntos usando el método `decision_function`. De esta manera se tendrán las predicciones para todo el área alrededor de las muestras originales. Por último se devuelven las salidas que ahora son de una sola dimensión al tamaño 2D deseado que cubra todo el área.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+points_in_area = np.c_[length.flatten(),width.flatten()]
+
+z = svc.decision_function(points_in_area)
+z = z.reshape(length.shape)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_predict_area]: Predecir las salidas para todos los puntos del área]
+
+El último paso es usar matplotlib para visualizar los datos predichos para todo el área junto con los datos de las observaciones originales para entender como ha trabajado el modelo de clasificación. Para ello se usa el método `contourf` para pintar todos los puntos, se le pasa a la función el conjunto de datos predicho. Después se pinta una línea donde está el decision boundary, y por último las observaciones originales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+ax.contourf(length, width, z > 0,alpha=0.3)
+ax.contour(length, width, z, colors=['k'], linestyles=['-'],levels=[0])
+ax.scatter(X[:,0],X[:,1],c=y,s=50,alpha=0.9)
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_plot]: Generar gráfico de SVC]
+
+Se pueden observar claramente las dos porciones del área conteniendo a las dos clases. Se puede decir que la división es buena, excepto por un punto morado en la zona amarilla.
+
+![Figure [res/007_006]: Área de decisión](res/007_006.png)
+
+Una vez el modelo está entrenado es facil entender como operan las predicciones, dependiendo de las posiciones ocupadas por la nueva observación, se sabrá su correspondencia a una de las dos clases. En cambio, desde un punto de vista más programático, la función `predict` devolverá el número de la clase correspondiente, 0 para el morado, 1 para el amarillo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc.predict([[1.5,2.5], [2.5,1]])
+
+Output:
+[0 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_predict]: Predicción de SVC]
+
+Un concepto relacionado con el algoritmo SVC es la regularización. Se ajusta con el parámetro `C`, un valor pequeño de `C` significa que el margen está calculado usando muchas o todas las observaciones alrededor de la línea de separación (regularización mayor), mientras que un valor grande de `C` significa que el margen está calculado sobre las observaciones cerca de la línea de separación (regularización menor). Por defecto, el valor de `C` es 1. Se pueden destacar los puntos que han participado en el cálculo del margen, identificándolos a través del array `support_vectors`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+ax.contour(length, width, z, colors=['k','k','k'], linestyles=['--','-','--'], levels=[-1,0,1])
+ax.scatter(svc.support_vectors_[:,0], svc.support_vectors_[:,1], s=120, facecolors='r')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_plot_highlight]: Generar gráfico de SVC con los puntos destacados]
+
+Estos puntos se representan mediante círculos bordeados en el gráfico de dispersión, además estarán dentro del área de evaluación en los alrededores de la línea de separación, con una línea discontinua.
+
+![Figure [res/007_007]: Puntos involucrados en el cálculo](res/007_007.png)
+
+Para ver el efecto de dicho parámetro en el decision boundary, se puede realizar el entrenamiento con `C` al valor 0.1, y ver cuantos puntos se toman en consideración.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='linear', C=0.1))
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_train_c]: Entrenamiento de SVC con C=0.1]
+
+Los puntos que se toman en consideración se han incrementado, y como resultado, la línea de separación decision boundary, ha cambiado su orientación. Pero ahora hay dos puntos que están en el área de decisión equivocada.
+
+![Figure [res/007_008]: Puntos involucrados en el cálculo para C=0.1](res/007_008.png)
+
+### SVC No lineales
+
+El algoritmo de SVC visto hasta ahora es capaz de definir una línea de separación que divide las dos clases. Hay otros algoritmos de SVC más complejos que pueden establacer curvas en 2D o superficies curvadas en 3D, basándose en los mismos principios de maximizar las distancias entre los puntos más cercanos a la superficie. Por ejemplo, usando un kernel polinómico.
+
+Se puede definir una curva polinómica que separa el área de decisión en dos partes. El grado del polinomio se puede definir con el parámetro `degree`. Incluso en este caso, el parámetro `C` sigue siendo el coeficiente de regularización.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='poly', C=1, degree=3)
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_train_poly]: Entrenamiento de SVC con C=0.1 y kernel polinómico]
+
+Y usando la misma función anterior para mostrar de forma gráfica las nuevas áreas de decisión que muestran una separación curva.
+
+![Figure [res/007_009]: Nuevas áreas con un kernel polinómico](res/007_009.png)
+
+Otro tipo de kernel no lineal es la función de base radial o Radial Basis Function (RBF). En este caso las curvas de separación tienden a definir las zonas radialmente respecto a los puntos de observación del conjunto de entrenamiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='rbf', C=1, gamma=3)
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_train_rbf]: Entrenamiento de SVC con C=0.1 y kernel radial]
+
+En este caso se puede observar claramente las dos partes del área de decisión con todos los puntos del conjunto de entrenamiento ahora posicionados correctamente en su área correspondiente.
+
+![Figure [res/007_010]: Nuevas áreas con un kernel radial](res/007_010.png)
+
+### SVM con Iris
+
+Los ejemplos anteriores estaban basados en un conjunto de datos muy simple, pero es interesante aplicar estas técnicas a un conjunto más complicado, como Iris. Se extiende el caso a tres clasificaciones, puesto que el conjunto de datos Iris está dividio en tres clases, que corresponden a las tres especies diferentes de flores.
+
+En este caso los límites de decisión intersectan entre ellos, subdividiendo el área de decisión (en este caso en 2D) o el volumen de decisión (3D) en varias porciones.
+
+Los modelos lineales tienen límites de decisión lineales (hiperplanos que intersectan), mientras que los modelos con kernels no lineales (polinómicos o RBF Gausianos) tienen límites de decisión no lineales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+iris = datasets.load_iris()
+X = iris.data[:,:2]
+y = iris.target
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_iris_load]: Carga de conjunto de datos Iris]
+
+Primero se carga el conjunto de datos Iris y se procede al entrenamiento del SVC lineal.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='linear', C=1)
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_iris_svc]: Entrenamiento SVC lineal del conjunto de datos Iris]
+
+Y usando el mismo sistema visto anteriormente de generar una `meshgrid` para predecir todos los puntos del área y poder visualizarlos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+length_min, length_max = X[:,0].min() - .5, X[:,0].max() + .5
+width_min, width_max = X[:,1].min() - .5, X[:,1].max() + .5
+
+h = .02
+length, width = np.meshgrid(np.arange(length_min, length_max, h), np.arange(width_min, width_max, h))
+points_in_area = np.c_[length.flatten(),width.flatten()]
+
+Z = svc.predict(points_in_area)
+Z = Z.reshape(length.shape)
+
+fig, ax = plt.subplots()
+ax.contourf(length, width, Z, alpha=0.3)
+ax.contour(length, width, Z, colors='k')
+ax.scatter(X[:,0],X[:,1],c=y)
+
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_iris_svc_graph]: Generar gráfico SVC lineal]
+
+En el gráfico se puede observar que el área de decisión se ha dividido en tres partes separadas por los límites lineales.
+
+![Figure [res/007_011]: Áreas lineales sobre el conjunto de datos Iris](res/007_011.png)
+
+Ahora se puede aplicar un kernel no lineal, como uno polinómico, para generar unos límites de decisión no lineales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='poly', C=1, degree=4)
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_iris_svc_poly]: Entrenamiento SVC polinómico del conjunto de datos Iris]
+
+En este caso los decision boundaries dividen las áreas de decisión de manera muy diferente comparando con el caso lineal.
+
+![Figure [res/007_012]: Áreas polinómicas sobre el conjunto de datos Iris](res/007_012.png)
+
+Y también se puede aplicar el kernel RBF para ver la diferencia en la distribución de las áreas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svc = svm.SVC(kernel='rbf', C=1, gamma=3)
+svc.fit(X,y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svc_iris_svc_rbf]: Entrenamiento SVC RBF del conjunto de datos Iris]
+
+Lo cual genera un gráfico aún más distinto que los anteriores.
+
+![Figure [res/007_013]: Áreas radiales sobre el conjunto de datos Iris](res/007_013.png)
+
+### Support Vector Regression SVR
+
+El método SVC puede extenderse hasta resolver problemas de regresión, en ese caso se llama Support Vector Regression o SVR.
+
+El modelo producido por SVC realmente no depende del conjunto de datos al completo, solo usa un subconjunto de dichos elementos, por ejemplo, los más cercanos al límite de decisión. De manera similar, el modelo producidor por SVR también depende de un subconjunto de los datos de entrenamiento.
+
+Para probar SVR se va a usar el conjunto de datos de diabetes, en concreto, la tercera feature de los datos fisiológicos. Se realizarán tres regresiones distintas, una lineal y dos no lineales (polinómicas). El caso lineal producirá una línea recta puesto que el modelo predictivo lineal es muy similar al visto anteriormente, mientras que las regresiones polinómicas tendrán dos y tres grados. El modo de trabajo de `SVR` es casi idéntico al de `SVC`. El único aspecto a tener en cuenta es que los datos deben estar ordenados en modo ascendente.
+
+Primero se carga el conjunto de datos de diabetes desde los `datasets` de scikit-learn.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+from sklearn import datasets
+
+diabetes = datasets.load_diabetes()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_load]: Carga del conjunto de datos diabetes]
+
+A continuación se realiza la división entre el conjunto de datos de entrenamiento y pruebas, en este caso, dejando 20 observaciones para las pruebas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X_train = diabetes.data[:-20]
+y_train = diabetes.target[:-20]
+X_test = diabetes.data[-20:]
+y_test = diabetes.target[-20:]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_split]: Dividir conjunto de datos para entrenamiento y prueba]
+
+Se coge solo la tercera columna de las features, tanto para el conjunto de entrenamiento como de pruebas, se apilan de manera vertical para dejarlas en la forma correcta. Y luego se ordena el conjunto de pruebas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+X0_test = np.vstack(X_test[:,2])
+X0_train = np.vstack(X_train[:,2])
+X0_test.sort(axis=0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_feature3]: Seleccionar la feature deseada y ordenar el conjunto de pruebas]
+
+Luego se realizan los entrenamientos de las tres SVR, la primera lineal, y las otras dos polinómicas de grado 2 y 3 respectivamente. Se usa una C mayor de lo habitual para afectar a la regularización.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+svr = svm.SVR(kernel='linear', C=100)
+svr_d2 = svm.SVR(kernel='poly', C=100, degree=2)
+svr_d3 = svm.SVR(kernel='poly', C=100, degree=3)
+
+svr.fit(X0_train,y_train)
+svr_d2.fit(X0_train,y_train)
+svr_d3.fit(X0_train,y_train)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_train]: Entrenamiento de las tres SVR]
+
+Se realizan las predicciones para el conjunto de pruebas sobre las tres SVR previamente entrenadas.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+y = svr.predict(X0_test)
+y_d2 = svr_d2.predict(X0_test)
+y_d3 = svr_d3.predict(X0_test)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_predict]: Predicciones de las tres SVR]
+
+Y se genera el gráfico para poder visualizar las predicciones de las tres SVR.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, ax = plt.subplots()
+ax.scatter(X0_test, y_test, c='k')
+ax.plot(X0_test, y, c='b')
+ax.plot(X0_test, y_d2, c='r')
+ax.plot(X0_test, y_d3, c='g')
+plt.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [svr_plot]: Generar gráfico de las predicciones de las tres SVR]
+
+Cada una de las tres curvas de regresión está representada en un color distinto. La lineal es la azul, la polinómica de segundo grado, la parábola, es roja y la de tercer grado es la verde. Se puede observar como producen tendendias muy diferentes a partir del conjunto de datos de entrenamiento.
+
+![Figure [res/007_014]: Las tres curvas de regresión sobre el conjunto de datos diabetes](res/007_014.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

@@ -1,0 +1,566 @@
+<meta charset="utf-8">
+**02EPPY - 104 - Game, Frames, Config**
+    <small>©2022 VIU - 02EPPY Programación Avanzada - Iván Fuertes</small>
+
+# Clase Game
+
+Para empezar a organizar el código se va a empezar por crear una clase *Game*, que va a ser la raíz donde va a arrancar todo el código. En lugar de tenerlo todo en una función única, se va a mover el código de una manera más estructurada. Se puede extraer funcionalidad separada en diferentes funciones, y usarlas dentro de la clase *Game*. En el ejemplo del capítulo anterior se tenían tres áreas muy diferenciadas, inicialización, procesado de eventos y pintado. Si se continuara desarrollando, estas tres partes crecerían bastante, y se acabaría con una pared gigante de código, casi imposible de navegar. Estructurarlo en la clase *Game* ayudará a eso.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Game:
+    def __init__(self):
+        pass
+
+    def run(self):
+        pass
+
+    def __process_events(self):
+        pass
+
+    def __update(self):
+        pass
+
+    def __render(self):
+        pass
+
+    def __quit(self):
+        pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [game_proto]: Prototipo de la Clase *Game*]
+
+El único método público de la clase es *run*, que es el punto de entrada desde el cual el *`__main__.py`* llama a la clase una vez creada la instancia. Se puede mover el código de inicialización al constructor de la clase, el *main loop* se mantiene en la función *run*, pero esta llama a *process_events*, *update* y *render* para mantener esas tres funcionalidades separadas. Y por último al acabar el *main loop* se llama a *quit* para liberar recursos.
+
+## Constructor
+
+Como miembros estáticos privados de la clase se ha puesto el tamaño de la ventana *screen_size*, el título del juego *game_title* y la ruta a la imagén del jugador *hero_image_filename*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+__screen_size = (640, 480)
+__game_title = "ShMUp"
+__hero_image_filename = ["shmup", "assets", "images", "hero.png"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [static_members]: Miembros Estáticos Privados de la Clase *Game*]
+
+En el constructor *'__init__'* se inicia PyGame llamando a *pygame.init()*, se crea la ventana y se le pone nombre como se ha visto anteriormente, y se carga la imagen para el jugador en una *surface*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __init__(self):
+    pygame.init()
+
+    self.__window = pygame.display.set_mode(Game.__screen_size, 0, 32)
+    pygame.display.set_caption(Game.__game_title)
+
+    self.__hero = pygame.image.load(os.path.join(*Game.__hero_image_filename)).convert_alpha()
+
+    self.__running = False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [init_game]: Constructor de la Clase *Game*]
+
+## Run
+
+En la función *run* que va a hacer de punto de arranque del juego se controla el *main loop*, el bucle infinito que estará siempre en ejecución. Dentro del *main loop*, llamará primero a *process_events* para gestionar la cola de eventos, luego a *update* para actualizar el estado del juego, y por último a *render* para pintar un nuevo frame con los cambios realizados. Al salir del *loop* se llama a *quit* para liberar los recursos que se hayan podido adquirir.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def run(self):
+    self.__running = True
+
+    while self.__running:
+        self.__process_events()
+        self.__update()
+        self.__render()
+
+    self.__quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [run_game]: Método *run* de la Clase *Game*]
+
+## Event Loop
+
+En la función *process_events* se va a gestionar la cola de eventos de PyGame, de la manera vista anteriormente, por ahora sólo la opción de cerrar el juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __process_events(self):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            self.__running = False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [process_events_game]: Método *process_events* de la Clase *Game*]
+
+## Update
+
+La función *update* por ahora está vacía puesto que aún no se ha implementado nada de lógica de juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __update(self):
+    pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_game]: Método *update* de la Clase *Game*]
+
+## Render
+
+La función *render* es la que se encarga de pintar todo el mundo virtual a pantalla. El resultado del pintado del frame anterior se descarta, y por tanto lo primero que se hace es limpiar la pantalla. A continuación se pintan todos los objetos del juego, y a continuación se actualiza la pantalla para mostrarla en el monitor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __render(self):
+    self.__window.fill((0, 0, 0))
+
+    x, y = pygame.mouse.get_pos()
+    x -= self.__hero.get_width() / 2
+    y -= self.__hero.get_height() / 2
+    self.__window.blit(self.__hero_image, (x, y))
+
+    pygame.display.update()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [render_game]: Método *render* de la Clase *Game*]
+
+## Quit
+
+Por último, el método *quit* se encargará de liberar cualquier recurso que el juego haya adquirido y no vaya a ser necesario. En este caso, simplemente comunicará a PyGame que su trabajo ha terminado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __quit(self):
+    pygame.quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [quit_game]: Método *quit* de la Clase *Game*]
+
+# Frame Rate
+
+Profundizando un poco más dentro el *main loop* que está dentro del método *run*, este es el que controla el ciclo de vida del juego. Mientras éste continue iterando, el juego seguirá vivo.
+
+Lo que se hace en cada iteración del loop es, primero procesar los eventos de PyGame, luego actualizar el juego, y por último pintar los resultados a pantalla. A cada iteración del *game loop* se le suele llamar *frame* o *tick*. La medida de cuantas iteraciones del *game loop* se pueden realizar por segundo son los *FPS*, *Frames Per Second* o frames por segundo. A veces, el concepto de *FPS* solo tiene en cuenta tiempos de pintado, pero es común que englobe el tiempo de procesamiento de las entradas y de las actualizaciones de la lógica de juego.
+
+![Figure [res/104_000]: Ciclo de Vida de un Juego](res/104_000.png)
+
+El diagrama Figure [res/104_000] describe perfectamente lo que hace el juego en cada momento. Todo lo que se hace dentro del juego es bastante lineal, todo se ejecuta en el orden que se le dice y la maquina no hace nada que no se le haya pedido explícitamente.
+
+## Procesamiento de Eventos a través de los Frames
+
+Por cada iteración del *loop* de eventos puede llegar un evento distinto, pero al juego que se está desarrollando le interesan sobre todo las pulsaciones de tecla para gestionar la entrada del jugador. Así que se va a delegar ese trabajo a una función específica que pueda gestionar esas pulsaciones y relacionarlas con acciones del jugador.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __process_events(self):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            self.__running = False
+        if event.type == pygame.KEYDOWN:
+            self.__handle_player_input(event.key, True)
+        elif event.type == pygame.KEYUP:
+            self.__handle_player_input(event.key, False)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [process_events]: Método *process_events* Delegando Pulsaciones de Tecla]
+
+Con este método ahora se delega a otra función la gestión espécifica de los eventos de pulsaciones de teclado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __handle_player_input(self, key, is_pressed):
+    if key == K_UP:
+        self.__is_moving_up = is_pressed
+    elif key == K_DOWN:
+        self.__is_moving_down = is_pressed
+    elif key == K_LEFT:
+        self.__is_moving_left = is_pressed
+    elif key == K_RIGHT:
+        self.__is_moving_right = is_pressed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [handle_player_input]: Método *handle_player_input*]
+
+Esta función activa/desactiva unos flags que indican en que dirección se mueve el jugador.Responde a las pulsaciones de las teclas de cursor para indicar hacia donde debe moverse. Estos flags deben inicializarse en el constructor a *False*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+self.__is_moving_up = False
+self.__is_moving_down = False
+self.__is_moving_left = False
+self.__is_moving_right = False
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [moving_flags]: Flags de Movimiento Iniciados a *False*]
+
+Ahora que se tiene una forma de relacionar una pulsación de una tecla con una acción específica del jugador, se sabe cuando hay que moverse arriba, abajo, izquierda o derecha. En este caso ya se puede empezar a escribir código en el método *update* del *main_loop*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __update(self):
+    movement = pygame.math.Vector2(0.0, 0.0)
+
+    if self.__is_moving_up:
+        movement.y -= 0.1
+    if self.__is_moving_down:
+        movement.y += 0.1
+    if self.__is_moving_left:
+        movement.x -= 0.1
+    if self.__is_moving_right:
+        movement.x += 0.1
+
+    self.__hero_position += movement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update]: Método *update* Moviendo al Jugador]
+
+Se verifica el estado de cada uno de los cuatro *flags*, y usando un *Vector2* se crea un vector de movimiento hacia donde se va a mover el jugador. No se usa una estructura *if elif* para dar cabida a que se pueda mover en varias direcciones a la vez, como las diagonales, y además se gestiona el caso de direcciones opuestas que se anularían.
+
+Esto supone que hay que guardarse la posición del jugador en algún sitio, por ahora en el constructor de la clase se inicializa.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+self.__hero_position = pygame.math.Vector2(self.__window.get_width()/2 - self.__hero.get_width()/2, self.__window.get_height()/2 - self.__hero.get_height()/2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [player_position]: Posición del Jugador]
+
+Y a la hora de pintar el estado del juego se accede a esta variable para pintar la imagen del jugador en su posición actual.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+self.__window.blit(self.__hero, self.__hero_position.xy)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [player_render]: Pintar el Jugador]
+
+## Álgebra Vectorial
+
+Los vectores son una parte importante del álgebra. Tienen muchas reglas y definiciones que no se van a tratar aquí. Sin embargo, son de uso muy extendido en videojuegos. En el módulo *math* de PyGame se encuentran las clases *Vector2* y *Vector3* para trabajar con véctores de 2 y 3 dimensiones. La documentación completa de estas clases se puede consultar en la [documentación oficial](https://www.pygame.org/docs/ref/math.html)
+
+Una coordenada en un sistema cartesiano bidimensional necesita dos componentes *x* e *y*. Aunque los píxels en la pantalla sean número enteros es deseable que todas las posiciones, tamaños,... que se manejen dentro del juego se hagan con números reales para obtener mayor precisión en los cálculos y cuando se vaya a pintar se usarán los redondeos oportunos. Los objetos *Vector* que PyGame ofrece tienen las componentes necesarias encapsuladas y hacen que sea mucho más sencillo trabajar con posiciones, velocidades,... al poder hacer operaciones directamente sobre ellos y delegar en esas clases el trabajo por componentes.
+
+Estos vectores se usaran no solo para definir posiciones, si no también orientaciones. Un vector es una estructura ideal para almacenar una coordenada bidimensional, en position absoluta o relativa, expresar una dirección a seguir o hacia donde disparar una bala. Si se habla de direcciones hay que trabajar con el concepto de normalización, vector unitario,... Estas operaciones aplican solo en direcciones, no en posiciones. Un vector normalizado es aquel que tiene longitud 1, o vector unitario, y el vector expresa la misma dirección que antes de ser normalizado.
+
+En el caso del ejemplo anterior, un vector llamado *movement* expresa un movimiento desde el origen del sistema de coordenadas actual. Ese origen es la posición del jugador.
+
+## Movimiento Independiente de los Frames
+
+Ejecutando el código anterior se puede observar que la imagen del jugador se mueve al pulsar las teclas, pero este movimiento se produce porque se le suma una cantidad fija al vector de movimiento en cada iteración del *main_loop*. Se ha definido el movimiento de una manera muy simplista, si el ordenador ejecuta la función *update* todo lo rápido que puede posiblemente llame a esta función varios cientos de veces por segundo, si se mueve la imagen del jugador 1 píxel en cada frame, esta velocidad es dependiente de cuantas veces se ejecute el *main_loop* por segundo, es decir, es dependiente del *frame rate*. Si este juego se ejecutara en otro ordenador con unas prestaciones diferentes este *frame rate* será distinto, y por tanto, también la velocidad a la que se mueve el jugador. Eso produce una experiencia de juego distinta en cada máquina distinta donde se ejecuta el juego, o incluso en distintos momentos en el mismo equipo en función de su carga de trabajo, y no es deseable.
+
+Hay que conseguir que la velocidad a la que se mueve el jugador cambie en función del tiempo que cuesta cada frame. Hay una simple fórmula que puede funcionar.
+
+\begin{equation}
+distancia = velocidad * tiempo
+\end{equation}
+
+Con ella se puede calcular la velocidad relevante para cada frame, de manera que el jugador se mueva exactamente la distancia que se desea a lo largo de un segundo, sin importar la velocidad de la maquina donde se ejecuta.
+
+Para ello se modifica el método *update* para que reciba como parámetro el tiempo que ha transcurrido desde el último frame, y con ello actualice la posición del jugador multiplicando este tiempo por la velocidad del jugador, calculando la distancia que se quiere mover en cada frame.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __update(self, delta_time):
+    movement = pygame.math.Vector2(0.0, 0.0)
+
+    if self.__is_moving_up:
+        movement.y -= Game.__hero_speed
+    if self.__is_moving_down:
+        movement.y += Game.__hero_speed
+    if self.__is_moving_left:
+        movement.x -= Game.__hero_speed
+    if self.__is_moving_right:
+        movement.x += Game.__hero_speed
+
+    self.__hero_position += movement * delta_time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [update_delta]: Método *update* Usando Tiempo Delta]
+
+Para calcular este tiempo que ha transcurrido entre dos frames se pueden usar las funciones del módulo *time* de PyGame. En concreto el método *get_ticks*, que devuelve el número de milisegundos que han transcurrido desde que PyGame se inició. Se guarda en una variable esos *ticks* en un frame, y en el siguiente frame se comparan cuantos milisegundos han pasado con respecto al actual *tick*. Dentro del *main_loop* hay que guardarse los *ticks* antes de entrar al *main_loop*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def run(self):
+    self.__running = True
+
+    last_time = pygame.time.get_ticks()
+    while self.__running:
+        delta_time, last_time = self.__calc_delta_time(last_time)
+
+        self.__process_events()
+        self.__update(delta_time)
+        self.__render()
+
+    self.__quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [main_loop_delta]: Método *main_loop* Usando Tiempo Delta]
+
+Y luego en cada iteración se llama al método *calc_delta_time* para calcular el *delta time* y actualizar ese valor para la siguiente iteración.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __calc_delta_time(self, last):
+    current = pygame.time.get_ticks()
+    delta = current - last
+    return delta, current
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [calc_delta]: Método *calc_delta_time* Para Calcular el Tiempo Delta]
+
+## Controlando los FPS
+
+La solución anterior es válida para la mayoría de los casos. Pero no es una solución perfecta, puesto que se pueden tener problemas en ciertos escenarios donde los tiempos *delta* varían mucho. El código puede ser complicado de depurar, puesto que es imposible conseguir resultados 100% predecibles, puesto que cada frame es único, y no se puede garantizar que el tiempo *delta* se mantenga estable.
+
+Para calcular este tiempo que ha transcurrido entre dos frames se pueden usar las funciones del módulo *time* de PyGame. Se decide antes de nada a cuantos frames por segundo se quiere ejecutar el juego y se calcula cuanto tiempo se quiere dedicar a cada frame.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+__fps = 60
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [time_per_frame]: Cálculo del frame rate]
+
+Concretamente la clase *Clock* y el método *tick*. Este método devuelve los milisegundos que han transcurrido desde la última vez que se llamó al método. Y además si se le pasa como parámetro los frames por segundo a los que se quiere ir, este método pausará la ejecución del juego para ajustar la velocidad y limitar el framerate.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def run(self):
+    self.__running = True
+
+    fps_clock = pygame.time.Clock()
+    while self.__running:
+        delta_time = fps_clock.tick(Game.__fps)
+
+        self.__process_events()
+        self.__update(delta_time)
+        self.__render()
+
+    self.__quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [main_loop_delta]: Método *main_loop* Usando Tiempo Delta]
+
+## Pasos de Tiempo Fijos, Velocidad de Juego Constante con Máximos FPS
+
+Pero sigue sin ser un método perfecto, por ejemplo, un frame puede tardar en producirse el triple de tiempo de lo que tarda un frame de media. Esto puede llevar a errores dentro de la lógica de juego, por ejemplo, si un jugador se mueve de golpe el triple de la distancia habitual y atraviesa un muro contra el cual colisionaría en circunstancias normales. Por eso los motores de físicas esperan que el tiempo *delta* sea fijo. En Figure [res/104_001] se observa que el objeto de juego con una actualización normal colisionaría con la pared al calcular su nueva posición, en cambio, en una situación con *lag*, donde el tiempo *delta* sea superior al habitual, al calcular su nueva posición el objeto ha atravesado la pared y por tanto produciendo un error en la lógica de juego. Este efecto se llama *tunneling*.
+
+![Figure [res/104_001]: Tunneling](res/104_001.png)
+
+Para evitar estos problemas se usa la técnica llamada *fixed time steps*, o pasos de tiempo fijos. De manera que se garantice que bajo cualquier circunstancia siempre se le da el mismo tiempo *delta* al método *update*, y por tanto, se actualiza la lógica de juego a una velocidad constante y predecible. Y el pintado se ejecutará tan rápido como sea posible.
+
+Se decide antes de nada a cuantos frames por segundo se quiere ejecutar el juego y se calcula cuanto tiempo se quiere dedicar a cada frame.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+__fps = 60
+__time_per_frame = 1000.0 / __fps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [time_per_frame2]: Cálculo del Tiempo para cada Frame]
+
+Se acumula cuanto tiempo ha pasado en una variable *time_since_last_update*. Cuando se ha pasado la cantidad de tiempo requerida para un frame, se le resta la longitud deseada para este frame *time_per_frame* y se actualiza el juego. Se hace esto hasta que se está por debajo del tiempo requerido. De esta manera se soluciona el problema de los tiempos *delta* variables, se garantiza que se ejecutan el mismo número de frames.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def run(self):
+    self.__running = True
+
+    last_time = pygame.time.get_ticks()
+    time_since_last_update = 0
+    while self.__running:
+        delta_time, last_time = self.__calc_delta_time(last_time)
+        time_since_last_update += delta_time
+        while time_since_last_update > Game.__time_per_frame:
+            time_since_last_update -= Game.__time_per_frame
+
+            self.__process_events()
+            self.__update(Game.__time_per_frame)
+
+        self.__render()
+
+    self.__quit()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fixed_time_step]: Método *main_loop* con *fixed time step*]
+
+Se tienen ahora dos *loops*, el externo es el *main loop*, y llama al pintado. El interno recoge las entradas del usuario, y ejecuta la lógica de juego, y este loop se ejecuta a un ritmo constante. Si el pintado es lento, puede suceder que la lógica de juego se llame varias veces antes de cada llamada a pintado. En ese caso el juego calculará algunas iteraciones de lógica que no acabarán siendo pintadas, pero el juego no se ralentizará. Por otro lado, un pintado muy rápido causará que se llame al método de pintado varias veces sin una actualización de la lógica entre medias. Pintar el mismo estado varias veces no cambia nada en la pantalla, pero permite algunas técnicas avanzadas como interpolaciones entre dos estados para suavizar el flujo del juego.
+
+## Otras Técnicas
+
+PyGame tiene dos funciones *wait* y *delay* para interrumpir la ejecución un tiempo determinado, lo cual le da al procesador una oportunidad de trabajar en otras tareas. Si se detecta en algún punto del juego que se puede liberar tiempo de procesado es interesante usarlo, sobre todo en dispositivos móviles, donde el uso razonable de la batería es importante.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+pygame.time.wait(50)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [time_delay]: Pausa el Juego durante 50 Milisegundos]
+
+Otro parámetro importante es el llamado *v-sync*, o sincronización vertical. Esto adapta las llamadas al método *update* para sincronizarlas con la tasa de refresco del monitor, que suele ser de 60Hz. Se puede pasar como parámetro al método *set_mode* al crear la ventana, pero solo funciona para ventanas de *OpenGL*, y es muy dependiente del hardware y la configuración de los drivers del sistema, así que no es muy aconsejable usarla.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+self.__window = pygame.display.set_mode((640, 480), OPENGL, 32, vsync=1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [ventana_vsync]: Ventana con *vsync*]
+
+## Frames Por Segundo
+
+La forma habitual de medir el rendimiento de un juego, o la velocidad de refresco suele venir referida en *Frames Por Segundo*, *FPS*. Si se usa el método descrito anteriormente para gestionar el *main loop*, se está forzando a una distinta velocidad de refresco a la lógica de juego y al pintado del mismo. Mientras se está desarrollando el juego es habitual poder visualizar estas velocidades para verificar que el juego se mueve dentro de los parámetros deseados.
+
+Se puede crear una clase para ello, llamada *FPSStats*, que se encargue de gestionar las dos diferentes velocidades y pueda pintar en pantalla dichas velocidades para visualizarlas mientras se juega, y poder detectar posibles atascos o bajadas de rendimiento.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class FPSStats:
+
+    def __init__(self, font):
+        self.__font = font
+        self.__update_time = 0
+        self.__render_frames = 0
+        self.__logic_frames = 0
+        self.__set_fps_surface()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fpsstats_init]: Constructor de la Clase FPSStats]
+
+Esta clase en el constructor recibirá como parámetro la fuente con la que se quiere pintar el texto con las velocidades. Y creará en su instancia una surface donde pintar el texto, y una serie de variables para gestionar los tiempos. En *render_frames* y *logic_frames* se irán acumulando las veces que se van a ejecutar los dos bloques en cada segundo, mientras que en *update_time* se va a guardar el tiempo transcurrido desde la última vez que se calcularon las velocidades.
+
+Publica una función para que se actualice cada vez que se llama al cálculo de la lógica en el *main_loop*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def update(self, delta):
+    self.__update_time += delta
+    self.__logic_frames += 1
+
+    if self.__update_time >= 1000:
+        self.__set_fps_surface()
+
+        self.__update_time -= 1000
+        self.__logic_frames = 0
+        self.__render_frames = 0
+
+def render(self, surface):
+    self.__render_frames += 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fpsstats_update]: Actualiza los Datos]
+
+El método *render* se llamaría cada vez que se invoca a *render* desde el *main loop*, y ahí se acumularía el número de llamadas (aparte de la lógica de pintado). De manera similar, el método *update* será invocado cada vez que se actualiza la lógica desde el *main loop*, pero además de acumular el número de llamadas, si se sobrepasa un tiempo determinado (en este caso 1 segundo), entonces se imprimen los datos en la *surface*, y se reinician los contadores.
+
+En este caso, la velocidad de ambos sistemas (lógica y render), se miden por veces que se llaman por segundo, lo que concuerda con el termino de *frames por segundo*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def __set_fps_surface(self):
+    self.__fps = self.__font.render(f"Logic {self.__logic_frames} fps - Render {self.__render_frames} fps", True, (255,255,255), (0,0,0))
+
+def render(self, surface):
+    self.__render_frames += 1
+    surface.blit(self.__fps, (0,0))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [fpsstats_render]: Renderiza los Datos]
+
+El método *set_fps_surface* pinta sobre la surface interna los datos de *fps* (se llamaría cada vez que hubiera que actualizar los números a mostrar), y el método *render* pinta esa *surface* sobre la que recibe, en este caso para permitir al método *render* del *main loop* que se muestren dichos datos en el juego.
+
+# Clase Config
+
+Cada vez que se introduce nueva funcionalidad en el juego, se suelen crear una serie de parámetros de ajuste para controlar dicha funcionalidad. En lugar de ir dejando esos parámetros repartidos a lo largo del código, se puede escribir una clase *Config* que los almacene en un sólo sitio. De esta manera, se tiene en un sólo sitio centralizado todos los parámetros de configuración del juego, y cambiar algunos comportamientos o la apariencia del juego es sencillo, solo hay que cambiar algunos valores en dicha clase.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Config:
+
+    screen_size = (640, 480)
+    game_title = "ShMUp"
+    background_color = (0, 0, 0)
+
+    def __init__(self):
+        pass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_class]: Clase *Config*]
+
+Se pueden poner esos parámetros de configuración como miembros de clase estáticos, y que puedan ser accesibles públicamente desde cualquier punto del código.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+from shmup.config import Config
+
+self.__window = pygame.display.set_mode(Config.screen_size, 0, 32)
+pygame.display.set_caption(Config.game_title)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_use]: Usar la clase *Config*]
+
+Desde la clase *Game* se puede acceder a la clase *Config* y acceder a algunos parámetros, como por ejemplo, el tamaño de la ventana o el nombre del juego. De manera general, cualquier valor que se use durante el desarrollo del juego que pueda ser parametrizado debería acabar en la clase *Config*, y no declarado específicamente en el código que lo usa.
+
+## Singleton
+
+Hasta ahora ya se han visto de alguna manera varios patrones de diseño aplicados a videojuegos, estos patrones son soluciones habituales a problemas comunes en el desarrollo de software.
+
+- El *main loop* visto en capítulos anteriores, donde se definía un bucle que se ejecutaba de manera continua durante la ejecución del juego, y en cada iteración de dicho bucle se procesan las entradas del usuario, se actualiza el estado del juego y luego se pinta en pantalla el resultado de dicha ejecución, y por último lleva el control del paso del tiempo para controlar la velocidad de juego.
+
+- La técnica de doble buffer, donde se intenta que el código exterior al algoritmo vea que la edición de un buffer se realiza de manera atómica, para ello se mantienen dos buffers, internamente se modifica uno mientras el otro es expuesto para su tratamiento exterior, y al acabar la edición se cambian los buffers publicando el interno para su lectura y privatizando el otro para usarlo para editarlo internamente.
+
+- El método *update*, donde cada objeto de juego implementará el método *update* que simula el comportamiento de dicho objeto para un frame, y el mundo de juego delega en todos sus objetos de juego dicha actualización.
+
+- La cola de eventos, se ha visto como trabajar con las notificaciones de PyGame para recibir y procesar la información que llega de la ventana, como uso del teclado, ratón, incluso eventos personalizados. Estas notificaciones se pueden procesar directamente en el punto de lectura, o incluso enrutarlas a posibles partes interesadas del código.
+
+Algunos de estos patrones son casi específicos de los videojuegos, y algunos de ellos omnipresentes en este ámbito. Pero otros son generales a cualquier desarrollo del software. Se pueden consultar de manera genérica en este [libro](https://en.wikipedia.org/wiki/Design_Patterns), y los específicos a los videojuegos [aquí](https://gameprogrammingpatterns.com/contents.html).
+
+Uno de los más usados es el patrón *Singleton*, que asegura que una clase solo tenga una instancia y además provee un punto global para acceder a dicha instancia. Es un patrón que hay que usar con cuidado, puesto que al final no es más que trabajar con un estado global, lo cual suele ser origen de muchos problemas si se abusa de él. Pero es una solución ideal para sistemas que tengan que ser únicos en la ejecución de un software.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+class Singleton:
+
+    _instance = None
+
+    @staticmethod
+    def instance():
+        if Singleton._instance is None:
+            Singleton()
+        return Singleton._instance
+
+    def __init__(self):
+        if Singleton._instance is None:
+            Singleton._instance = self
+        else:
+            raise exception("Singleton Doesn't Allow Manual Creation")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [singleton_python]: Implementación del Patrón *Singleton* en Python]
+
+Se tiene un atributo de clase, a efectos prácticos como si fuera un atributo estático, donde se almacena la instancia de la clase, asegurando de esa manera que solo existirá un atributo para todas las instancias de la clase. El constructor se asegura que la primera vez que se llama rellena dicho atributo de clase y en posteriores llamadas lanza una excepción, confirmando que solo se podrá llamar al constructor una sola vez de manera efectiva. Y se provee un método estático de clase para acceder a la instancia de la clase, si no ha sido creada todavía se llama al constructor para crearla y más tarde se devuelve dicha instancia. Hay implementaciones más complejas que amplían la seguridad y sobre todo lidian con el trabajo con múltiples hilos, pero esta implementación básica es suficiente en la mayoría de los casos.
+
+## Config como Singleton
+
+Se puede adaptar la clase *Config* usando dicho patrón de diseño, de manera que esta clase tenga un punto de acceso global a todo el videojuego y además se garantice que solo exista una única instancia.
+
+Además, se puede adaptar el uso de las variables que se usan como parámetros de configuración del juego para que se usen como un *JSON* (JavaScript Object Notation). Así es más sencillo editar dichos parámetros desde herramientas externas al entorno de desarrollo, facilitando su acceso a otros miembros del equipo, como artistas o diseñadores. Para ello se usa la librería *json* que viene instalada con Python.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+from importlib import resources
+import json
+
+class Config:
+
+    config_json_path, config_json_filename = "shmup.assets", "config.json"
+
+    __instance = None
+    debug = False
+
+    @staticmethod
+    def instance():
+        if Config.__instance is None:
+            Config()
+        return Config.__instance
+
+    def __init__(self):
+        if Config.__instance is None:
+            Config.__instance = self
+
+            with resources.path(Config.config_json_path, Config.config_json_filename) as config_path:
+                with open(config_path) as f:
+                    self.data = json.load(f)
+        else:
+            raise exception("Config cannot have multiple instances")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [singleton_config]: Implementación del Patrón *Singleton* en Python para la clase *Config*]
+
+Desde este momento se usa el fichero *config.json* como fichero de configuración de parámetros del juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+{
+    "screen_size" : [640, 480] ,
+    "title" : "ShMUp",
+    "fps" : 60,
+    "background_color" : (0,0,0)
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_json]: Fichero *JSON* con los parámetros del juego]
+
+Entonces, en la clase *Config* se crea una variable de instancia (solo puede haber una instancia, garantizada por el patrón *Singleton*) que es un diccionario que contiene todos los datos cargados del *JSON*. Y para acceder a los mismos desde cualquier punto de la aplicación, se accede al *Singleton*, luego a la variable *data*, y luego a la clave correspondiente a los datos que se quieren obtener.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+from invaders.config import Config
+
+Config.instance().data["title"]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_title]: Acceder al parámetro del nombre del juego]
+
+## Acceso a Config
+
+Para facilitar el acceso al diccionario de configuracion, y no tener que escribir tanto código, se puede escribir una pequeña función libre dentro del módulo *Config* para ello, que se encargue de llamar al *Singleton*, y posteriormente iterar sobre la lista de items que recibe como parámetro para encontrar y devolver la clave indicada.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+def cfg_item(*items):
+  d = Config.instance().data
+  for k in items:
+    d = d[k]
+  return d
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_item]: Función para acceder al diccionario de *Config*]
+
+ A partir de este momento se puede acceder a los datos de configuración de una manera mucho más simple.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python
+from shmup.config import cfg_item
+
+cfg_item("title")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [config_item_access]: Acceder al diccionario de *Config*]
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

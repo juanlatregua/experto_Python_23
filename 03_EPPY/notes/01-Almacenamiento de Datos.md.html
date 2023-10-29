@@ -1,0 +1,114 @@
+<meta charset="utf-8">
+**03EPPY - 01 - Almacenamiento de Datos**
+    <small>©2023 VIU - 03EPPY Bases de Datos - Isabel Fayos</small>
+
+# ¿Qué es el almacenamiento de datos?
+
+Desde el principio de la era de las computadoras, los usuarios descubrieron que ingresar datos continuamente de forma manual es prohibitivo en términos de tiempo y energía.
+
+Esto se soluciona con el almacenamiento de datos. Con espacio de almacenamiento de datos, los usuarios pueden guardar datos en un dispositivo. Y si la computadora se apaga, los datos se conservan. 
+
+En lugar de ingresar datos manualmente en una computadora, los usuarios pueden indicar a la computadora que extraiga datos de los dispositivos de almacenamiento. Las computadoras pueden leer datos de entrada de varias fuentes según sea necesario, y luego pueden crear y guardar la salida en las mismas fuentes u otras ubicaciones de almacenamiento. 
+
+![Acceso a datos](res/01/alm_datos2.png)
+
+En conclusión, podemos entender como **almacenamiento de datos** la recopilación y conservación de la información, es decir, el proceso tecnológico por el cual se archiva, organiza y comparten los bytes de información que componen los archivos que se utilizan en el día a día como documentos de texto, imágenes, configuraciones, vídeos, sonidos y cualquier otra información en formato digital. 
+
+![Almacén de datos](res/01/alm_datos.png) 
+
+# Historia de los dispositivos de almacenamiento
+
+El primer dispositivo tecnológico de almacenamiento fue el IBM RAMAC 305, apareció en 1956 y era capaz de almacenar 5 MB gracias a un sistema con 50 "platos" de 24 pulgadas.
+
+![IBM RAMAC 305](res/01/ramac.jpg)
+
+La miniaturización todavía tardaría el llegar años a una industria que trataba de avanzar especialmente en el ámbito de la capacidad de almacenamiento: los clientes demandaban más capacidad, y esos platos de 24 pulgadas eran, como se ve en la imagen, enormes.
+
+![Disco](res/01/disco.jpg)
+
+El gigante de la época, IBM, dominó durante años el sector, y en 1962 la empresa creó las primeras unidades "removibles". La IBM 1311 Disk Storage Drive hacía uso de los "packs de discos" IBM 1316 que permitía a los clientes de la empresa expandir sus necesidades a medida. De las 24 pulgadas de los discos anteriores se pasaba a las 14 pulgadas, con 2 Mbytes por cada "pack".
+
+![IBM 1311 Disk Storage Drive](res/01/discos.jpg)
+
+Otro de aquellos ingenios del almacenamiento fue el Unidisc, una expansión de almacenamiento que apareció en 1962 para los ordenadores Univac 1004/1005. Aquel disco "flexible" similar a los utilizados por IBM tenía un diámetro de 14 pulgadas y era capaz de albergar 2 Mbytes de información. La unidad en la que se insertaba el disco era más o menos del tamaño de una lavadora.
+
+![IBM 1316](res/01/removible.jpg)
+
+En esta misma época se dio inicio a las primeras generaciones de bases de datos de red y las bases de datos jerárquicas, ya que era posible guardar estructuras de datos en listas y arboles.
+
+https://www.xataka.com/historia-tecnologica/monstruos-discos-duros-pasado-nos-hacen-poner-perspectiva-milagro-miniaturizacion
+
+# Sistemas de almacenamiento
+
+**Características**
+
+- **Capacidad**. Cantidad de datos que puede almacenar el sistema de almacenamiento, y es medida en bytes. 
+- **Rendimiento**. Cómo de rápido y eficiente es el sistema de almacenamiento de datos. 
+- **Fiabilidad**. Es la disponibilidad de los datos cuando son solicitados, así como el hecho de disponer de una baja tasa de errores o fallos. 
+- **Recuperabilidad**. Mide la capacidad del sistema para recuperar datos tras una pérdida, borrado, corrupción o cualquier otro incidente que impida el acceso a los mismos. 
+
+**Dispositivos**
+
+- **Discos**. Es uno de los principales usados actualmente y suelen ser parte de cualquier sistema de almacenamiento de datos.
+
+    - **Discos duros** (HDD *Hard Drive Disk*): dispositivos mecánicos que usan el magnetismo para grabar los datos. Se componen de varios discos rígidos que giran a gran velocidad y cuyo cabezal de escritura/lectura se encarga de grabar o leer la información. 
+
+    - **Discos de estado sólido** (SSD *Solid State Drive*): almacenan la información en chips con memorias flash interconectadas.
+
+![Discos HDD y SSD](res/01/hdd_ssd.jpg)
+
+    
+- **Cintas magnéticas**. Graba los datos en pistas sobre una banda plástica que cuenta con material magnético. A pesar de que se trata de un sistema de almacenamiento de datos antiguos, tiene una gran utilidad en el entorno actual donde se manejan datos masivos. La gran durabilidad y su reducido coste las han convertido en un medio de almacenamiento que es aún utilizado en la actualidad para copias de seguridad. 
+
+![Cinta Magnética](res/01/cinta.jpg)
+
+- **Almacenamiento en red**. Las redes han evolucionado con el paso del tiempo y permiten transferir mucha información en poco tiempo. Esta velocidad de transferencia ha hecho populares métodos de almacenamiento en red como:
+
+    - **DAS** (*Direct-Attached Storage*): es el método tradicional de almacenamiento. Consiste en conectar el dispositivo de almacenamiento directamente al servidor o estación de trabajo, es decir, físicamente conectado al dispositivo que hace uso de él. 
+    - **SAN** (*Storage Area Network*): múltiples dispositivos actúan como bloques de disco, permitiendo el almacenamiento y acceso a la información desde cualquier punto de la red.
+    - **NAS** (*Network-Attached Storage*): cuenta con su propio hardware y sistema operativo que gestiona el acceso de usuarios y las operaciones con datos que pueden realizar en el mismo.
+    
+    - En DAS y SAN el sistema de ficheros está ubicado en el lado del cliente, mientras que en NAS reside en el lado del almacenamiento.
+
+![Sistemas DAS, SAN y NAS](res/01/das_san_nas.png)
+
+- **Almacenamiento en la nube**. Hoy en día los sistemas de almacenamiento de datos tienden a migrar al almacenamiento *cloud*. Se trata de contratar un espacio externo (en los servidores de un proveedor de almacenamiento) donde es posible almacenar toda la información y acceder a ella independientemente del sistema operativo, ubicación, hora o dispositivo que se utilice. Por ejemplo, Google Drive, Dropbox, Amazon Cloud Drive, iCloud, ... 
+
+![Servidores de almacenamiento en la nube](res/01/alm_nube.jpg)
+
+# Persistencia
+ 
+La defición de persistencia en la RAE es *"Duración o existencia de una cosa por largo tiempo"* y aplicado a la informática puede decirse que es la capacidad de preservar la información de forma permanente, así como de recuperarla para que pueda ser utilizada.
+
+**Motor de persistencia**
+
+Supongamos que se quieren conectar dos sistemas con formatos diferentes, por ejemplo, un programa orientado a objetos ha de conectar con una base de datos relacional. Es interesante buscar la forma de realizar esta conexión y que puedan comunicarse, ya que así puede aprovecharse los beneficios de ambos sistemas.
+
+Para ello se usa el **motor de persistencia**, que será el "traductor" entre los sistemas. Es una capa de software ubicada entre ellos y que traduce de registros a objetos y de objetos a registros en el ejemplo comentado. El programa sólo ve que puede guardar objetos y recuperar objetos, como si estuviera programado para una base de datos orientada a objetos. La base de datos sólo ve que guarda registros y recupera registros, como si el programa estuviera dirigiéndose a ella de forma relacional. Es decir, cada uno de los dos componentes trabaja con el formato de datos que le resulta más natural y es el motor de persistencia el que actúa de traductor entre los dos modelos, permitiendo que los dos componentes se comuniquen y trabajen conjuntamente.
+
+![Motor de persistencia](res/01/motor_persis.png)
+
+# Sistemas de ficheros
+    
+    - **LFS** (*Local File System*). Es el sistema de almacenamiento básico que almacena el archivo de datos en una sola copia y se accede a ella directamente. Almacena los datos en estructura jerárquica de árbol.
+
+    ![Figure [res/lfs]: Sistema LFS](res/01/lfs.png)
+
+    - **DFS** (*Distribuited File System*). Es un sistema que permite el acceso a los archivos y carpetas desde numerosos puntos. Mejora el sistema clásico de múltiples usuarios compartiendo datos en la misma red ya que lo permite aunque los usuarios estén ubicados geográficamente en diferentes puntos. Va a permitir almacenar y acceder a archivos remotos como si fueran locales. 
+        - **NFS** (*Network File System*). Es un sistema distibuido con una arquitectura cliente-servidor que permite al usuario de una computadora ver, almacenar y actualizar archivos de forma remota, independientemente del sistema operativo que esté utilizando, como si se tratara de almacenamiento de un disco duro local.
+
+    ![Figure [res/nfs]: Sistema NFS](res/01/nfs.jpg)
+
+# Caché
+
+En informática se dice que es uno de los recursos con los que cuenta una CPU (*Unidad Central de Procesamiento*) para almacenar temporalmente datos recientemente procesados en una memoria auxiliar. Se trata de lo que se conoce como una memoria estática de acceso aleatorio (SRAM) muy rápida y colocada cerca de la CPU.
+
+La principal función de la memoria caché es almacenar datos o instrucciones que la CPU va a necesitar en un futuro inmediato, de manera que se gana velocidad en la ejecución de procesos, evitando que la CPU tenga que esperar y aumentando así el rendimiento del equipo.
+
+![Caché](res/01/cache2.png)
+
+Suele confundirse la memoria caché con la memoria **RAM** (*Random Access Memory*). La caché contiene las copias de los datos que comúnmente utiliza la CPU, estando más cerca de esta. Por otro lado, la RAM es la memoria principal que almacena programas y datos en el uso actual. Ayuda a la CPU a acceder a los datos dentro de un período de tiempo mínimo. El caché es más rápido que la memoria RAM. Si los datos no están disponibles en la memoria caché, la CPU accederá a la RAM.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

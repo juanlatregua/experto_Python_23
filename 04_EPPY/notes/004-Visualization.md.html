@@ -1,0 +1,260 @@
+<meta charset="utf-8">
+**04EPPY - 004 - Visualización**
+    <small>©2021 VIU - 04EPPY Ciencia de Datos e Inteligencia Artificial - Òscar Garibo</small>
+
+Visualización
+==============================================================
+
+En capítulos anteriores se han visto diversas formas de extraer información acerca de los datos, como métodos de estadística descriptiva en NumPy y en pandas. Estas funciones proporcionan información muy valiosa para entender la naturaleza de los datos, como la necesidad de transformaciones o la detección de outliers.
+
+Gran parte del tiempo del analista de datos se pasa en esta fase exploratoria, y sin duda una de las técnicas más utilizadas es la visualización de datos. Representar visualmente los datos puede complementar la exploración de los datos, pero también ayudar a generar ideas para modelos en fases avanzadas. Al otro lado del espectro, representar los resultados de los modelos implementados de forma gráfica ayuda a cuantificar las mejoras alcanzadas y presentar nuestras ideas de forma concisa.
+
+En Python, la librería más comúnmente utilizada para la visualización de datos y representación gráfica en general es matplotlib. matplotlib permite la generación de diagramas y gráficos de alta calidad en múltiples formatos, entre los que se encuentran gráficos vectoriales (ideales para no perder resolución al escalar).
+
+Se puede instalar desde su paquete en [PyPI](https://pypi.org/project/matplotlib/) usando `pip` o `pipenv`. La siguiente expresión importa el módulo matplotlib y lo hace accesible a través del alias plt.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import matplotlib.pyplot as plt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib]: Importar librería matplotlib]
+
+Si se está trabajando dentro de un Jupyter Notebook, se puede activar con el comando `%matplotlib inline`, que hace que los gráficos producidos por matplotlib se visualicen como resultado debajo de las celda dentro de un notebook.
+
+matplotlib 101
+--------------------------------------------------------------
+
+La forma más directa de crear un gráfico es a través del método `plot(<data>)`, donde `<data>` es el conjunto de datos que se quiere representar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.random.randint(10,size=(10))
+data # array([7, 9, 2, 4, 9, 4, 9, 8, 7, 2])
+plt.plot(data)      # creación del gráfico
+plt.show()          # comando que muestra los gráficos creados hasta el momento
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_101]: Gráficos simple con matplotlib]
+
+Ejecutando Listing [matplotlib_101] se realiza una representación de datos de forma gráfica con `plt.plot()`.
+
+![Figure [res/004_000]: Gráfico generado](res/004_000.png width="300px")
+
+Como se puede observar, `plt.plot()` recibe los datos que se desean representar. En su forma general, la función acepta dos listas, una para cada eje (X e Y), en el que cada elemento es un punto en el gráfico. En este ejemplo, como solo se proporciona una lista de valores, matplotlib asume que son los que representan la coordenada Y, y asume que la X son valores de 0 a 9 (o hasta el tamaño de la lista). En general, la siguiente expresión genera un gráfico utilizando los datos de x_data e y_data:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+plt.plot(x_data,y_data)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_plot]: Genera gráfico]
+
+Python no presenta el gráfico directamente al usuario, sino que se mantiene en la memoria hasta que se ejecuta el comando `plt.show()`. Esto se puede utilizar para trabajar con varios gráficos al mismo tiempo y presentarlos todos a la vez con un solo comando.
+
+Los gráficos en matplotlib residen dentro del objeto `Figure`. Este objeto se utiliza para representar un gráfico, pero también permite la subdivisión para múltiples gráficos. Para obtener una referencia al objeto general, se puede ejecutar `fig = plt.figure()`, que retorna dicha referencia. Una vez obtenida la referencia, se puede subdividir la figura con `fig.add_subplot(X,Y,1)`, que divide la figura en X filas e Y columnas. No obstante, matplotlib presenta un método directo para generar figuras y subfiguras.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+fig, axes = plt.subplots(X,Y)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_figure]: Generar figuras y subfiguras]
+
+`subplots` retorna una referencia a la figura en general (`fig`) y un `ndarray` bidimensional (X filas e Y columnas) con referencias a cada subfigura (`axes`). Una vez obtenida una referencia para cada subfigura, se puede proceder a dibujar en cada una con el método `plot()`. Nótese que, al ser un `ndarray`, `axes` puede indexarse fácilmente por coordenadas. Así, se accede a la subfigura en la primera fila y segunda columna a través de `axes[0,1]`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x_data1 = np.arange(0,10)
+x_data2 = np.arange(-10,0)
+y_data1 = np.random.randint(10,size=(10))
+y_data2 = y_data1 * 2
+fig, axes = plt.subplots(1,2)
+#preparar subfigura1
+axes[0].set_xlim([-1,11])
+axes[0].plot(x_data1,y_data1)
+#preparar subfigura2
+axes[1].set_xlim([-11,1])
+axes[1].plot(x_data2,y_data2)
+#mostrar ambas figuras
+fig.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_subfigure]: Creación de gráficos en distintas subfiguras]
+
+Listing [matplotlib_subfigure] muestra un ejemplo de cómo trabajar con varias subfiguras, y produce el siguiente gráfico.
+
+![Figure [res/004_001]: Gráfico generado](res/004_001.png width="300px")
+
+matplotlib tiene una colección extensa de métodos para configurar cada gráfico como el rango de valores de cada eje, el espacio entre figuras, los colores a utilizar,... Se puede consultar la [API](https://matplotlib.org/api/pyplot_api.html) para obtener más información.
+
+Sin embargo, es una documentación muy extensa, por lo que se recomienda visitar antes la página de ejemplos de figuras para descubrir cómo realizar gráficos de distintos tipos desde [aquí](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html).
+
+Múltiples gráficos
+--------------------------------------------------------------
+
+Tanto el método general `plt.plot()` como el que reside en figuras y subfiguras aceptan varios argumentos que afectan a cómo se representa la información. Entre los más utilizados se encuentran `plt.plot(x, y, style, label, linewidth=1, alpha=1)`
+
+- `style`, string que define el estilo con el que dibujar los datos. Sigue la forma '[color][marcador][línea]'', en la que cada opción se define como en Table [matplotlib_color], Table [matplotlib_marker] y Table [matplotlib_line]. Un ejemplo es 'ro-'' para marcadores circulares, rojos con líneas continuas
+- `label`, utilizado en la leyenda como referencia al gráfico actual
+- `linewidth`, ancho de la línea al dibujar
+- `alpha`, nivel de opacidad. Se puede utilizar para dar transparencia a la figura
+
+| Color | Descripción |
+|:------|:------------|
+| b | blue |
+| g | green |
+| r | red |
+| c | cyan |
+| m | magenta |
+| y | yellow |
+| k | black |
+| w | white |
+[Table [matplotlib_color]: Estilo de color]
+
+| Marcador | Descripción |
+|:------|:------------|
+| . | point marker |
+| , | pixel marker |
+| o | circle marker |
+| v | triangle_down marker |
+| ^ | triangle_up marker |
+| < | triangle_left marker |
+| > | triangle_right marker |
+| 1 | tri_down marker |
+| 2 | tri_up marker |
+| 3 | tri_left marker |
+| 4 | tri_right marker |
+| s | square marker |
+| p | pentagon marker |
+| * | star marker |
+| h | hexagon1 marker |
+| H | hexagon2 marker |
+| + | plus marker |
+| x | x marker |
+| D | diamond marker |
+| d | thin_diamond marker |
+| `|` | vline marker |
+| _ | hline marker |
+[Table [matplotlib_marker]: Estilo de marcador]
+
+| Línea | Descripción |
+|:------|:------------|
+| - | solid line style |
+| -- | dashed line style |
+| -. | dash-dot line style |
+| : | dotted line style |
+[Table [matplotlib_line]: Estilo de líneas]
+
+Para más información sobre el método `plot()` y sus argumentos se puede consultar la [documentación])(https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html).
+
+En ocasiones es importante representar más de un gráfico dentro de una misma figura, por ejemplo, para comparar dos tendencias o múltiples alternativas. Para ello, podemos hacer más de una llamada a la función `plot()` en la misma figura o subfigura. Para ayudar a la visualización de elementos distintos, cada llamada puede tener diferentes parámetros de `style` y `label`. Cuando se tiene más de un gráfico en una figura, tradicionalmente se añade una leyenda que nombre cada uno de ellos. Para mostrar la leyenda, se utiliza el método `legend(loc='best')`, bien el general a través de `plt.legend` o en la figura o subfigura.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+x_data = np.arange(10)
+y_data1 = np.random.randint(10,size=(10))
+y_data2 = np.random.randint(10,size=(10))
+fig, axes = plt.subplots(1) #solo solicitamos una figura
+axes.plot(x_data,y_data1,'bx-',label='Blue line')
+axes.plot(x_data,y_data2,'rx-',label='Red line')
+axes.legend(loc='best')
+fig.show()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_two]: Dos gráficos dentro de la misma figura]
+
+Los dos gráficos residen dentro de la misma figura y se incluye una leyenda.
+
+![Figure [res/004_002]: Gráfico generado](res/004_002.png width="300px")
+
+Decoraciones y anotaciones
+--------------------------------------------------------------
+
+Además de poder definir el estilo del gráfico en la función `plot()`, matplotlib ofrece un conjunto de métodos decoradores que ayudan a modificar el aspecto de la figura. Desde cambiar los límites representados en el gráfico, hasta añadir títulos, hay una gran colección de métodos tanto a través de `plt` como en la clase `Axes`.  Siguiendo el estilo de programación orientada a objetos, puede decorarse cada subfigura a través del objeto `axes` (como hasta ahora). Algunos de los decoradores más habituales son:
+
+- `axes.set_xticks(<lista>)` y `set_yticks(<lista>)` definen explícitamente qué números aparecen escritos en los ejes X e Y
+- `axes.set_title('titulo')` establece el título general de la subfigura
+- `axes.set_xlabel('label')` y `set_ylabel('label')` establecen el nombre para cada eje
+
+Más información sobre decoradores [aquí](https://matplotlib.org/api/axes_api.html#plotting).
+
+A través de anotaciones se puede añadir texto y otros dibujos a los gráficos. Se puede añadir texto directamente en las coordenadas (x,y) con el método `axes.text(x,y,'texto')`. Para facilitar las anotaciones, matplotlib ofrece el método `axes.annotate()`, que permite no solo añadir texto, sino incluir flechas. La forma general del método es la siguiente
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+annotate(texto, xy, xytext, xycoords, arrowprops)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_annotate]: Anotaciones en matplotlib]
+
+`texto` es el string que se quiere representar, `xy` son las coordenadas (tupla) en las que se desea poner la anotación, `xytext` son las coordenadas (tupla) donde se escribe el texto, `xycoords` define el sistema de coordenadas en el cual `xy` está expresado, `arrowprops` es un diccionario que define el tipo y estilo de flecha utilizado.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+ax.annotate('resaltar', xy=(2, 1), xytext=(3, 1.5), arrowprops = dict(facecolor='black', shrink=0.05))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_annotate2]: Anotación en matplotlib]
+
+![Figure [res/004_003]: Gráfico generado](res/004_003.png width="300px")
+
+Más información y ejemplos de anotaciones [aquí](https://matplotlib.org/users/annotations.html).
+
+Tipos de gráficos
+--------------------------------------------------------------
+
+matplotlib incluye funciones específicas para representar la información de distintas formas, como scatter plot, histograma, diagrama de pastel, gráfico con errores, etc. En este curso se usa la interfaz de pandas para elegir el tipo de gráfico para abstraernos de los detalles de bajo nivel. No obstante, este [enlace](https://matplotlib.org/api/axes_api.html#plotting) ofrece información de cómo utilizar matplotlib para este fin.
+
+Grabación de gráficos a archivo
+--------------------------------------------------------------
+
+Una vez producida la figura (individual o múltiple), `plt.savefig(<filename>)` la guarda en el disco duro.  `<filename>` indica al mismo tiempo el directorio de destino, el nombre del archivo a utilizar y la extensión.
+
+matplotlib puede deducir el formato de la imagen con la extensión de `<filename>`, pero se puede forzar con el parámetro `format`, que acepta una string con el nombre de la extensión (matplotlib da soporte a una multitud de formatos, entre los que destacan jpg, png para imágenes de píxeles y svg, eps y pdf para imágenes vectoriales).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+plt.savefig(<filename>,dpi=None, facecolor='w', edgecolor='w', format=None, bbox_inches=None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_savefig]: Forma general de la función para guardar imagen]
+
+- `<filename>` indica el directorio, archivo y extensión para guardar la imagen
+- `dpi`, del inglés `dots per inch`, determina la resolución de la imagen (siendo 300 buena calidad)
+- `facecolor` y `edgecolor` son los colores a utilizar de fondo y en los bordes (blanco, white 'w', por defecto)
+- `format` es el string que indica el formato de la imagen ('pdf', 'png', 'svg', 'eps')
+- `bbox_inches`, del inglés `bounding box`, indica el tamaño del marco a considerar alrededor del gráfico
+
+Representación con pandas
+--------------------------------------------------------------
+
+matplotlib es una librería muy versátil y potente para la producción de gráficos de muchos tipos, No solo para la representación de datos, sino también para la creación de diagramas y esquemas. Sin embargo, requiere conocimiento de una gran cantidad de funciones, con multitud de parámetros que pueden resultar complejos para el usuario medio.
+
+Para disminuir la dificultad en la representación gráfica de datos, pandas ofrece una interfaz para la creación de gráficos a partir de objetos `Series` y `DataFrames`. Para ello, ambos objetos tienen un método `plot()` que utiliza matplotlib para visualizar los datos.
+
+Por defecto, en una `Serie` o `DataFrame`:
+
+- El índice se utiliza como coordenada en el eje X
+- La lista de valores en una serie, o cada columna en un frame, describen una línea del gráfico (cada valor se utiliza como coordenada en el eje Y)
+- En `frames`, el nombre de la columna determina la referencia en la leyenda
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+rand_matrix = np.random.randint(30,size=(10,3))
+frame = pd.DataFrame(rand_matrix , columns=list('ABC'))
+frame.plot()
+plt.show()          # aún es necesario llamar a show() para mostrar los gráficos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_pandas]: Interfaz gráfica de pandas]
+
+![Figure [res/004_004]: Gráfico generado](res/004_004.png width="300px")
+
+Como en matplotlib, se pueden pasar argumentos a la función `plot()` para refinar el resultado de la figura.
+Los parámetros más utilizados son:
+
+- `(Series) label`, referencia a utilizar en la leyenda
+- `ax`, subfigura en matplotlib en la que dibujar los datos (útil cuando se trabaja con múltiples subfiguras)
+- `style`. string que define el estilo de la línea
+- `kind`, tipo de gráfico a representar (‘bar’, ‘pie’, ‘hist’, ‘area’ ‘line’, ‘barh’, ‘density’, ‘kde’)
+- `use_index`, bool que determina si utilizar el índice en los ticks del eje X
+- `xticks`, `yticks`, valores explícitos en los ejes X e Y
+- `title`, string a utilizar como título de la figura
+- `(DataFrame) subplots`, bool para indicar si se desean subfiguras separadas para cada columna.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Python linenumbers
+serie = pd.Series(np.arange(5),index=np.arange(-5,0))
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [matplotlib_serie]: Generación de serie de pandas]
+
+Figure [res/004_005] muestra cinco tipos de gráficos obtenidos variando el parámetro `kind` en la representación de la serie en pandas definida en Listing [matplotlib_serie].
+
+![Figure [res/004_005]: Gráfico generado](res/004_005.png)
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>
